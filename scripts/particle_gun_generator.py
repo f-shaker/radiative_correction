@@ -1,20 +1,20 @@
 import numpy as np
 from math import pi 
 import matplotlib.pyplot as plt
-
+from tqdm import tqdm
 #----------Parameters Definition Start----------
 # SK Fiducial Volume Definition
 #-------------------------------
 FV_R_MIN = 0.
-FV_R_MAX = 1490 #cm 
+FV_R_MAX = 1765 #cm (39.3[OD-diameter] - 4.0[ID-OD-distance])/2 was 1490 #cm 
 FV_PHI_MIN = 0.
 FV_PHI_MAX = 2*pi
-FV_Z_MIN = -1610 #cm
-FV_Z_MAX = 1610 #cm
+FV_Z_MIN = -1870 #cm (41.4[OD-z] - 4)/2  was -1610 #cm
+FV_Z_MAX = 1870 #cm was 1610 #cm
 # Muon Kinematics
 # ---------------- 
 #maximum energy available for the muon + gamma
-MU_EN_MAX = 1000 #MeV
+#MU_EN_MAX = 1000 #MeV
 MU_EN_MIN = 105 #MeV rest mass of muon
 # MC Sampling
 #-------------
@@ -33,8 +33,8 @@ def plot_3D_cartesian(xs, ys, zs, plt_name):
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    plt.show() 
-    #plt.savefig(plot_output_dir+plt_name+'.png')
+    #plt.show() 
+    plt.savefig(plot_dir+plt_name+'.png')
 
 def plot_1D_pdf_hist(xs, nb_bins_or_edges=50, var_name='x', plt_name='hist_plot'):
     fig, ax = plt.subplots()
@@ -89,28 +89,47 @@ def mc_sample_pdf_hist(pfd_file=None, val_array=None, x_min=0, x_max=1.0, nb_bin
     
     mc_val = np.array([], dtype=np.float32)
     #read the pdf
-    if pfd_file == None or val_array == None:
+    if pfd_file == None:
         print("Please specify pdf_file or val_array")
         exit()
     else:
-        npzfile = np.load(pfd_file)
-        vals = npzfile[val_array]
-        hist, bin_edges = np.histogram(a=vals, bins=nb_bins_or_edges, density=True)
-       
-        for _ in range(num_samples):
-            valid_throw = False
-            while valid_throw != True:    
-                #create a random MC throw
-                x = np.random.uniform(x_min, min(x_max, bin_edges[-1]))
-                y = np.random.uniform(0.0, 1.0)
-                #find index of the thwown x in the hist bin edge, the 'right' option take care of the bin conversion [val1 "included", val2 "not included)
-                #-1 return the current bin index
-                id_x = np.searchsorted(a=bin_edges, v=x, side='right') -1
-                pdf_y = hist[id_x]
-                if y <= pdf_y:
-                    #accept the thow
-                    valid_throw = True
-                    mc_val = np.append(mc_val, x)
+        #check type of the input file
+        if pfd_file.endswith('.npz') and val_array!= None:
+            npzfile = np.load(pfd_file)
+            vals = npzfile[val_array]
+        elif pfd_file.endswith('txt'):
+            vals = np.loadtxt(pfd_file)
+        else:
+            print("Unsupported pdf file format. Please provide a .txt or a .npz file")
+            exit()
+        
+    hist, bin_edges = np.histogram(a=vals, bins=nb_bins_or_edges, density=True)
+    print("Monte-Carlo Sampling in Progress..")   
+    for _ in tqdm(range(num_samples)):
+        valid_throw = False
+        while valid_throw != True:    
+            #create a random MC throw
+            x = np.random.uniform(x_min, min(x_max, bin_edges[-1]))
+            y = np.random.uniform(0.0, 1.0)
+            #find index of the thwown x in the hist bin edge, the 'right' option take care of the bin conversion [val1 "included", val2 "not included)
+            #-1 return the current bin index
+            id_x = np.searchsorted(a=bin_edges, v=x, side='right') -1
+            pdf_y = hist[id_x]
+            if y <= pdf_y:
+                #accept the thow
+                valid_throw = True
+                mc_val = np.append(mc_val, x)
+    
+    #plot asuperimposed plot for the input pdf and the sampled pdf
+    plt.figure(figsize=(12.8,9.6))
+    plt.hist(vals, bins=nb_bins_or_edges, alpha=0.5, density=True,label="ip_pdf")
+    plt.hist(mc_val, bins=nb_bins_or_edges, alpha=0.5, density=True, label="sampled_pdf")
+    plt.xlabel("var [a.u.]", size=14)
+    plt.ylabel("PDF", size=14)
+    plt.title("Input PDF and Sampled PDF")
+    plt.legend(loc='upper right')
+    plt.savefig(plot_dir+"pdf_sup.png")
+
     return mc_val
 #------------------------------------------------------------------------------
 # Particle Gun generator
@@ -132,13 +151,15 @@ def generate_radiative_corr_particle_gun(nb_events, file_name):
     vertex_t = 0 
     #mu
     mu_dir = random_3d_unit_vector(nb_events)
-    mu_init_total_en = random_mu_en(nb_events) #total energy available for the initial muon before emmetting the gamma 
+    #mu_init_total_en = random_mu_en(nb_events) #total energy available for the initial muon before emmetting the gamma
+    bin_edge_mu =np.arange(100., 5000., 10. ) 
+    mu_init_total_en = mc_sample_pdf_hist(pfd_file=temp_output_dir+'mu_mom.txt', x_min=100., x_max=5000.0, nb_bins_or_edges=bin_edge_mu, num_samples=nb_events)
     gamma_total_en = np.array( [random_gamma_en(mu_en) for mu_en in mu_init_total_en], dtype=np.float32) #distrobute the available energy uniformly between gamma and muon 
     mu_total_en = mu_init_total_en - gamma_total_en
     #gamma    
     gamma_dir = random_3d_unit_vector(nb_events)
-
-    for i in range(nb_events):           
+    print("Writing NUANCE particle gun file ({}) ..".format(file_name))
+    for i in tqdm(range(nb_events)):           
         vertex_str = "$ vertex "+ str(vertex_pos[i,0]) + " " + str(vertex_pos[i,1]) + " " + str(vertex_pos[i,2]) + " " + str(vertex_t) + " \n"
         mu_track = "$ track "+ str(mu_pdg) + " " + str(mu_total_en[i]) + " " + str(mu_dir[i,0]) + " " + str(mu_dir[i,1]) + " "+ str(mu_dir[i,2])\
                    + " " + str(final_state_code) + "\n"       
@@ -161,36 +182,37 @@ vec_arr = random_3d_unit_vector(NB_SAMPLES)
 vec_xs = vec_arr[:, 0]
 vec_ys = vec_arr[:, 1]
 vec_zs = vec_arr[:, 2]
-plot_3D_cartesian(vec_xs, vec_ys, vec_zs, 'random_unit_vec_3D.png')
+plot_3D_cartesian(vec_xs, vec_ys, vec_zs, 'random_unit_vec_3D')
 
 # Test plot_3D_cartesian
 pt_arr = random_point_from_cylinder(FV_R_MIN, FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, NB_SAMPLES)
 pt_xs = pt_arr[:, 0]
 pt_ys = pt_arr[:, 1]
 pt_zs = pt_arr[:, 2]
-plot_3D_cartesian(pt_xs, pt_ys, pt_zs, 'random_points_cylinder_3D.png')
+plot_3D_cartesian(pt_xs, pt_ys, pt_zs, 'random_points_cylinder_3D')
 
 # Test mc_sample_pdf_hist
 bin_edge_dummy = np.arange(10)
-
+#bin_edge_mu =np.arange(100., 5000., 10. )
 def generate_dummy_pdf():
-    pdf_file = open(temp_output_dir+'dummy_pdf', 'wb')
+    pdf_file = open(temp_output_dir+'dummy_pdf.npz', 'wb')
     mu_en = np.random.lognormal(mean=0.0, sigma=1.0, size= 100000)
     np.savez(pdf_file, mu_en_arr=mu_en) 
 
 def read_dummy_pdf():
-    npzfile = np.load(temp_output_dir+'dummy_pdf')
+    npzfile = np.load(temp_output_dir+'dummy_pdf.npz')
     mu_en_read = npzfile['mu_en_arr']
     #print(npzfile.files)
     plot_1D_pdf_hist(xs=mu_en_read, nb_bins_or_edges=bin_edge_dummy, var_name='$E_\mu$', plt_name='mu_en_pdf')
 
-generate_dummy_pdf()
-read_dummy_pdf()
+#generate_dummy_pdf()
+#read_dummy_pdf()
 #val = mc_sample_pdf_hist(pfd_file='dummy_pdf', val_array='mu_en_arr', x_min=0.0, x_max=60.0, num_samples=10)
-val = mc_sample_pdf_hist(pfd_file=temp_output_dir+'dummy_pdf', val_array='mu_en_arr', x_min=0., x_max=60.0, nb_bins_or_edges=bin_edge_dummy, num_samples=10000)
-plot_1D_pdf_hist(xs=val, nb_bins_or_edges=bin_edge_dummy, var_name='$E_\mu$', plt_name='mu_en_pdf_gen')
+#val = mc_sample_pdf_hist(pfd_file=temp_output_dir+'dummy_pdf', val_array='mu_en_arr', x_min=0., x_max=60.0, nb_bins_or_edges=bin_edge_dummy, num_samples=10000)
+#val = mc_sample_pdf_hist(pfd_file=temp_output_dir+'mu_mom.txt', val_array='mu_en_arr', x_min=100., x_max=5000.0, nb_bins_or_edges=bin_edge_mu, num_samples=NB_SAMPLES)
+#plot_1D_pdf_hist(xs=val, nb_bins_or_edges=bin_edge_mu, var_name='$E_\mu$', plt_name='mu_en_pdf_gen')
 
 # Test generate_radiative_corr_particle_gun
-generate_radiative_corr_particle_gun(100, temp_output_dir+'test.txt')
+generate_radiative_corr_particle_gun(NB_SAMPLES, temp_output_dir+'pg_mu_ID_10e4.txt')
 
     

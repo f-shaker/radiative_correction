@@ -1,0 +1,5 @@
+# ignore temp_output folder content
+**/temp_output
+
+#ignore plots folder content
+**/plots
