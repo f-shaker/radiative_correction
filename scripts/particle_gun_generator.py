@@ -21,8 +21,8 @@ MU_EN_MIN = 105 #MeV rest mass of muon
 NB_SAMPLES = 10000
 np.random.seed(19680801)
 #----------Parameters Definition END----------
-
-
+plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/"
+temp_output_dir = "/home/fshaker/t2k/radiative-correction/analysis/temp_output/"
 #------------------------------------------------------------------------------
 #plotting functionality
 #------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ def plot_3D_cartesian(xs, ys, zs, plt_name):
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
     plt.show() 
-    #plt.savefig(plt_name)
+    #plt.savefig(plot_output_dir+plt_name+'.png')
 
 def plot_1D_pdf_hist(xs, nb_bins_or_edges=50, var_name='x', plt_name='hist_plot'):
     fig, ax = plt.subplots()
@@ -44,7 +44,7 @@ def plot_1D_pdf_hist(xs, nb_bins_or_edges=50, var_name='x', plt_name='hist_plot'
     # Tweak spacing to prevent clipping of ylabel
     fig.tight_layout()
     #plt.show()
-    plt.savefig(plt_name+'.png')
+    plt.savefig(plot_dir+plt_name+'.png')
 #------------------------------------------------------------------------------
 # Random Generators
 #------------------------------------------------------------------------------
@@ -174,12 +174,12 @@ plot_3D_cartesian(pt_xs, pt_ys, pt_zs, 'random_points_cylinder_3D.png')
 bin_edge_dummy = np.arange(10)
 
 def generate_dummy_pdf():
-    pdf_file = open('dummy_pdf', 'wb')
+    pdf_file = open(temp_output_dir+'dummy_pdf', 'wb')
     mu_en = np.random.lognormal(mean=0.0, sigma=1.0, size= 100000)
     np.savez(pdf_file, mu_en_arr=mu_en) 
 
 def read_dummy_pdf():
-    npzfile = np.load('dummy_pdf')
+    npzfile = np.load(temp_output_dir+'dummy_pdf')
     mu_en_read = npzfile['mu_en_arr']
     #print(npzfile.files)
     plot_1D_pdf_hist(xs=mu_en_read, nb_bins_or_edges=bin_edge_dummy, var_name='$E_\mu$', plt_name='mu_en_pdf')
@@ -187,10 +187,10 @@ def read_dummy_pdf():
 generate_dummy_pdf()
 read_dummy_pdf()
 #val = mc_sample_pdf_hist(pfd_file='dummy_pdf', val_array='mu_en_arr', x_min=0.0, x_max=60.0, num_samples=10)
-val = mc_sample_pdf_hist(pfd_file='dummy_pdf', val_array='mu_en_arr', x_min=0., x_max=60.0, nb_bins_or_edges=bin_edge_dummy, num_samples=10000)
+val = mc_sample_pdf_hist(pfd_file=temp_output_dir+'dummy_pdf', val_array='mu_en_arr', x_min=0., x_max=60.0, nb_bins_or_edges=bin_edge_dummy, num_samples=10000)
 plot_1D_pdf_hist(xs=val, nb_bins_or_edges=bin_edge_dummy, var_name='$E_\mu$', plt_name='mu_en_pdf_gen')
 
 # Test generate_radiative_corr_particle_gun
-generate_radiative_corr_particle_gun(100, 'test.txt')
+generate_radiative_corr_particle_gun(100, temp_output_dir+'test.txt')
 
     
