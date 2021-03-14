@@ -231,13 +231,13 @@ def generate_radiative_corr_particle_gun(nb_events, file_name, plot_dist=False):
     #Optional plotting of the generated kinematics
     if plot_dist == True:
         # vertex position
-        plot_3D_cartesian(vertex_pos[:,0], vertex_pos[:,1], vertex_pos[:,1], 'vertex_3D_pos_dist')
+        plot_3D_cartesian(vertex_pos[:,0], vertex_pos[:,1], vertex_pos[:,2], 'vertex_3D_pos_dist')
         plot_1D_pdf_hist(vertex_pos[:,0], nb_bins_or_edges=50, var_name='$x_v$', plt_name='vertex_x_dist')
         plot_1D_pdf_hist(vertex_pos[:,1], nb_bins_or_edges=50, var_name='$y_v$', plt_name='vertex_y_dist')
         plot_1D_pdf_hist(vertex_pos[:,2], nb_bins_or_edges=50, var_name='$z_v$', plt_name='vertex_z_dist')
 
         # muon kinematics
-        plot_3D_cartesian(mu_dir[:,0], mu_dir[:,1], mu_dir[:,1], 'mu_3D_dir_dist')
+        plot_3D_cartesian(mu_dir[:,0], mu_dir[:,1], mu_dir[:,2], 'mu_3D_dir_dist')
         plot_1D_pdf_hist(mu_dir[:,0], nb_bins_or_edges=50, var_name='$x_\mu$', plt_name='mu_dir_x_dist')
         plot_1D_pdf_hist(mu_dir[:,1], nb_bins_or_edges=50, var_name='$y_\mu$', plt_name='mu_dir_y_dist')
         plot_1D_pdf_hist(mu_dir[:,2], nb_bins_or_edges=50, var_name='$z_\mu$', plt_name='mu_dir_z_dist')
@@ -246,7 +246,7 @@ def generate_radiative_corr_particle_gun(nb_events, file_name, plot_dist=False):
 
 
         # gamma kinematics
-        plot_3D_cartesian(gamma_dir[:,0], gamma_dir[:,1], gamma_dir[:,1], 'mu_3D_dir_dist')
+        plot_3D_cartesian(gamma_dir[:,0], gamma_dir[:,1], gamma_dir[:,2], 'gamma_3D_dir_dist')
         plot_1D_pdf_hist(gamma_dir[:,0], nb_bins_or_edges=50, var_name='$x_\gamma$', plt_name='gamma_dir_x_dist')
         plot_1D_pdf_hist(gamma_dir[:,1], nb_bins_or_edges=50, var_name='$y_\gamma$', plt_name='gamma_dir_y_dist')
         plot_1D_pdf_hist(gamma_dir[:,2], nb_bins_or_edges=50, var_name='$z_\gamma$', plt_name='gamma_dir_z_dist')
