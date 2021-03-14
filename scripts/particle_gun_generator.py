@@ -33,8 +33,8 @@ def plot_3D_cartesian(xs, ys, zs, plt_name):
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    #plt.show() 
     plt.savefig(plot_dir+plt_name+'.png')
+    #plt.show() 
 
 def plot_1D_pdf_hist(xs, nb_bins_or_edges=50, var_name='x', plt_name='hist_plot'):
     fig, ax = plt.subplots()
@@ -43,12 +43,12 @@ def plot_1D_pdf_hist(xs, nb_bins_or_edges=50, var_name='x', plt_name='hist_plot'
     ax.set_ylabel('Probability density')
     # Tweak spacing to prevent clipping of ylabel
     fig.tight_layout()
-    #plt.show()
     plt.savefig(plot_dir+plt_name+'.png')
+    #plt.show()
 #------------------------------------------------------------------------------
 # Random Generators
 #------------------------------------------------------------------------------
-def random_3d_unit_vector(nb_samples=1):
+def random_3d_unit_vector_wrong(nb_samples=1):
     """
     Generates a 2D array where each row is a unit vector pointing to a uniformly random direction in 3D
     """
@@ -60,14 +60,68 @@ def random_3d_unit_vector(nb_samples=1):
     
     return np.column_stack((x, y, z))
 
-def random_point_from_cylinder(fv_r_min, fv_r_max, fv_phi_min, fv_phi_max, fv_z_min, fv_z_max, nb_samples=1):
-    r = np.random.uniform(fv_r_min, fv_r_max, nb_samples)
+def random_3d_unit_vector(nb_samples=1):
+    """
+    Generates a 2D array where each row is a unit vector pointing to a uniformly random direction in 3D
+    uniform distribution on S2 => area elemement dOmega = sin(theta) dtheta dphi = -dCos(theta) dphi
+    """
+    cos_theta = np.random.uniform(-1., 1., nb_samples) 
+    phi = np.random.uniform(0, 2*pi, nb_samples)
+    #x = np.sin(theta) * np.cos(phi)
+    x = np.sqrt(np.ones(shape=cos_theta.shape) - np.square(cos_theta)) * np.cos(phi) #sin_theta = sqrt(1-cos_theta^2)
+    #y = np.sin(theta) * np.sin(phi)
+    y = np.sqrt(np.ones(shape=cos_theta.shape) - np.square(cos_theta)) * np.sin(phi) 
+    #z = np.cos(theta)
+    z = cos_theta
+    
+    return np.column_stack((x, y, z))
+
+def random_point_from_cylinder_wrong(fv_r_max, fv_phi_min, fv_phi_max, fv_z_min, fv_z_max, nb_samples=1):
+    r = np.random.uniform(0.0, fv_r_max, nb_samples)
     phi = np.random.uniform(fv_phi_min, fv_phi_max, nb_samples)    
     z = np.random.uniform(fv_z_min, fv_z_max, nb_samples)
 
     x = r * np.cos(phi)
     y = r * np.sin(phi)
 
+    return np.column_stack((x,y,z))
+
+def random_point_from_cylinder(fv_r_max, fv_phi_min, fv_phi_max, fv_z_min, fv_z_max, nb_samples=1):
+    """
+    The volume element dv = r dphi dz dr => dv is function in r, dv = dphi * dz * 0.5 d_r^2 
+    """
+    #r = np.random.uniform(0.0, fv_r_max, nb_samples)
+    r_square = np.random.uniform(0.0, fv_r_max*fv_r_max, nb_samples)
+    phi = np.random.uniform(fv_phi_min, fv_phi_max, nb_samples)    
+    z = np.random.uniform(fv_z_min, fv_z_max, nb_samples)
+
+    r = np.sqrt(r_square) 
+ 
+    x = r * np.cos(phi) 
+    y = r * np.sin(phi) 
+
+    return np.column_stack((x,y,z))
+
+def random_point_from_cylinder_simple(fv_r_max, fv_phi_min, fv_phi_max, fv_z_min, fv_z_max, nb_samples=1):
+    """
+    a simple sampling in 3D using cartesian coordinates and rejection points outside the cylinder
+    """
+
+    x = np.array([], dtype=np.float32)
+    y = np.array([], dtype=np.float32)
+    #throw a random x,y
+    sample_cnt = 0
+    while sample_cnt < nb_samples: 
+        x_th = np.random.uniform(-fv_r_max,fv_r_max)
+        y_th = np.random.uniform(-fv_r_max, fv_r_max)
+        r_th = np.sqrt(x_th * x_th + y_th * y_th)
+        if 0.0 <= r_th <=fv_r_max :
+            #accepted throw
+            x = np.append(x, x_th)
+            y = np.append(y, y_th)
+            sample_cnt = sample_cnt + 1
+
+    z = np.random.uniform(fv_z_min, fv_z_max, nb_samples)   
     return np.column_stack((x,y,z))
 
 def random_mu_en(nb_samples=1):
@@ -122,8 +176,8 @@ def mc_sample_pdf_hist(pfd_file=None, val_array=None, x_min=0, x_max=1.0, nb_bin
     
     #plot asuperimposed plot for the input pdf and the sampled pdf
     plt.figure(figsize=(12.8,9.6))
-    plt.hist(vals, bins=nb_bins_or_edges, alpha=0.5, density=True,label="ip_pdf")
-    plt.hist(mc_val, bins=nb_bins_or_edges, alpha=0.5, density=True, label="sampled_pdf")
+    plt.hist(vals, bins=nb_bins_or_edges, alpha=0.25, density=True,label="ip_pdf")
+    plt.hist(mc_val, bins=nb_bins_or_edges, alpha=0.25, density=True, label="sampled_pdf")
     plt.xlabel("var [a.u.]", size=14)
     plt.ylabel("PDF", size=14)
     plt.title("Input PDF and Sampled PDF")
@@ -134,7 +188,7 @@ def mc_sample_pdf_hist(pfd_file=None, val_array=None, x_min=0, x_max=1.0, nb_bin
 #------------------------------------------------------------------------------
 # Particle Gun generator
 #------------------------------------------------------------------------------
-def generate_radiative_corr_particle_gun(nb_events, file_name):
+def generate_radiative_corr_particle_gun(nb_events, file_name, plot_dist=False):
     
     pg_file = open(file_name, 'w')
     
@@ -147,7 +201,7 @@ def generate_radiative_corr_particle_gun(nb_events, file_name):
     gamma_pdg = 22
     final_state_code = 0
     #vertex
-    vertex_pos = random_point_from_cylinder(FV_R_MIN, FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, nb_events)
+    vertex_pos = random_point_from_cylinder(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, nb_events)
     vertex_t = 0 
     #mu
     mu_dir = random_3d_unit_vector(nb_events)
@@ -173,23 +227,84 @@ def generate_radiative_corr_particle_gun(nb_events, file_name):
         pg_file.write(gamma_track)
         pg_file.write(end_str)
 
-    pg_file.write(stop_str)     
+    pg_file.write(stop_str)
+    #Optional plotting of the generated kinematics
+    if plot_dist == True:
+        # vertex position
+        plot_3D_cartesian(vertex_pos[:,0], vertex_pos[:,1], vertex_pos[:,1], 'vertex_3D_pos_dist')
+        plot_1D_pdf_hist(vertex_pos[:,0], nb_bins_or_edges=50, var_name='$x_v$', plt_name='vertex_x_dist')
+        plot_1D_pdf_hist(vertex_pos[:,1], nb_bins_or_edges=50, var_name='$y_v$', plt_name='vertex_y_dist')
+        plot_1D_pdf_hist(vertex_pos[:,2], nb_bins_or_edges=50, var_name='$z_v$', plt_name='vertex_z_dist')
+
+        # muon kinematics
+        plot_3D_cartesian(mu_dir[:,0], mu_dir[:,1], mu_dir[:,1], 'mu_3D_dir_dist')
+        plot_1D_pdf_hist(mu_dir[:,0], nb_bins_or_edges=50, var_name='$x_\mu$', plt_name='mu_dir_x_dist')
+        plot_1D_pdf_hist(mu_dir[:,1], nb_bins_or_edges=50, var_name='$y_\mu$', plt_name='mu_dir_y_dist')
+        plot_1D_pdf_hist(mu_dir[:,2], nb_bins_or_edges=50, var_name='$z_\mu$', plt_name='mu_dir_z_dist')
+
+        plot_1D_pdf_hist(mu_total_en, nb_bins_or_edges=50, var_name='$En_\mu$', plt_name='mu_totalEn_after_em')
+
+
+        # gamma kinematics
+        plot_3D_cartesian(gamma_dir[:,0], gamma_dir[:,1], gamma_dir[:,1], 'mu_3D_dir_dist')
+        plot_1D_pdf_hist(gamma_dir[:,0], nb_bins_or_edges=50, var_name='$x_\gamma$', plt_name='gamma_dir_x_dist')
+        plot_1D_pdf_hist(gamma_dir[:,1], nb_bins_or_edges=50, var_name='$y_\gamma$', plt_name='gamma_dir_y_dist')
+        plot_1D_pdf_hist(gamma_dir[:,2], nb_bins_or_edges=50, var_name='$z_\gamma$', plt_name='gamma_dir_z_dist')
+
+        plot_1D_pdf_hist(gamma_total_en, nb_bins_or_edges=50, var_name='$En_\gamma$', plt_name='gamma_totalEn')
 #------------------------------------------------------------------------------
 # DUMMY TESTING
 #------------------------------------------------------------------------------
-# Test plot_3D_cartesian
+"""
+# Test random_3d_unit_vector
+vec_arr = random_3d_unit_vector_wrong(NB_SAMPLES)
+vec_xs = vec_arr[:, 0]
+vec_ys = vec_arr[:, 1]
+vec_zs = vec_arr[:, 2]
+plot_3D_cartesian(vec_xs, vec_ys, vec_zs, 'random_unit_vec_3D_wrong')
+plot_1D_pdf_hist(vec_xs, nb_bins_or_edges=50, var_name='x', plt_name='rand3d_wrong_x')
+plot_1D_pdf_hist(vec_ys, nb_bins_or_edges=50, var_name='y', plt_name='rand3d_wrong_y')
+plot_1D_pdf_hist(vec_zs, nb_bins_or_edges=50, var_name='z', plt_name='rand3d_wrong_z')
+
+# Test random_3d_unit_vector
 vec_arr = random_3d_unit_vector(NB_SAMPLES)
 vec_xs = vec_arr[:, 0]
 vec_ys = vec_arr[:, 1]
 vec_zs = vec_arr[:, 2]
 plot_3D_cartesian(vec_xs, vec_ys, vec_zs, 'random_unit_vec_3D')
+plot_1D_pdf_hist(vec_xs, nb_bins_or_edges=50, var_name='x', plt_name='rand3d_x')
+plot_1D_pdf_hist(vec_ys, nb_bins_or_edges=50, var_name='y', plt_name='rand3d_y')
+plot_1D_pdf_hist(vec_zs, nb_bins_or_edges=50, var_name='z', plt_name='rand3d_z')
 
-# Test plot_3D_cartesian
-pt_arr = random_point_from_cylinder(FV_R_MIN, FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, NB_SAMPLES)
+# Test random_point_from_cylinder
+pt_arr = random_point_from_cylinder_wrong(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, NB_SAMPLES)
+pt_xs = pt_arr[:, 0]
+pt_ys = pt_arr[:, 1]
+pt_zs = pt_arr[:, 2]
+plot_3D_cartesian(pt_xs, pt_ys, pt_zs, 'random_points_cylinder_3D_wrong')
+plot_1D_pdf_hist(pt_xs, nb_bins_or_edges=50, var_name='x', plt_name='cylinder_wrong_x')
+plot_1D_pdf_hist(pt_ys, nb_bins_or_edges=50, var_name='y', plt_name='cylinder_wrong_y')
+plot_1D_pdf_hist(pt_zs, nb_bins_or_edges=50, var_name='z', plt_name='cylinder_wrong_z')
+
+#Test random_point_from_cylinder
+pt_arr = random_point_from_cylinder(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, NB_SAMPLES)
 pt_xs = pt_arr[:, 0]
 pt_ys = pt_arr[:, 1]
 pt_zs = pt_arr[:, 2]
 plot_3D_cartesian(pt_xs, pt_ys, pt_zs, 'random_points_cylinder_3D')
+plot_1D_pdf_hist(pt_xs, nb_bins_or_edges=50, var_name='x', plt_name='cylinder_x')
+plot_1D_pdf_hist(pt_ys, nb_bins_or_edges=50, var_name='y', plt_name='cylinder_y')
+plot_1D_pdf_hist(pt_zs, nb_bins_or_edges=50, var_name='z', plt_name='cylinder_z')
+
+#Test random_point_from_cylinder
+pt_arr = random_point_from_cylinder_simple(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, NB_SAMPLES)
+pt_xs = pt_arr[:, 0]
+pt_ys = pt_arr[:, 1]
+pt_zs = pt_arr[:, 2]
+plot_3D_cartesian(pt_xs, pt_ys, pt_zs, 'random_points_cylinder_3D_simple')
+plot_1D_pdf_hist(pt_xs, nb_bins_or_edges=50, var_name='x', plt_name='cylinder_simple_x')
+plot_1D_pdf_hist(pt_ys, nb_bins_or_edges=50, var_name='y', plt_name='cylinder_simple_y')
+plot_1D_pdf_hist(pt_zs, nb_bins_or_edges=50, var_name='z', plt_name='cylinder_simple_z')
 
 # Test mc_sample_pdf_hist
 bin_edge_dummy = np.arange(10)
@@ -211,8 +326,6 @@ def read_dummy_pdf():
 #val = mc_sample_pdf_hist(pfd_file=temp_output_dir+'dummy_pdf', val_array='mu_en_arr', x_min=0., x_max=60.0, nb_bins_or_edges=bin_edge_dummy, num_samples=10000)
 #val = mc_sample_pdf_hist(pfd_file=temp_output_dir+'mu_mom.txt', val_array='mu_en_arr', x_min=100., x_max=5000.0, nb_bins_or_edges=bin_edge_mu, num_samples=NB_SAMPLES)
 #plot_1D_pdf_hist(xs=val, nb_bins_or_edges=bin_edge_mu, var_name='$E_\mu$', plt_name='mu_en_pdf_gen')
-
+"""
 # Test generate_radiative_corr_particle_gun
-generate_radiative_corr_particle_gun(NB_SAMPLES, temp_output_dir+'pg_mu_ID_10e4.txt')
-
-    
+generate_radiative_corr_particle_gun(NB_SAMPLES, temp_output_dir+'pg_mu_ID_10e4.txt', plot_dist=True)
