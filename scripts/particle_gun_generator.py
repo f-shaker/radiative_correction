@@ -15,7 +15,7 @@ FV_Z_MAX = 1870 #cm was 1610 #cm
 # ---------------- 
 #maximum energy available for the muon + gamma
 #MU_EN_MAX = 1000 #MeV
-MU_EN_MIN = 105 #MeV rest mass of muon
+MU_EN_MIN = 105.66 #MeV rest mass of muon
 # MC Sampling
 #-------------
 NB_SAMPLES = 10000
@@ -185,6 +185,35 @@ def mc_sample_pdf_hist(pfd_file=None, val_array=None, x_min=0, x_max=1.0, nb_bin
     plt.savefig(plot_dir+"pdf_sup.png")
 
     return mc_val
+
+def generate_gamma_en(lep_mass, lep_init_total_en):
+    #maximum available energy for the gamma = total en - muon rest mass
+    return np.random.uniform(0, lep_init_total_en-lep_mass)
+
+def generate_gamma_dir(nb_events):
+    return random_3d_unit_vector(nb_events)
+
+def conserve_En_momentum_radiative(lep_mass, lep_total_en_init, lep_dir_init):
+    # magnitude of the lepton momentun np.array of shape = (nb_entries,1)
+    lep_mom_mag_init = np.sqrt(lep_total_en_init*lep_total_en_init - lep_mass*lep_mass) # E^2 = P^2 + m^2
+    #convert the 1D np array into a 2D with nb_entry rows x1 column for multiplication preparation
+    lep_mom_mag_init.reshape( (lep_mom_mag_init.size, 1) )
+    lep_total_en_init.reshape( (lep_total_en_init.size, 1) )
+    # lepton momnetum in 3D    
+    lep_mom_init = lep_mom_mag_init * lep_dir_init
+
+    #generate gamma kinematics
+    gamma_en = generate_gamma_en(lep_mass, lep_total_en_init)
+    gamma_en.gamma_en.reshape((gamma_en.size,1))
+    gamma_dir = generate_gamma_dir(gamma_en.size)    
+    gamma_mom = gamma_en * gamma_dir
+
+    #calculate lepton final kinematics
+    lep_en = lep_total_en_init - gamma_en
+    lep_mom = lep_mom_init - gamma_mom
+    lep_dir = lep_mom/np.linalg.norm(lep_mom, ord=2, axis=1) #compute the L2 norm, axis =1 , i.e for each row, sqrt(sum_i(colm_i)^2)
+
+    return lep_en, lep_dir, gamma_en, gamma_dir   
 #------------------------------------------------------------------------------
 # Particle Gun generator
 #------------------------------------------------------------------------------
@@ -204,14 +233,13 @@ def generate_radiative_corr_particle_gun(nb_events, file_name, plot_dist=False):
     vertex_pos = random_point_from_cylinder(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, nb_events)
     vertex_t = 0 
     #mu
-    mu_dir = random_3d_unit_vector(nb_events)
+    mu_int_dir = random_3d_unit_vector(nb_events)
     #mu_init_total_en = random_mu_en(nb_events) #total energy available for the initial muon before emmetting the gamma
     bin_edge_mu =np.arange(100., 5000., 10. ) 
     mu_init_total_en = mc_sample_pdf_hist(pfd_file=temp_output_dir+'mu_mom.txt', x_min=100., x_max=5000.0, nb_bins_or_edges=bin_edge_mu, num_samples=nb_events)
-    gamma_total_en = np.array( [random_gamma_en(mu_en) for mu_en in mu_init_total_en], dtype=np.float32) #distrobute the available energy uniformly between gamma and muon 
-    mu_total_en = mu_init_total_en - gamma_total_en
-    #gamma    
-    gamma_dir = random_3d_unit_vector(nb_events)
+    #generate gamma and conserve En & mom
+    mu_total_en, mu_dir, gamma_total_en, gamma_dir = conserve_En_momentum_radiative(MU_EN_MIN, mu_init_total_en, mu_int_dir):
+    
     print("Writing NUANCE particle gun file ({}) ..".format(file_name))
     for i in tqdm(range(nb_events)):           
         vertex_str = "$ vertex "+ str(vertex_pos[i,0]) + " " + str(vertex_pos[i,1]) + " " + str(vertex_pos[i,2]) + " " + str(vertex_t) + " \n"
