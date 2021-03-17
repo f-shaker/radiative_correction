@@ -13,9 +13,8 @@ FV_Z_MIN = -1870 #cm (41.4[OD-z] - 4)/2  was -1610 #cm
 FV_Z_MAX = 1870 #cm was 1610 #cm
 # Muon Kinematics
 # ---------------- 
-#maximum energy available for the muon + gamma
-#MU_EN_MAX = 1000 #MeV
-MU_EN_MIN = 105.66 #MeV rest mass of muon
+MU_REST_MASS = 105.66 #MeV rest mass of muon 
+ELEC_REST_MASS = 0.511 #MeV rest mass of the electron
 # MC Sampling
 #-------------
 NB_SAMPLES = 10000
@@ -48,18 +47,6 @@ def plot_1D_pdf_hist(xs, nb_bins_or_edges=50, var_name='x', plt_name='hist_plot'
 #------------------------------------------------------------------------------
 # Random Generators
 #------------------------------------------------------------------------------
-def random_3d_unit_vector_wrong(nb_samples=1):
-    """
-    Generates a 2D array where each row is a unit vector pointing to a uniformly random direction in 3D
-    """
-    theta = np.random.uniform(0, pi, nb_samples)
-    phi = np.random.uniform(0, 2*pi, nb_samples)
-    x = np.sin(theta) * np.cos(phi)
-    y = np.sin(theta) * np.sin(phi)
-    z = np.cos(theta)
-    
-    return np.column_stack((x, y, z))
-
 def random_3d_unit_vector(nb_samples=1):
     """
     Generates a 2D array where each row is a unit vector pointing to a uniformly random direction in 3D
@@ -75,16 +62,6 @@ def random_3d_unit_vector(nb_samples=1):
     z = cos_theta
     
     return np.column_stack((x, y, z))
-
-def random_point_from_cylinder_wrong(fv_r_max, fv_phi_min, fv_phi_max, fv_z_min, fv_z_max, nb_samples=1):
-    r = np.random.uniform(0.0, fv_r_max, nb_samples)
-    phi = np.random.uniform(fv_phi_min, fv_phi_max, nb_samples)    
-    z = np.random.uniform(fv_z_min, fv_z_max, nb_samples)
-
-    x = r * np.cos(phi)
-    y = r * np.sin(phi)
-
-    return np.column_stack((x,y,z))
 
 def random_point_from_cylinder(fv_r_max, fv_phi_min, fv_phi_max, fv_z_min, fv_z_max, nb_samples=1):
     """
@@ -124,22 +101,18 @@ def random_point_from_cylinder_simple(fv_r_max, fv_phi_min, fv_phi_max, fv_z_min
     z = np.random.uniform(fv_z_min, fv_z_max, nb_samples)   
     return np.column_stack((x,y,z))
 
-def random_mu_en(nb_samples=1):
-    """
-    returns a random sample of the muon energy according to a uniform distribution
-    #FIXME muon energy is not uniformly distributed!!
-    """
-
-    return np.random.uniform(MU_EN_MIN, MU_EN_MAX, nb_samples)
-
 def random_gamma_en(mu_en):
     """
     uniformly distribute the avialble energy between a gamma and a muon
     """
     #maximum available energy for the gamma = total en - muon rest mass
-    return np.random.uniform(0, mu_en-MU_EN_MIN)
+    return np.random.uniform(0, mu_en-MU_REST_MASS)
 
 def mc_sample_pdf_hist(pfd_file=None, val_array=None, x_min=0, x_max=1.0, nb_bins_or_edges= 5, num_samples=1):
+    """
+    Monte-Carlo sampling from a 1D histogram. The histogram is built from either a txt file, where each line contains 1 value,
+    or from an array saved in a .npz file
+    """
     
     mc_val = np.array([], dtype=np.float32)
     #read the pdf
@@ -197,21 +170,23 @@ def conserve_En_momentum_radiative(lep_mass, lep_total_en_init, lep_dir_init):
     # magnitude of the lepton momentun np.array of shape = (nb_entries,1)
     lep_mom_mag_init = np.sqrt(lep_total_en_init*lep_total_en_init - lep_mass*lep_mass) # E^2 = P^2 + m^2
     #convert the 1D np array into a 2D with nb_entry rows x1 column for multiplication preparation
-    lep_mom_mag_init.reshape( (lep_mom_mag_init.size, 1) )
-    lep_total_en_init.reshape( (lep_total_en_init.size, 1) )
+    lep_mom_mag_init = lep_mom_mag_init.reshape( (lep_mom_mag_init.size, 1) )
+    lep_total_en_init = lep_total_en_init.reshape( (lep_total_en_init.size, 1) )
     # lepton momnetum in 3D    
     lep_mom_init = lep_mom_mag_init * lep_dir_init
 
     #generate gamma kinematics
     gamma_en = generate_gamma_en(lep_mass, lep_total_en_init)
-    gamma_en.gamma_en.reshape((gamma_en.size,1))
+    gamma_en = gamma_en.reshape((gamma_en.size,1))
     gamma_dir = generate_gamma_dir(gamma_en.size)    
     gamma_mom = gamma_en * gamma_dir
 
     #calculate lepton final kinematics
     lep_en = lep_total_en_init - gamma_en
     lep_mom = lep_mom_init - gamma_mom
-    lep_dir = lep_mom/np.linalg.norm(lep_mom, ord=2, axis=1) #compute the L2 norm, axis =1 , i.e for each row, sqrt(sum_i(colm_i)^2)
+    lep_mom_mag = np.linalg.norm(lep_mom, ord=2, axis=1) #compute the L2 norm, axis =1 , i.e for each row, sqrt(sum_i(colm_i)^2)
+    lep_mom_mag = lep_mom_mag.reshape((lep_mom_mag.size, 1)) #prepare it from array operation broadcasting
+    lep_dir = lep_mom/lep_mom_mag
 
     return lep_en, lep_dir, gamma_en, gamma_dir   
 #------------------------------------------------------------------------------
@@ -234,11 +209,11 @@ def generate_radiative_corr_particle_gun(nb_events, file_name, plot_dist=False):
     vertex_t = 0 
     #mu
     mu_int_dir = random_3d_unit_vector(nb_events)
-    #mu_init_total_en = random_mu_en(nb_events) #total energy available for the initial muon before emmetting the gamma
+    
     bin_edge_mu =np.arange(100., 5000., 10. ) 
     mu_init_total_en = mc_sample_pdf_hist(pfd_file=temp_output_dir+'mu_mom.txt', x_min=100., x_max=5000.0, nb_bins_or_edges=bin_edge_mu, num_samples=nb_events)
     #generate gamma and conserve En & mom
-    mu_total_en, mu_dir, gamma_total_en, gamma_dir = conserve_En_momentum_radiative(MU_EN_MIN, mu_init_total_en, mu_int_dir):
+    mu_total_en, mu_dir, gamma_total_en, gamma_dir = conserve_En_momentum_radiative(MU_REST_MASS, mu_init_total_en, mu_int_dir)
     
     print("Writing NUANCE particle gun file ({}) ..".format(file_name))
     for i in tqdm(range(nb_events)):           
@@ -280,80 +255,6 @@ def generate_radiative_corr_particle_gun(nb_events, file_name, plot_dist=False):
         plot_1D_pdf_hist(gamma_dir[:,2], nb_bins_or_edges=50, var_name='$z_\gamma$', plt_name='gamma_dir_z_dist')
 
         plot_1D_pdf_hist(gamma_total_en, nb_bins_or_edges=50, var_name='$En_\gamma$', plt_name='gamma_totalEn')
-#------------------------------------------------------------------------------
-# DUMMY TESTING
-#------------------------------------------------------------------------------
-"""
-# Test random_3d_unit_vector
-vec_arr = random_3d_unit_vector_wrong(NB_SAMPLES)
-vec_xs = vec_arr[:, 0]
-vec_ys = vec_arr[:, 1]
-vec_zs = vec_arr[:, 2]
-plot_3D_cartesian(vec_xs, vec_ys, vec_zs, 'random_unit_vec_3D_wrong')
-plot_1D_pdf_hist(vec_xs, nb_bins_or_edges=50, var_name='x', plt_name='rand3d_wrong_x')
-plot_1D_pdf_hist(vec_ys, nb_bins_or_edges=50, var_name='y', plt_name='rand3d_wrong_y')
-plot_1D_pdf_hist(vec_zs, nb_bins_or_edges=50, var_name='z', plt_name='rand3d_wrong_z')
 
-# Test random_3d_unit_vector
-vec_arr = random_3d_unit_vector(NB_SAMPLES)
-vec_xs = vec_arr[:, 0]
-vec_ys = vec_arr[:, 1]
-vec_zs = vec_arr[:, 2]
-plot_3D_cartesian(vec_xs, vec_ys, vec_zs, 'random_unit_vec_3D')
-plot_1D_pdf_hist(vec_xs, nb_bins_or_edges=50, var_name='x', plt_name='rand3d_x')
-plot_1D_pdf_hist(vec_ys, nb_bins_or_edges=50, var_name='y', plt_name='rand3d_y')
-plot_1D_pdf_hist(vec_zs, nb_bins_or_edges=50, var_name='z', plt_name='rand3d_z')
-
-# Test random_point_from_cylinder
-pt_arr = random_point_from_cylinder_wrong(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, NB_SAMPLES)
-pt_xs = pt_arr[:, 0]
-pt_ys = pt_arr[:, 1]
-pt_zs = pt_arr[:, 2]
-plot_3D_cartesian(pt_xs, pt_ys, pt_zs, 'random_points_cylinder_3D_wrong')
-plot_1D_pdf_hist(pt_xs, nb_bins_or_edges=50, var_name='x', plt_name='cylinder_wrong_x')
-plot_1D_pdf_hist(pt_ys, nb_bins_or_edges=50, var_name='y', plt_name='cylinder_wrong_y')
-plot_1D_pdf_hist(pt_zs, nb_bins_or_edges=50, var_name='z', plt_name='cylinder_wrong_z')
-
-#Test random_point_from_cylinder
-pt_arr = random_point_from_cylinder(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, NB_SAMPLES)
-pt_xs = pt_arr[:, 0]
-pt_ys = pt_arr[:, 1]
-pt_zs = pt_arr[:, 2]
-plot_3D_cartesian(pt_xs, pt_ys, pt_zs, 'random_points_cylinder_3D')
-plot_1D_pdf_hist(pt_xs, nb_bins_or_edges=50, var_name='x', plt_name='cylinder_x')
-plot_1D_pdf_hist(pt_ys, nb_bins_or_edges=50, var_name='y', plt_name='cylinder_y')
-plot_1D_pdf_hist(pt_zs, nb_bins_or_edges=50, var_name='z', plt_name='cylinder_z')
-
-#Test random_point_from_cylinder
-pt_arr = random_point_from_cylinder_simple(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, NB_SAMPLES)
-pt_xs = pt_arr[:, 0]
-pt_ys = pt_arr[:, 1]
-pt_zs = pt_arr[:, 2]
-plot_3D_cartesian(pt_xs, pt_ys, pt_zs, 'random_points_cylinder_3D_simple')
-plot_1D_pdf_hist(pt_xs, nb_bins_or_edges=50, var_name='x', plt_name='cylinder_simple_x')
-plot_1D_pdf_hist(pt_ys, nb_bins_or_edges=50, var_name='y', plt_name='cylinder_simple_y')
-plot_1D_pdf_hist(pt_zs, nb_bins_or_edges=50, var_name='z', plt_name='cylinder_simple_z')
-
-# Test mc_sample_pdf_hist
-bin_edge_dummy = np.arange(10)
-#bin_edge_mu =np.arange(100., 5000., 10. )
-def generate_dummy_pdf():
-    pdf_file = open(temp_output_dir+'dummy_pdf.npz', 'wb')
-    mu_en = np.random.lognormal(mean=0.0, sigma=1.0, size= 100000)
-    np.savez(pdf_file, mu_en_arr=mu_en) 
-
-def read_dummy_pdf():
-    npzfile = np.load(temp_output_dir+'dummy_pdf.npz')
-    mu_en_read = npzfile['mu_en_arr']
-    #print(npzfile.files)
-    plot_1D_pdf_hist(xs=mu_en_read, nb_bins_or_edges=bin_edge_dummy, var_name='$E_\mu$', plt_name='mu_en_pdf')
-
-#generate_dummy_pdf()
-#read_dummy_pdf()
-#val = mc_sample_pdf_hist(pfd_file='dummy_pdf', val_array='mu_en_arr', x_min=0.0, x_max=60.0, num_samples=10)
-#val = mc_sample_pdf_hist(pfd_file=temp_output_dir+'dummy_pdf', val_array='mu_en_arr', x_min=0., x_max=60.0, nb_bins_or_edges=bin_edge_dummy, num_samples=10000)
-#val = mc_sample_pdf_hist(pfd_file=temp_output_dir+'mu_mom.txt', val_array='mu_en_arr', x_min=100., x_max=5000.0, nb_bins_or_edges=bin_edge_mu, num_samples=NB_SAMPLES)
-#plot_1D_pdf_hist(xs=val, nb_bins_or_edges=bin_edge_mu, var_name='$E_\mu$', plt_name='mu_en_pdf_gen')
-"""
 # Test generate_radiative_corr_particle_gun
-generate_radiative_corr_particle_gun(NB_SAMPLES, temp_output_dir+'pg_mu_ID_10e4.txt', plot_dist=True)
+generate_radiative_corr_particle_gun(10, temp_output_dir+'pg_mu_ID_10e4.txt', plot_dist=True)
