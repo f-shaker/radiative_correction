@@ -18,7 +18,7 @@ ELEC_REST_MASS = 0.511 #MeV rest mass of the electron
 # MC Sampling
 #-------------
 NB_SAMPLES = 10000
-np.random.seed(19680801)
+np.random.seed(20140489) # a 8-digits prime number
 #----------Parameters Definition END----------
 plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/"
 temp_output_dir = "/home/fshaker/t2k/radiative-correction/analysis/temp_output/"
@@ -44,10 +44,12 @@ def plot_1D_pdf_hist(xs, nb_bins_or_edges=50, var_name='x', plt_name='hist_plot'
     fig.tight_layout()
     plt.savefig(plot_dir+plt_name+'.png')
     #plt.show()
+
 #------------------------------------------------------------------------------
 # Random Generators
 #------------------------------------------------------------------------------
 def random_3d_unit_vector(nb_samples=1):
+#------------------------------------------------------------------------------    
     """
     Generates a 2D array where each row is a unit vector pointing to a uniformly random direction in 3D
     uniform distribution on S2 => area elemement dOmega = sin(theta) dtheta dphi = -dCos(theta) dphi
@@ -62,28 +64,26 @@ def random_3d_unit_vector(nb_samples=1):
     z = cos_theta
     
     return np.column_stack((x, y, z))
-
+#------------------------------------------------------------------------------
 def random_point_from_cylinder(fv_r_max, fv_phi_min, fv_phi_max, fv_z_min, fv_z_max, nb_samples=1):
+#------------------------------------------------------------------------------    
     """
     The volume element dv = r dphi dz dr => dv is function in r, dv = dphi * dz * 0.5 d_r^2 
     """
-    #r = np.random.uniform(0.0, fv_r_max, nb_samples)
     r_square = np.random.uniform(0.0, fv_r_max*fv_r_max, nb_samples)
+    r = np.sqrt(r_square) 
     phi = np.random.uniform(fv_phi_min, fv_phi_max, nb_samples)    
     z = np.random.uniform(fv_z_min, fv_z_max, nb_samples)
-
-    r = np.sqrt(r_square) 
- 
     x = r * np.cos(phi) 
     y = r * np.sin(phi) 
 
     return np.column_stack((x,y,z))
-
+#------------------------------------------------------------------------------ 
 def random_point_from_cylinder_simple(fv_r_max, fv_phi_min, fv_phi_max, fv_z_min, fv_z_max, nb_samples=1):
+#------------------------------------------------------------------------------     
     """
     a simple sampling in 3D using cartesian coordinates and rejection points outside the cylinder
     """
-
     x = np.array([], dtype=np.float32)
     y = np.array([], dtype=np.float32)
     #throw a random x,y
@@ -98,22 +98,16 @@ def random_point_from_cylinder_simple(fv_r_max, fv_phi_min, fv_phi_max, fv_z_min
             y = np.append(y, y_th)
             sample_cnt = sample_cnt + 1
 
-    z = np.random.uniform(fv_z_min, fv_z_max, nb_samples)   
+    z = np.random.uniform(fv_z_min, fv_z_max, nb_samples)
+
     return np.column_stack((x,y,z))
-
-def random_gamma_en(mu_en):
-    """
-    uniformly distribute the avialble energy between a gamma and a muon
-    """
-    #maximum available energy for the gamma = total en - muon rest mass
-    return np.random.uniform(0, mu_en-MU_REST_MASS)
-
+#------------------------------------------------------------------------------ 
 def mc_sample_pdf_hist(pfd_file=None, val_array=None, x_min=0, x_max=1.0, nb_bins_or_edges= 5, num_samples=1):
+#------------------------------------------------------------------------------     
     """
     Monte-Carlo sampling from a 1D histogram. The histogram is built from either a txt file, where each line contains 1 value,
     or from an array saved in a .npz file
-    """
-    
+    """    
     mc_val = np.array([], dtype=np.float32)
     #read the pdf
     if pfd_file == None:
@@ -158,15 +152,18 @@ def mc_sample_pdf_hist(pfd_file=None, val_array=None, x_min=0, x_max=1.0, nb_bin
     plt.savefig(plot_dir+"pdf_sup.png")
 
     return mc_val
-
-def generate_gamma_en(lep_mass, lep_init_total_en):
+#------------------------------------------------------------------------------ 
+def generate_gamma_en(lep_mass, lep_total_en_init):
+#------------------------------------------------------------------------------     
     #maximum available energy for the gamma = total en - muon rest mass
-    return np.random.uniform(0, lep_init_total_en-lep_mass)
-
+    return np.random.uniform(0, lep_total_en_init - lep_mass)
+#------------------------------------------------------------------------------ 
 def generate_gamma_dir(nb_events):
+#------------------------------------------------------------------------------     
     return random_3d_unit_vector(nb_events)
-
+#------------------------------------------------------------------------------ 
 def conserve_En_momentum_radiative(lep_mass, lep_total_en_init, lep_dir_init):
+#------------------------------------------------------------------------------     
     # magnitude of the lepton momentun np.array of shape = (nb_entries,1)
     lep_mom_mag_init = np.sqrt(lep_total_en_init*lep_total_en_init - lep_mass*lep_mass) # E^2 = P^2 + m^2
     #convert the 1D np array into a 2D with nb_entry rows x1 column for multiplication preparation
@@ -188,12 +185,13 @@ def conserve_En_momentum_radiative(lep_mass, lep_total_en_init, lep_dir_init):
     lep_mom_mag = lep_mom_mag.reshape((lep_mom_mag.size, 1)) #prepare it from array operation broadcasting
     lep_dir = lep_mom/lep_mom_mag
 
-    return lep_en, lep_dir, gamma_en, gamma_dir   
+    #remove unncessary extra dim in the returned energy arrays
+    return lep_en.reshape(lep_en.size), lep_dir, gamma_en.reshape(gamma_en.size), gamma_dir   
 #------------------------------------------------------------------------------
 # Particle Gun generator
 #------------------------------------------------------------------------------
-def generate_radiative_corr_particle_gun(nb_events, file_name, plot_dist=False):
-    
+def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_mom_file=None, file_name='pg.txt', plot_dist=False):
+#------------------------------------------------------------------------------     
     pg_file = open(file_name, 'w')
     
     begin_str = "$ begin\n"
@@ -201,24 +199,36 @@ def generate_radiative_corr_particle_gun(nb_events, file_name, plot_dist=False):
     end_str = "$ end\n"
     stop_str = "$ stop\n"
 
+    elec_pdg = 11
     mu_pdg = 13
     gamma_pdg = 22
     final_state_code = 0
+
+    if particle == 'mu-':
+        lep_pdg = mu_pdg
+        lep_mass = MU_REST_MASS
+    elif particle == 'e-':
+        lep_pdg = elec_pdg
+        lep_mass = ELEC_REST_MASS
+    else:
+        print('Please specify a valid lepton for the radiative process')
+        exit()
+
     #vertex
     vertex_pos = random_point_from_cylinder(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, nb_events)
     vertex_t = 0 
-    #mu
-    mu_int_dir = random_3d_unit_vector(nb_events)
+    #lepton
+    lep_dir_init = random_3d_unit_vector(nb_events)
     
     bin_edge_mu =np.arange(100., 5000., 10. ) 
-    mu_init_total_en = mc_sample_pdf_hist(pfd_file=temp_output_dir+'mu_mom.txt', x_min=100., x_max=5000.0, nb_bins_or_edges=bin_edge_mu, num_samples=nb_events)
+    lep_total_en_init = mc_sample_pdf_hist(pfd_file=ip_lep_mom_file, x_min=100., x_max=5000.0, nb_bins_or_edges=bin_edge_mu, num_samples=nb_events)
     #generate gamma and conserve En & mom
-    mu_total_en, mu_dir, gamma_total_en, gamma_dir = conserve_En_momentum_radiative(MU_REST_MASS, mu_init_total_en, mu_int_dir)
+    lep_total_en, lep_dir, gamma_total_en, gamma_dir = conserve_En_momentum_radiative(lep_mass, lep_total_en_init, lep_dir_init)
     
     print("Writing NUANCE particle gun file ({}) ..".format(file_name))
     for i in tqdm(range(nb_events)):           
         vertex_str = "$ vertex "+ str(vertex_pos[i,0]) + " " + str(vertex_pos[i,1]) + " " + str(vertex_pos[i,2]) + " " + str(vertex_t) + " \n"
-        mu_track = "$ track "+ str(mu_pdg) + " " + str(mu_total_en[i]) + " " + str(mu_dir[i,0]) + " " + str(mu_dir[i,1]) + " "+ str(mu_dir[i,2])\
+        lep_track = "$ track "+ str(lep_pdg) + " " + str(lep_total_en[i]) + " " + str(lep_dir[i,0]) + " " + str(lep_dir[i,1]) + " "+ str(lep_dir[i,2])\
                    + " " + str(final_state_code) + "\n"       
         gamma_track = "$ track "+ str(gamma_pdg) + " " + str(gamma_total_en[i]) + " " + str(gamma_dir[i,0]) + " " + str(gamma_dir[i,1]) + " "+ str(gamma_dir[i,2])\
                    + " " + str(final_state_code) + "\n"
@@ -226,7 +236,7 @@ def generate_radiative_corr_particle_gun(nb_events, file_name, plot_dist=False):
         pg_file.write(begin_str)
         pg_file.write(nuance_str)
         pg_file.write(vertex_str)
-        pg_file.write(mu_track)
+        pg_file.write(lep_track)
         pg_file.write(gamma_track)
         pg_file.write(end_str)
 
@@ -240,21 +250,21 @@ def generate_radiative_corr_particle_gun(nb_events, file_name, plot_dist=False):
         plot_1D_pdf_hist(vertex_pos[:,2], nb_bins_or_edges=50, var_name='$z_v$', plt_name='vertex_z_dist')
 
         # muon kinematics
-        plot_3D_cartesian(mu_dir[:,0], mu_dir[:,1], mu_dir[:,2], 'mu_3D_dir_dist')
-        plot_1D_pdf_hist(mu_dir[:,0], nb_bins_or_edges=50, var_name='$x_\mu$', plt_name='mu_dir_x_dist')
-        plot_1D_pdf_hist(mu_dir[:,1], nb_bins_or_edges=50, var_name='$y_\mu$', plt_name='mu_dir_y_dist')
-        plot_1D_pdf_hist(mu_dir[:,2], nb_bins_or_edges=50, var_name='$z_\mu$', plt_name='mu_dir_z_dist')
+        plot_3D_cartesian(lep_dir[:,0], lep_dir[:,1], lep_dir[:,2], 'mu_3D_dir_dist')
+        plot_1D_pdf_hist(lep_dir[:,0], nb_bins_or_edges=50, var_name='x', plt_name='lep_dir_x_dist')
+        plot_1D_pdf_hist(lep_dir[:,1], nb_bins_or_edges=50, var_name='y', plt_name='lep_dir_y_dist')
+        plot_1D_pdf_hist(lep_dir[:,2], nb_bins_or_edges=50, var_name='z', plt_name='lep_dir_z_dist')
 
-        plot_1D_pdf_hist(mu_total_en, nb_bins_or_edges=50, var_name='$En_\mu$', plt_name='mu_totalEn_after_em')
+        plot_1D_pdf_hist(lep_total_en, nb_bins_or_edges=50, var_name='$En_{lep}$', plt_name='lep_total_en_after_em')
 
 
         # gamma kinematics
         plot_3D_cartesian(gamma_dir[:,0], gamma_dir[:,1], gamma_dir[:,2], 'gamma_3D_dir_dist')
-        plot_1D_pdf_hist(gamma_dir[:,0], nb_bins_or_edges=50, var_name='$x_\gamma$', plt_name='gamma_dir_x_dist')
-        plot_1D_pdf_hist(gamma_dir[:,1], nb_bins_or_edges=50, var_name='$y_\gamma$', plt_name='gamma_dir_y_dist')
-        plot_1D_pdf_hist(gamma_dir[:,2], nb_bins_or_edges=50, var_name='$z_\gamma$', plt_name='gamma_dir_z_dist')
+        plot_1D_pdf_hist(gamma_dir[:,0], nb_bins_or_edges=50, var_name='x', plt_name='gamma_dir_x_dist')
+        plot_1D_pdf_hist(gamma_dir[:,1], nb_bins_or_edges=50, var_name='y', plt_name='gamma_dir_y_dist')
+        plot_1D_pdf_hist(gamma_dir[:,2], nb_bins_or_edges=50, var_name='z', plt_name='gamma_dir_z_dist')
 
-        plot_1D_pdf_hist(gamma_total_en, nb_bins_or_edges=50, var_name='$En_\gamma$', plt_name='gamma_totalEn')
-
+        plot_1D_pdf_hist(gamma_total_en, nb_bins_or_edges=50, var_name='$En_\gamma$', plt_name='gamma_total_en')
+#------------------------------------------------------------------------------ 
 # Test generate_radiative_corr_particle_gun
-generate_radiative_corr_particle_gun(10, temp_output_dir+'pg_mu_ID_10e4.txt', plot_dist=True)
+generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_mom_file=temp_output_dir+'mu_mom.txt' ,file_name=temp_output_dir+'pg_mu_ID_10e4.txt', plot_dist=True)
