@@ -1,7 +1,9 @@
 import numpy as np
 from math import pi 
-import matplotlib.pyplot as plt
 from tqdm import tqdm
+import matplotlib.pyplot as plt
+import sys
+from termcolor import colored
 #----------Parameters Definition Start----------
 # SK Fiducial Volume Definition
 #-------------------------------
@@ -17,32 +19,44 @@ MU_REST_MASS = 105.66 #MeV rest mass of muon
 ELEC_REST_MASS = 0.511 #MeV rest mass of the electron
 # MC Sampling
 #-------------
-NB_SAMPLES = 10000
+NB_SAMPLES = 100000# was 10000
 np.random.seed(20140489) # a 8-digits prime number
 #----------Parameters Definition END----------
 plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/"
 temp_output_dir = "/home/fshaker/t2k/radiative-correction/analysis/temp_output/"
+plot_extension=".png"
 #------------------------------------------------------------------------------
 #plotting functionality
 #------------------------------------------------------------------------------
-def plot_3D_cartesian(xs, ys, zs, plt_name):
+def plot_3D_cartesian(xs, ys, zs, plot_name):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.scatter(xs, ys, zs)
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    plt.savefig(plot_dir+plt_name+'.png')
+    plt.savefig(plot_dir+plot_name+plot_extension)
     #plt.show() 
 
-def plot_1D_pdf_hist(xs, nb_bins_or_edges=50, var_name='x', plt_name='hist_plot'):
+def plot_1D_pdf_hist(xs, nb_bins_or_edges=50, var_name='x', plot_name='hist_plot'):
     fig, ax = plt.subplots()
     n, bins, patches = ax.hist(xs, bins=nb_bins_or_edges, density=True) 
     ax.set_xlabel(var_name)
     ax.set_ylabel('Probability density')
     # Tweak spacing to prevent clipping of ylabel
     fig.tight_layout()
-    plt.savefig(plot_dir+plt_name+'.png')
+    plt.savefig(plot_dir+plot_name+plot_extension)
+    #plt.show()
+
+def plot_2D_pdf_hist(xs, ys, x_nb_bins_or_edges=50, y_nb_bins_or_edges=50, x_var_name='x', y_var_name='y', plot_name='hist_plot'):
+    fig, ax = plt.subplots()
+    counts, xedges, yedges, im = ax.hist2d(xs, ys, bins=[x_nb_bins_or_edges, y_nb_bins_or_edges], density=True, cmap='coolwarm') #cmap = RdYlBu_r
+    ax.set_xlabel(x_var_name)
+    ax.set_ylabel(y_var_name)
+    fig.colorbar(im, ax=ax) 
+    # Tweak spacing to prevent clipping of ylabel
+    fig.tight_layout()
+    plt.savefig(plot_dir+plot_name+plot_extension)
     #plt.show()
 
 #------------------------------------------------------------------------------
@@ -153,6 +167,27 @@ def mc_sample_pdf_hist(pfd_file=None, val_array=None, x_min=0, x_max=1.0, nb_bin
 
     return mc_val
 #------------------------------------------------------------------------------ 
+def sample_kinematics_from_file(kin_file=None, num_samples=1):
+    #read the file in an np array
+    # values are organized as total_en, dir_x, dir_y, dir_z    
+    vals = np.loadtxt(kin_file)
+    idx = np.arange(0, vals.shape[0], dtype=np.int32) 
+    np.random.shuffle(idx)
+    
+    if num_samples > idx.size:
+        print(colored('WARNING:', 'yellow', attrs=['reverse', 'bold', 'blink']))
+        print("Requested number of samples ({}) is larger than the content of the imput file ({}).".format(num_samples, idx.size))
+        print("Returning {} events only!)".format(idx.size)) 
+        sample_size = idx.size
+    else:
+        sample_size = num_samples
+
+    lep_en = vals[idx][0:sample_size,0]
+    lep_dir_x = vals[idx][0:sample_size,1]
+    lep_dir_y = vals[idx][0:sample_size,2]
+    lep_dir_z = vals[idx][0:sample_size,3]
+    return np.column_stack((lep_en, lep_dir_x, lep_dir_y, lep_dir_z))
+#------------------------------------------------------------------------------ 
 def generate_gamma_en(lep_mass, lep_total_en_init):
 #------------------------------------------------------------------------------     
     #maximum available energy for the gamma = total en - muon rest mass
@@ -187,10 +222,29 @@ def conserve_En_momentum_radiative(lep_mass, lep_total_en_init, lep_dir_init):
 
     #remove unncessary extra dim in the returned energy arrays
     return lep_en.reshape(lep_en.size), lep_dir, gamma_en.reshape(gamma_en.size), gamma_dir   
+#------------------------------------------------------------------------------    
+def conserve_En_radiative(lep_mass, lep_total_en_init, lep_dir_init):
+#------------------------------------------------------------------------------
+    """
+    It is not kinematically possible to conserve energy and momentum for a charged lepton that emit a photon without introducing and external
+    field (e.g. electric field inside the nuclus for a radiative process). This is similar to the tree level Feynam diagram, at the center of mass frame of the 
+    charged lepton before emetting a photon, mom is zero , en = rest mass, while after emmitting, the photon and recoiled charged lepton will be back to back
+    but the energy can not be conserved. 
+    """     
+    #generate gamma kinematics
+    gamma_en = generate_gamma_en(lep_mass, lep_total_en_init)
+    gamma_dir = generate_gamma_dir(gamma_en.size)    
+    
+    #calculate lepton final kinematics
+    lep_en = lep_total_en_init - gamma_en
+    
+    #remove unncessary extra dim in the returned energy arrays
+    return lep_en, lep_dir_init, gamma_en, gamma_dir   
+
 #------------------------------------------------------------------------------
 # Particle Gun generator
 #------------------------------------------------------------------------------
-def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_mom_file=None, file_name='pg.txt', plot_dist=False):
+def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_kinematics_file=None, file_name='pg.txt', plot_dist=False):
 #------------------------------------------------------------------------------     
     pg_file = open(file_name, 'w')
     
@@ -214,19 +268,22 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_mo
         print('Please specify a valid lepton for the radiative process')
         exit()
 
+    #bin_edge_mu =np.arange(100., 5000., 10. ) 
+    #lep_total_en_init = mc_sample_pdf_hist(pfd_file=ip_lep_mom_file, x_min=100., x_max=5000.0, nb_bins_or_edges=bin_edge_mu, num_samples=nb_events)
+    lep_Kinematics_init = sample_kinematics_from_file(kin_file=ip_lep_kinematics_file, num_samples=nb_events)
+    #generate gamma and conserve En & mom
+    #lep_total_en, lep_dir, gamma_total_en, gamma_dir = conserve_En_momentum_radiative(lep_mass, lep_total_en_init, lep_dir_init)
+    lep_total_en, lep_dir, gamma_total_en, gamma_dir = conserve_En_radiative(lep_mass, lep_Kinematics_init[:,0], lep_Kinematics_init[:,1:4])
+
     #vertex
-    vertex_pos = random_point_from_cylinder(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, nb_events)
+    vertex_pos = random_point_from_cylinder(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, lep_total_en.size)
     vertex_t = 0 
     #lepton
-    lep_dir_init = random_3d_unit_vector(nb_events)
+    #lep_dir_init = random_3d_unit_vector(nb_events)
     
-    bin_edge_mu =np.arange(100., 5000., 10. ) 
-    lep_total_en_init = mc_sample_pdf_hist(pfd_file=ip_lep_mom_file, x_min=100., x_max=5000.0, nb_bins_or_edges=bin_edge_mu, num_samples=nb_events)
-    #generate gamma and conserve En & mom
-    lep_total_en, lep_dir, gamma_total_en, gamma_dir = conserve_En_momentum_radiative(lep_mass, lep_total_en_init, lep_dir_init)
     
     print("Writing NUANCE particle gun file ({}) ..".format(file_name))
-    for i in tqdm(range(nb_events)):           
+    for i in tqdm(range(lep_total_en.size)):           
         vertex_str = "$ vertex "+ str(vertex_pos[i,0]) + " " + str(vertex_pos[i,1]) + " " + str(vertex_pos[i,2]) + " " + str(vertex_t) + " \n"
         lep_track = "$ track "+ str(lep_pdg) + " " + str(lep_total_en[i]) + " " + str(lep_dir[i,0]) + " " + str(lep_dir[i,1]) + " "+ str(lep_dir[i,2])\
                    + " " + str(final_state_code) + "\n"       
@@ -245,26 +302,30 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_mo
     if plot_dist == True:
         # vertex position
         plot_3D_cartesian(vertex_pos[:,0], vertex_pos[:,1], vertex_pos[:,2], 'vertex_3D_pos_dist')
-        plot_1D_pdf_hist(vertex_pos[:,0], nb_bins_or_edges=50, var_name='$x_v$', plt_name='vertex_x_dist')
-        plot_1D_pdf_hist(vertex_pos[:,1], nb_bins_or_edges=50, var_name='$y_v$', plt_name='vertex_y_dist')
-        plot_1D_pdf_hist(vertex_pos[:,2], nb_bins_or_edges=50, var_name='$z_v$', plt_name='vertex_z_dist')
+        plot_1D_pdf_hist(vertex_pos[:,0], nb_bins_or_edges=50, var_name='$x_v$', plot_name='vertex_x_dist')
+        plot_1D_pdf_hist(vertex_pos[:,1], nb_bins_or_edges=50, var_name='$y_v$', plot_name='vertex_y_dist')
+        plot_1D_pdf_hist(vertex_pos[:,2], nb_bins_or_edges=50, var_name='$z_v$', plot_name='vertex_z_dist')
 
         # muon kinematics
         plot_3D_cartesian(lep_dir[:,0], lep_dir[:,1], lep_dir[:,2], 'mu_3D_dir_dist')
-        plot_1D_pdf_hist(lep_dir[:,0], nb_bins_or_edges=50, var_name='x', plt_name='lep_dir_x_dist')
-        plot_1D_pdf_hist(lep_dir[:,1], nb_bins_or_edges=50, var_name='y', plt_name='lep_dir_y_dist')
-        plot_1D_pdf_hist(lep_dir[:,2], nb_bins_or_edges=50, var_name='z', plt_name='lep_dir_z_dist')
+        plot_1D_pdf_hist(lep_dir[:,0], nb_bins_or_edges=50, var_name='x', plot_name='lep_dir_x_dist')
+        plot_1D_pdf_hist(lep_dir[:,1], nb_bins_or_edges=50, var_name='y', plot_name='lep_dir_y_dist')
+        plot_1D_pdf_hist(lep_dir[:,2], nb_bins_or_edges=50, var_name='z', plot_name='lep_dir_z_dist')
 
-        plot_1D_pdf_hist(lep_total_en, nb_bins_or_edges=50, var_name='$En_{lep}$', plt_name='lep_total_en_after_em')
+        plot_1D_pdf_hist(lep_total_en, nb_bins_or_edges=50, var_name='$En_{lep}$', plot_name='lep_total_en_after_em')
+        cos_theta = lep_dir[:,2]
+        phi = np.arctan2(lep_dir[:,1], lep_dir[:, 0])
+        plot_2D_pdf_hist(phi, cos_theta, 50, 50, '$\phi$', 'cos'+'$\Theta$', 'lep_dir_dist' )
 
 
         # gamma kinematics
         plot_3D_cartesian(gamma_dir[:,0], gamma_dir[:,1], gamma_dir[:,2], 'gamma_3D_dir_dist')
-        plot_1D_pdf_hist(gamma_dir[:,0], nb_bins_or_edges=50, var_name='x', plt_name='gamma_dir_x_dist')
-        plot_1D_pdf_hist(gamma_dir[:,1], nb_bins_or_edges=50, var_name='y', plt_name='gamma_dir_y_dist')
-        plot_1D_pdf_hist(gamma_dir[:,2], nb_bins_or_edges=50, var_name='z', plt_name='gamma_dir_z_dist')
+        plot_1D_pdf_hist(gamma_dir[:,0], nb_bins_or_edges=50, var_name='x', plot_name='gamma_dir_x_dist')
+        plot_1D_pdf_hist(gamma_dir[:,1], nb_bins_or_edges=50, var_name='y', plot_name='gamma_dir_y_dist')
+        plot_1D_pdf_hist(gamma_dir[:,2], nb_bins_or_edges=50, var_name='z', plot_name='gamma_dir_z_dist')
 
-        plot_1D_pdf_hist(gamma_total_en, nb_bins_or_edges=50, var_name='$En_\gamma$', plt_name='gamma_total_en')
+        plot_1D_pdf_hist(gamma_total_en, nb_bins_or_edges=50, var_name='$En_\gamma$', plot_name='gamma_total_en')
 #------------------------------------------------------------------------------ 
 # Test generate_radiative_corr_particle_gun
-generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_mom_file=temp_output_dir+'mu_mom.txt' ,file_name=temp_output_dir+'pg_mu_ID_10e4.txt', plot_dist=True)
+#generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'mu_mom.txt' ,file_name=temp_output_dir+'pg_mu_ID_10e4.txt', plot_dist=True)
+generate_radiative_corr_particle_gun(particle='mu-', nb_events=100000000, ip_lep_kinematics_file=temp_output_dir+'mu_kinematics_500files.txt' ,file_name=temp_output_dir+'new_pg_mu_ID_10e1.txt', plot_dist=True)
