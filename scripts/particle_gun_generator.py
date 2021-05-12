@@ -328,4 +328,4 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_ki
 #------------------------------------------------------------------------------ 
 # Test generate_radiative_corr_particle_gun
 #generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'mu_mom.txt' ,file_name=temp_output_dir+'pg_mu_ID_10e4.txt', plot_dist=True)
-generate_radiative_corr_particle_gun(particle='mu-', nb_events=100000000, ip_lep_kinematics_file=temp_output_dir+'mu_kinematics_500files.txt' ,file_name=temp_output_dir+'new_pg_mu_ID_10e1.txt', plot_dist=True)
+generate_radiative_corr_particle_gun(particle='mu-', nb_events=10, ip_lep_kinematics_file=temp_output_dir+'particle_kinematics.txt' ,file_name=temp_output_dir+'pg_mu_ID_10e1.txt', plot_dist=True)
