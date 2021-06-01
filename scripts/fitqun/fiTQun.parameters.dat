@@ -1,0 +1,146 @@
+*****************************************************************************************
+ fiTQun parameters
+*****************************************************************************************
+
+  0. General options
+
+     < fiTQun.fQuiet = 1 > Output verbosity
+
+  1. Which fits should be run?
+
+     < fiTQun.DoSubEvent = 1 > Set to 0 if you do not want to run the subevent algorithm.
+
+     < fiTQun.DoSingleRingFits = 1 > Set to 0 if you do not want to run any single ring fits.
+     
+     If performing single ring fits, which single ring fits should be run? (1:full straight track, 2:upstream track)
+     < fiTQun.DoGamma1RFit = 0 >
+     < fiTQun.DoElectron1RFit = 1 >
+     < fiTQun.DoMuon1RFit = 1 >
+     < fiTQun.DoPionPlus1RFit = 2 >
+     < fiTQun.DoKaonPlus1RFit = 0 >
+     < fiTQun.DoProton1RFit = 2 >
+     < fiTQun.DoConeGenerator1RFit = 0 >
+
+     Up to 2 pi0 fits can be performed, and are turned on/off as follows:
+     < fiTQun.DoPi0Fit = 1 >                0 = off, 1 = standard, 2 = constrained mass
+     < fiTQun.DoPi0Fit2 = 0 >               0 = off, 1 = standard, 2 = constrained mass
+
+     < fiTQun.DoPiPlusFit = 0 >             Set to 0 if you do not want to run the pi+ fit.
+     < fiTQun.DoGamma2ElecFit = 0 >
+
+     < fiTQun.DoMSFit = 1 >                 Toggle multiple-segment fits for muons
+
+     < fiTQun.DoMRFit = 1 >                 Set to 1 if you want to run the multi-ring fit(Setting it to n>1 will only fit up to n-ring)
+     < fiTQun.DoMoreMRFit = 11 >            Improve the MR fit results obtained above. Set this to 10*Y+X where:
+                                              X = 0 : Don't perform sequential MR fit
+                                                = 1 : Perform sequential MR fit on best terminated MR fit result
+                                                = 2 : Perform sequential MR fit on all terminated MR fit results
+                                              Y = 0 : Don't perform simult. vtx & energy fit
+                                                = 1 : Perform simult. vtx & energy fit on best sequential MR fit result
+                                                = 2 : Perform simult. vtx & energy fit on all sequential MR fit results
+
+     < fiTQun.DoInGateDcyeFit = 2 >         (0:ignore, 1:mask, 2:fit) in-gate decay electrons.
+     < fiTQun.ThrResTimeL = 30. >            Residual time threshold for charge separation
+     < fiTQun.ThrResTimeR = 60. >            Residual time threshold for charge separation
+     < fiTQun.PeakThr = 9. >                 Peak finder goodness threshold
+     < fiTQun.ClusterRePrefit = 0 >         Set to 1 if want to rerun prefitter on each cluster.
+
+     < fiTQun.OutputTrueGammaInfo = 0 > Tries to find the true parameters, assuming the
+                                        initial particle was a photon.
+
+  2. Options for all fits
+
+     < fiTQun.CorrDetTVar = 1 > Set to 1 if you want to apply time variation corrections to detector parameters when running on data
+
+     < fiTQun.PeakSearchVtx = 0 > Vertex for peak search 0:Prefit(not run 1R-e fit prior to peak search), 1:Prefit, 2:1R-e fit
+
+     < fiTQun.UseFitCProfile = 1 > Set to 1 if you want to use fit Cherenkov profile
+     < fiTQun.UseFittProfile = 1 > Set to 1 if you want to use fit time profile
+     < fiTQun.TotalChargeConstraintWeight = 4. > Weight of the total charge constraint term in the likelihood function.
+     < fiTQun.TotalChargeConstraintAngle = 70. >
+     < fiTQun.UseScatteredLight = 4 > Flag for scattered light predicted charges (0:off, 1:6D, 2:3D, 4:6D for 1Rfit 3D otherwise)
+     < fiTQun.UseTimeLikelihood = 1 > Set to 1 to use time likelihoods
+     < fiTQun.WaterRefractiveIndex = 1.38 > Refractive index of water assumed by fitter.
+     < fiTQun.WaterAttenuationLength = 7200. > Attenuation length of water assumed by fitter.
+     < fiTQun.DrawFitStages = 0 > Set to 0 to turn off drawing of fit stages.
+     < fiTQun.PhotoCoverageFracDenom = 1 > Reduce photocoverage to 1/val
+                                           (possible val of 1, 2, or 4)
+     < fiTQun.DeactCapPMTs = 0 > Turn off (1:top, 2:bottom, 3:top&bottom) PMTs. 0:use all
+     
+     < fiTQun.DetGeomType = 1 > Set detector geometry (1:vertical cylinder like SK, 2:HK. Note for HK-mode, only the z-length of the detector can be varied, since x-y geometry is hardcoded.)
+
+  3. Options for single ring fits
+
+     Add a constraint on the total measured charge?
+     < fiTQun.ChargeConstraintGamma1RFit = 0 >
+     < fiTQun.ChargeConstraintElectron1RFit = 1 >
+     < fiTQun.ChargeConstraintMuon1RFit = 1 >
+     < fiTQun.ChargeConstraintPionPlus1RFit = 0 >
+     < fiTQun.ChargeConstraintKaonPlus1RFit = 0 >
+     < fiTQun.ChargeConstraintProton1RFit = 0 >
+     < fiTQun.ChargeConstraintConeGenerator1RFit = 1 >
+
+     Total Light Yield Normalizations
+     < fiTQun.LightYieldGamma1RFit = 1.068 >
+     < fiTQun.LightYieldElectron1RFit = 1.057 >
+     < fiTQun.LightYieldMuon1RFit = 0.975 >
+     < fiTQun.LightYieldPionPlus1RFit = 1.0 >
+     < fiTQun.LightYieldKaonPlus1RFit = 1.0 >
+     < fiTQun.LightYieldProton1RFit = 1.0 >
+     < fiTQun.LightYieldConeGenerator1RFit = 1.09 >
+
+     dEdx for upstream track calculation
+     < fiTQun.dEdxGamma = 1.0 >
+     < fiTQun.dEdxElectron = 1.0 >
+     < fiTQun.dEdxMuon = 2.14786 >
+     < fiTQun.dEdxPionPlus = 2.13069 >
+     < fiTQun.dEdxKaonPlus = 2.06859 >
+     < fiTQun.dEdxProton = 2.04043 >
+     < fiTQun.dEdxConeGenerator = 1.0 >
+     
+     < fiTQun.TuningMode = 0 > Set it to 1 in order to seed 1R fit with true information
+
+  4. Options for the pi0 fit
+
+     < fiTQun.Pi0SeedType = 112 >  Specifies the how the 1st pi0 fit should be seeded.
+                                   Each base-10 digit (XYZ) is used for a separate option
+
+                                  Z = 1: Seed with pi0 truth information
+                                    = 2: Seed with 1-track e fit result and scan for 2nd ring
+                                    = 3: Seed with 1-track e fit direction and scan for 2nd ring with photon momenta set by pi0 mass constraint
+
+                                  Y = 0: no momentum only fit
+                                    = 1: do momentum only fit as well
+
+                                  X = 0: do not translate vertex
+                                    = 1: translate vertex upstream 50cm as first guess at photon conversion length
+
+     < fiTQun.Pi0SeedType2 = 113 >  Same as above, but for the 2nd pi0 fit
+
+     < fiTQun.nPi0SeedScanPoints = 100 >  Number of ~equally spaced directions used when scanning for a 2nd ring in the pi0 fit seeding.
+
+     < fiTQun.Pi0fitOnDcye = 0 >  Set it to 1 in order to run the pi0 fit on the second time window(decay electron)
+
+  5. Options for the MR fit
+
+     < fiTQun.FitMRConvL = 0 >    Set to 1 if you want to fit the conversion length during the multi-ring fit. Setting it to 2 puts a constraint >0.
+     
+     < fiTQun.RCCuta0 = 120. >
+     < fiTQun.RCCuta1 = -0.6 >
+     
+     < fiTQun.ModeSeqMRFit = 1 >  Set this to negative if you want to fix the vertex when performing the sequential fit
+
+  6. Options for the 2 electron gamma fit
+
+     < fiTQun.GammaSeedType = 2 > 1 is seed with truth (OutputTrueGammaInfo must be 1),
+                                  2 is scan with 1-ring electron-like fit.
+  7  Options for MS fit
+     < fiTQun.nSegMax = 3 >       Maximum # of segments allowed in MS track
+     < fiTQun.MSFitMethod = 0 >   Fit Method: 0-> simultaneous fit 
+                                              1-> downstream to upstream sequential fit
+     < fiTQun.MSElossMin = 168. >  Parameter used to reduce the number of segments to fit for low-E track.
+     < fiTQun.MSThetRes = 0.05 >   Parameter used in logL penalties for small segments. 
+                                   Larger values will result in a larger minimum segment length.
+     < fiTQun.MSScattSig = 4. >    Parameter that determines the range of theta values used in the
+                                   course grid search to seed segment direction. 
+    

@@ -4,3 +4,6 @@
 #ignore plots folder content
 **/plots
 **/plots_old
+
+# ignore root_files folder content
+**/root_files
