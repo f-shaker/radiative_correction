@@ -13,16 +13,16 @@
 #include "TRatioPlot.h"
 
 using namespace std;
-//===========================================================================//
+//============================================================================//
 // Types Declaration
-//===========================================================================//
+//============================================================================//
 // Particle indices for SK arrays
 typedef enum{
   ELECTRON = 1,
   MUON,
   PION
 } fq_particle;
-//===========================================================================//
+//============================================================================//
 // structure for only the variables that will be needed in this analysis,
 // an alternative is using MakeClass method but I do not want to load huge number of variable in the memory.
 // a better way to handle gloable variables.
@@ -51,9 +51,9 @@ typedef struct t2k_sk_radiative{
   unsigned short int nhitac;
     		
 } t2k_sk_radiative;
-//===========================================================================//
+//============================================================================//
 // Functions Declarations
-//===========================================================================//
+//============================================================================//
 int find_particle_idx(unsigned char* ipv_arr, int size, UChar_t particle_ipv);
 void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct);
 
@@ -75,5 +75,5 @@ void plot_hist1D(TH1* hist, std::string filename, std::string title, int col , i
 void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, std::string title, std::string draw_opt1, std::string draw_opt2, TLatex* tex = NULL);
 void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title);
 void print_perc(size_t ientry, size_t total_entries, int perc_step);
-//===========================================================================//
+//============================================================================//
 #endif

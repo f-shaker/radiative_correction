@@ -1,30 +1,29 @@
-#include "plot_radiative.h"
+#include "radiative_ana.h"
 #include "radiative_ana_cfg.h"
-//==========================================================
-void plot_radiative(){
+//============================================================================//
+void radiative_ana(){
+//============================================================================//
+/*
+Main analysis function
+*/
+  TH1::AddDirectory(kFALSE);
 
-  TH1::AddDirectory(kFALSE); 
-  TFile *f=new TFile(in_file.c_str()); // opens the root file
+  TFile *f=new TFile(mu_gamma_file.c_str()); // opens the root file
   TTree *tr=(TTree*)f->Get("h1"); // creates the TTree object
   t2k_sk_radiative mu_gamm_struct;
-
-  // tst
+  set_tree_addresses(tr, mu_gamm_struct);
 
   float gamma_mom;
-  float mu_mom;
-
   float gamma_dir[3];
+  float mu_mom;
   float mu_dir[3];      
+  float cos_theta;
 
   bool is_1mu_ring_only = false;
   bool is_1ring = false;
   bool is_2ring = false;
   bool is_3_more_ring = false;
-  int fq_mr_fits;
 
-
-// tsts
-  float cos_theta;
   //momentum binning
   double mom_bining_arr[22];//22 entries for bin edges
   for(int i = 0 ; i < 21; i++){
@@ -60,57 +59,27 @@ void plot_radiative(){
   TH1I * nring_mu_gamma_hist = new TH1I("nring_mu_gamma", "nring_mu_gamma", 6, 0, 6);
   TH1I * nring_mu_fin_hist = new TH1I("nring_mu_fin", "nring_mu_fin", 6, 0, 6);
   
-    //setting the error bins correctly
-    gamma_mom_all_hist->Sumw2(1);
-    gamma_mom_1ring_hist->Sumw2(1);
-    gamma_mom_2ring_hist->Sumw2(1);
-    gamma_mom_3morering_hist->Sumw2(1);
-    gamma_mom_1muring_hist->Sumw2(1);
-    gamma_mom_1muring_1ering_hist->Sumw2(1);
+  //setting the error bins correctly
+  gamma_mom_all_hist->Sumw2(1);
+  gamma_mom_1ring_hist->Sumw2(1);
+  gamma_mom_2ring_hist->Sumw2(1);
+  gamma_mom_3morering_hist->Sumw2(1);
+  gamma_mom_1muring_hist->Sumw2(1);
+  gamma_mom_1muring_1ering_hist->Sumw2(1);
     
-    cos_theta_all_hist->Sumw2(1);  
-    cos_theta_1r_hist->Sumw2(1);
-    cos_theta_2r_hist->Sumw2(1);
-    cos_theta_3mr_hist->Sumw2(1);
-    cos_theta_1mur_hist->Sumw2(1);
-    cos_theta_1mu1epir_hist->Sumw2(1);   
+  cos_theta_all_hist->Sumw2(1);  
+  cos_theta_1r_hist->Sumw2(1);
+  cos_theta_2r_hist->Sumw2(1);
+  cos_theta_3mr_hist->Sumw2(1);
+  cos_theta_1mur_hist->Sumw2(1);
+  cos_theta_1mu1epir_hist->Sumw2(1);   
 
-  set_tree_addresses(tr, mu_gamm_struct);
-
-  //tr->SetBranchAddress("npar", &nb_particles);
-  //tr->SetBranchAddress("ipv", particle_ipv_code);
-  //tr->SetBranchAddress("pmomv", particle_mom);
-  //tr->SetBranchAddress("dirv", particle_dir); 
-  //tr->SetBranchAddress("fqnmrfit", &fq_mr_fits);
-  //tr->SetBranchAddress("fqmrnring", fq_mr_nring);
-  //tr->SetBranchAddress("fqmrpid", fq_mr_pid);  
-  /* 
-  //CCQE
-  tr->SetBranchAddress("nhitac", &nhitac);
-  //tr->SetBranchAddress("evclass", &evclass); not available for MC use nhitac and fv cuts, evclass takes daq status into consideration
-  tr->SetBranchAddress("fqnse", &fqnse);
-  tr->SetBranchAddress("fq1rpos", fq1rpos);
-  tr->SetBranchAddress("fq1rdir", fq1rdir);
-*/
-
+  //Main event loop 
   for (int i=0;i<tr->GetEntries();i++){
-    
     //progress
     print_perc(i, tr->GetEntries(), 10);
-    // loop over the tree
     tr->GetEntry(i);
-    /*
-    //JUST FOR TESTING
-    bool fady_pass = pass_1muring();
-    bool cris_pass = is1Rmu();
-    if (fady_pass!= cris_pass){
-      std::cout<<" ERROR : entry " << i << " has different calculation output! Check your code" << std::endl;
-    }else{
-      std::cout <<" good job" <<std::endl;
-    }
-    //JUST FOR TESTING
-    */
-    //Selection Cuts
+
     if (is_FCFV(0, MUON, mu_gamm_struct) == false) continue;
 
     // in GEANT particle code 1 = gamma, 6 = mu-
@@ -129,9 +98,7 @@ void plot_radiative(){
     //std::cout<< "cos theta = " << cos_theta  <<std::endl;
     //bool fill_ok = (particle_idx > 0) && ( (neut_code == 1) || (neut_code == 2) );
     //if(!fill_ok) continue;
-    //particle_true_total_en = sqrt( ( particle_mom[particle_idx]*1000 * particle_mom[particle_idx]*1000 ) + (particle_mass * particle_mass) ); // E^2 = P^2 + m^2 [MeV] note the mom was given in GeV
     gamma_mom_all_hist->Fill(gamma_mom);
-    
     cos_theta_all_hist->Fill(cos_theta);
     is_1ring = (mu_gamm_struct.fqmrnring[0] == 1);
     is_2ring = (mu_gamm_struct.fqmrnring[0] == 2);
@@ -141,8 +108,6 @@ void plot_radiative(){
     bool is_1mu_1e_pi = ( (mu_gamm_struct.fqmrpid[0][0] == 2) || (mu_gamm_struct.fqmrpid[0][1] == 2) ) && ( (mu_gamm_struct.fqmrpid[0][0] == 1) || (mu_gamm_struct.fqmrpid[0][1] == 1) || (mu_gamm_struct.fqmrpid[0][0] == 3) || (mu_gamm_struct.fqmrpid[0][1] == 3) );
     bool is_1mu_1e_pi_ring = is_2ring && is_1mu_1e_pi;
     
-
-    //std::cout<<" 1 ring: "<< is_1ring << " , 2 rings " << is_2ring << " ,  >= 3 rings: " << is_3_more_ring << " is one mu ring = "<< is_1mu_ring_only <<std::endl;
 
     if(is_1ring == true){
       gamma_mom_1ring_hist->Fill(gamma_mom);
@@ -168,7 +133,7 @@ void plot_radiative(){
     }  
     nring_mu_gamma_hist->Fill(mu_gamm_struct.fqmrnring[0]);
     
-   }
+  }
   TFile *f_mu_fin=new TFile(in_file_fin.c_str()); // opens the root file
   TTree *tr_mu_fin=(TTree*)f_mu_fin->Get("h1"); // creates the TTree object
   // for the final mu file
@@ -180,7 +145,6 @@ void plot_radiative(){
   }
 
   //plotting
-
   plot_hist1D(gamma_mom_all_hist,"gamma_all", "gamma mom;mom[MeV];count", kBlue , 2, 1);
   plot_hist1D(gamma_mom_1ring_hist,"gamma_1r", "gamma mom 1 ring;mom[MeV];count", kBlue , 2, 1);
   plot_hist1D(gamma_mom_2ring_hist,"gamma_2r", "gamma mom 2 rings;mom[MeV];count", kBlue , 2, 1);
@@ -194,8 +158,6 @@ void plot_radiative(){
   plot_hist1D(cos_theta_3mr_hist,"theta_3mr", "Cos#theta >=3 r;Cos#theta;count", kBlue , 2, 1);
   plot_hist1D(cos_theta_1mur_hist,"theta_1mur", "Cos#theta 1 #mu r;Cos#theta;count", kBlue , 2, 1);
   plot_hist1D(cos_theta_1mu1epir_hist,"theta_1mu1epir", "Cos#theta 1 #mu 1 e #pi;Cos#theta;count", kBlue , 2, 1);            
-
-  
 
   plot_ratio_hist1D(gamma_mom_1ring_hist, gamma_mom_all_hist, "mom_1r_all", "mom [MeV]", "entries", "ratio");
   plot_ratio_hist1D(gamma_mom_2ring_hist, gamma_mom_all_hist, "mom_2r_all", "mom [MeV]", "entries", "ratio");
@@ -213,10 +175,12 @@ void plot_radiative(){
   plot_hist1D(nring_mu_fin_hist,"nring_mu_fin", "nring_mu_fin;nring;count", kBlue , 2, 1);
   plot_ratio_hist1D(nring_mu_gamma_hist, nring_mu_fin_hist, "nring", "nring", "entries", "ratio");
   
-
 }
-
+//============================================================================//
+// Support Function for Truth Information
+//============================================================================//
 int find_particle_idx(unsigned char* ipv_arr, int size, UChar_t particle_ipv){
+//============================================================================//  
   int idx = -1;
   for(int i = 0; i< size; i++){
     if(ipv_arr[i] == particle_ipv){
@@ -226,12 +190,207 @@ int find_particle_idx(unsigned char* ipv_arr, int size, UChar_t particle_ipv){
   }
   return idx;
 }
+//============================================================================//
+// FV Calculation
+//============================================================================//
+float ComputeWall(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
+//============================================================================//  
+/*
+Code taken from CCQE Selection (https://git.t2k.org/t2k-sk/t2ksk-common/-/tree/OA2020) with a tiny modification (passing structure of tree variables)
+Lifted from minituple code
+This function compute the minimum distance to a wall in either the radius of the z direction of the inner tank
+if the distance is -ve, i.e outside the inner tank
+It only takes the fitted 1 ring vertex postion and does not care about the direction of the particle.
+*/
+  float x = rad_struct.fq1rpos[nsubevent][i_particle][0];
+  float y = rad_struct.fq1rpos[nsubevent][i_particle][1];
+  float z = rad_struct.fq1rpos[nsubevent][i_particle][2];
 
-//Support Functions
-//======================
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  float Rmax = 1690.;
+  float Zmax = 1810.;
+  float rr   = sqrt(x*x + y*y);
+  float absz = TMath::Abs(z);
+  //check if vertex is outside tank
+  float signflg = 1.;
+  if (absz>Zmax) signflg = -1.;
+  if (rr>Rmax)   signflg = -1.;
+  //find min distance to wall
+  float distz = TMath::Abs(Zmax-absz);
+  float distr = TMath::Abs(Rmax-rr);
+  float dwall = signflg*fmin(distz,distr);
+  return dwall;
+}
+//============================================================================//
+float ComputeTowall(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
+//============================================================================//
+/*
+Lifted from Minituple code
+*/
+  float x = rad_struct.fq1rpos[nsubevent][i_particle][0];
+  float y = rad_struct.fq1rpos[nsubevent][i_particle][1];
+  float z = rad_struct.fq1rpos[nsubevent][i_particle][2];
+
+  float dx = rad_struct.fq1rdir[nsubevent][i_particle][0];
+  float dy = rad_struct.fq1rdir[nsubevent][i_particle][1];
+  float dz = rad_struct.fq1rdir[nsubevent][i_particle][2];
+    
+  Double_t const R(1690);
+  Double_t l_b(100000.0), H;
+  Double_t l_t(100000.0);
+  Double_t A, B, C, RAD;
+  if(dx!=0 || dy!=0){
+    A = (dx*dx+dy*dy);
+    B = 2*(x*dx+y*dy);
+    C = (x*x+y*y-R*R);
+    RAD = (B*B) - (4*A*C);
+    l_b = ((-1*B) + sqrt(RAD))/(2*A);
+  }
+  if (dz==0){return l_b;}
+  else if(dz>0){H=1810;}
+  else if(dz<0){H=-1810;}
+  l_t=(H - z)/dz;
+  return  (l_t > l_b ? l_b:l_t);
+}
+//============================================================================//
+//Selection Cuts
+//============================================================================//
+bool pass_evis_cut(t2k_sk_radiative& rad_struct, float min_e_mom){
+//============================================================================//
+/*
+0. This cut is applied to all selections (e.g nu_mu, nu_e, etc.)
+*/
+  return (rad_struct.fq1rmom[0][ELECTRON] > min_e_mom);
+}
+//============================================================================//
+bool is_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
+//============================================================================//  
+/*
+1.Fully-contained in SK fiducial volume: classified by OD activity and total PMT hits as
+fully contained events; wall > 50cm, towall > 250cm. Here “wall”is the distance between
+vertex and the nearest ID wall; “towall”is the distance between the vertex and ID wall
+along the direction at which the particle (in the case of multiple rings, it refers to the
+particle with the most energetic ring) travels.
+*/  
+  if(rad_struct.nhitac >= 16) return false;
+  float wall_dist = ComputeWall(nsubevent, i_particle, rad_struct);
+  if(wall_dist <= 50 ) return false;
+  float to_wall_dist = ComputeTowall(nsubevent, i_particle, rad_struct);
+  if(to_wall_dist <= 250) return false;
+  return true;
+}
+//============================================================================//
+bool is_1ring(t2k_sk_radiative& rad_struct){
+//============================================================================//  
+/*
+2. Number of rings found by the fiTQun multi-ring fitter is one
+*/  
+  return (rad_struct.fqmrnring[0] == 1);
+}
+//============================================================================//
+bool pass_e_mu_nll_cut(t2k_sk_radiative& rad_struct){
+//============================================================================//  
+/*
+3.The ring is identified as muon-like by the single-ring fitter: ln (L_e /L_mu ) < 0.2 × p_e , where
+ln L_e is the fiTQun single-ring e-like hypothesis log likelihood, ln L_mu single-ring mu-like log
+likelihood, and p_e reconstructed electron momentum of single-ring e-like hypothesis
+*/  
+  bool is_mu = false;
+  float discr = rad_struct.fq1rnll[0][MUON]-rad_struct.fq1rnll[0][ELECTRON]-0.2*rad_struct.fq1rmom[0][ELECTRON];
+  if(discr < 0){
+    is_mu=true;
+  } 
+  return is_mu;
+}
+//============================================================================//
+bool pass_mu_mom_cut(t2k_sk_radiative& rad_struct, float min_mu_mom){
+//============================================================================//  
+/*
+4.Reconstructed muon momentum of the single-ring mu-like hypothesis p_mu is larger than 200
+MeV/c
+*/  
+  return (rad_struct.fq1rmom[0][MUON] > min_mu_mom);
+}
+//============================================================================//
+bool pass_nb_decay_e_cut(t2k_sk_radiative& rad_struct){
+//============================================================================//  
+/*
+5. Number of sub-events (identified by hits timing clusters) is 1 or 2 (i.e. number of decay
+electrons is 0 or 1).
+*/  
+  return ( (rad_struct.fqnse == 1) || (rad_struct.fqnse ==2) );
+}
+//============================================================================//
+bool pass_pi_mu_nll_cut(t2k_sk_radiative& rad_struct){
+//============================================================================//
+/*
+6.fiTQun pi+ rejection cut: ln (L_pi+ /L_mu ) < 0.15 × p_mu , where ln L_pi+ is the log likelihood of
+fiTQun single-ring pi+ hypothesis
+*/  
+  bool is_mu = false;
+  float discr = rad_struct.fq1rnll[0][MUON]-rad_struct.fq1rnll[0][PION]-0.15*rad_struct.fq1rmom[0][MUON];
+  if(discr < 0){
+    is_mu=true;
+  } 
+  return is_mu;  
+}
+//============================================================================//
+bool pass_1muring(t2k_sk_radiative& rad_struct){
+//============================================================================//  
+/*
+Combined selectection cuts for nu_mu CC0pi selection (CCQE + 2p2h)
+*/
+  float min_e_mom = 30.0;//MeV
+  float min_mu_mom = 200;//MeV
+  return  pass_evis_cut(rad_struct, min_e_mom)&&
+          is_FCFV(0, MUON, rad_struct) &&
+          is_1ring(rad_struct) &&
+          pass_e_mu_nll_cut(rad_struct)&&
+          pass_mu_mom_cut(rad_struct, min_mu_mom) &&
+          pass_nb_decay_e_cut(rad_struct)&&
+          pass_pi_mu_nll_cut(rad_struct);
+}
+//============================================================================//
+// Data Structure Filling
+//============================================================================//
+void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct){
+//============================================================================//  
+  // disable all branches
+  tr->SetBranchStatus("*", 0);
+  // fiTQun variables
+  tr->SetBranchStatus("fqnse", 1);
+  tr->SetBranchAddress("fqnse", &(rad_struct.fqnse) );
+  tr->SetBranchStatus("fq1rmom", 1);
+  tr->SetBranchAddress("fq1rmom", rad_struct.fq1rmom);
+  tr->SetBranchStatus("fq1rnll", 1);
+  tr->SetBranchAddress("fq1rnll", rad_struct.fq1rnll);
+  tr->SetBranchStatus("fq1rpos", 1);
+  tr->SetBranchAddress("fq1rpos", rad_struct.fq1rpos);
+  tr->SetBranchStatus("fq1rdir", 1);
+  tr->SetBranchAddress("fq1rdir", rad_struct.fq1rdir);
+  tr->SetBranchStatus("fqmrnring", 1);
+  tr->SetBranchAddress("fqmrnring", rad_struct.fqmrnring);
+  tr->SetBranchStatus("fqmrpid", 1);
+  tr->SetBranchAddress("fqmrpid", rad_struct.fqmrpid);
+
+  // NEUT (truth) variable
+  tr->SetBranchStatus("npar", 1);
+  tr->SetBranchAddress("npar", &rad_struct.npar);
+  tr->SetBranchStatus("ipv", 1);
+  tr->SetBranchAddress("ipv", rad_struct.ipv);
+  tr->SetBranchStatus("pmomv", 1);
+  tr->SetBranchAddress("pmomv", rad_struct.pmomv);
+  tr->SetBranchStatus("dirv", 1);
+  tr->SetBranchAddress("dirv", rad_struct.dirv); 
+
+  // other variables
+  tr->SetBranchStatus("nhitac", 1);
+  tr->SetBranchAddress("nhitac", &(rad_struct.nhitac));
+}
+//============================================================================//
+// Plotting Functions
+//============================================================================//
 inline void print_perc(size_t ientry, size_t total_entries, int perc_step){
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//============================================================================//
   static bool print_perc = true;// static variable so that it keep track of the previous call inside a look
   double perc = 100 * ( static_cast<double>(ientry) / static_cast<double>(total_entries) );
 
@@ -246,27 +405,27 @@ inline void print_perc(size_t ientry, size_t total_entries, int perc_step){
     print_perc = true;
   }
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//============================================================================//
 void format_hist1D(TH1* hist, std::string title, int col , int width, int sty){
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//============================================================================//
   hist->SetTitle(title.c_str());
   hist->SetLineColor(col);
   hist->SetLineWidth(width);
   hist->SetLineStyle(sty);
   hist->GetYaxis()->SetTitleOffset(1.2);
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//============================================================================//
 void format_hist1I(TH1I* hist, std::string title, int col , int width, int sty){
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//============================================================================//
   hist->SetTitle(title.c_str());
   hist->SetLineColor(col);
   hist->SetLineWidth(width);
   hist->SetLineStyle(sty);
   hist->GetYaxis()->SetTitleOffset(1.2);
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//============================================================================//
 void plot_hist1D(TH1* hist,  std::string filename, std::string title, int col , int width, int sty){
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//============================================================================//
   format_hist1D(hist, title, col , width, sty);
   TCanvas * canv = new TCanvas(Form("canv_%s",hist->GetName()), Form("canv_%s",hist->GetName()), 1200, 800);
   canv->cd();
@@ -274,9 +433,9 @@ void plot_hist1D(TH1* hist,  std::string filename, std::string title, int col , 
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),filename.c_str()));
   delete canv;
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//============================================================================//
 void plot_hist1I(TH1I* hist,  std::string filename, std::string title, int col , int width, int sty){
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//============================================================================//
   format_hist1I(hist, title, col , width, sty);
   TCanvas * canv = new TCanvas(Form("canv_%s",hist->GetName()), Form("canv_%s",hist->GetName()), 1200, 800);
   canv->cd();
@@ -284,9 +443,9 @@ void plot_hist1I(TH1I* hist,  std::string filename, std::string title, int col ,
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),filename.c_str()));
   delete canv;
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//============================================================================//
 void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, std::string title, std::string draw_opt1, std::string draw_opt2, TLatex* tex){
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//============================================================================//
   hist1->SetTitle(title.c_str());
   TCanvas * canv = new TCanvas(Form("canv_%s",hist1->GetName()), Form("canv_%s",hist1->GetName()), 1200, 800);
   canv->cd();
@@ -311,57 +470,9 @@ void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, st
   delete legend;
   delete canv;
 }
-/*
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void plot_ratio_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, std::string title, std::string draw_opt1, std::string draw_opt2, TLatex* tex){
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  hist1->SetTitle(title.c_str());
-  TCanvas * canv = new TCanvas(Form("canv_%s",hist1->GetName()), Form("canv_%s",hist1->GetName()), 1200, 800);
-  canv->cd();
-  canv->SetGrid();
-  hist1->SetStats(0);
-  hist1->Sumw2(1);
-  hist2->SetStats(0);
-  hist2->Sumw2(1);
-
-  TH1D *hist3 = ((TH1D*)(hist3->Clone("hist1")));
-  hist3->SetMarkerColor(kBlack);
-  hist3->SetLineColor(kBlack);
-  hist3->Divide(hist2);
-
-  double max = hist1->GetMaximum() > hist2->GetMaximum()? hist1->GetMaximum():hist2->GetMaximum();
-  max*=1.1;
-  hist1->SetMaximum(max);
-  hist2->SetMaximum(max);
-  hist1->GetYaxis()->SetTitleOffset(1.2);
-  hist2->GetYaxis()->SetTitleOffset(1.2);
-  hist1->Draw(draw_opt1.c_str());
-  hist2->Draw(draw_opt2.c_str());
-  TLegend* legend = new TLegend(0.8,0.7,1.0,0.9);
-  legend->AddEntry(hist1->GetName(),hist1->GetName(),"l");
-  legend->AddEntry(hist2->GetName(),hist2->GetName(),"l");
-  if(tex!= NULL) tex->Draw();
-  //legend->Draw("SAME"); fsamir check if i remove same from legend
-  legend->Draw();
-  //drawing the ratio histogram
-  // lower plot will be in pad
-  canv->cd();          // Go back to the main canvas before defining pad2
-  TPad *pad2 = new TPad("pad2", "pad2", 0, 0.05, 1, 0.3);
-  pad2->SetLogx();
-  pad2->SetTopMargin(0.0);
-  pad2->SetBottomMargin(0.2);
-  pad2->Draw();
-  pad2->cd();       // pad2 becomes the current pad
-  hist3->Draw();
-  canv->SaveAs(Form("%s%s_sup.eps",plot_dir.c_str(),filename.c_str()));
-  delete hist3;
-  delete legend;
-  delete canv;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-*/
+//============================================================================//
 void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title){
-
+//============================================================================//
   hist1->SetStats(0);
   //hist1->Sumw2(1);
   hist1->SetMarkerColor(kBlue);
@@ -401,173 +512,4 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string
   delete canv;
 
 }
-
-//Code taken from CCQE Selection (CRIS)
-//fsamir: this function compute the minimum distance to a wall in either the radius of the z direction of the inner tank
-//if the distance is -ve, i.e outside the inner tank
-//It only takes the fitted 1 ring vertex postion and does not care about the direction of the particle.
-
-  // Lifted from minituple code
-  float ComputeWall(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct)
-  {
-    float x = rad_struct.fq1rpos[nsubevent][i_particle][0];
-    float y = rad_struct.fq1rpos[nsubevent][i_particle][1];
-    float z = rad_struct.fq1rpos[nsubevent][i_particle][2];
-
-
-    float Rmax = 1690.;
-    float Zmax = 1810.;
-    float rr   = sqrt(x*x + y*y);
-    float absz = TMath::Abs(z);
-    //check if vertex is outside tank
-    float signflg = 1.;
-    if (absz>Zmax) signflg = -1.;
-    if (rr>Rmax)   signflg = -1.;
-    //find min distance to wall
-    float distz = TMath::Abs(Zmax-absz);
-    float distr = TMath::Abs(Rmax-rr);
-    float dwall = signflg*fmin(distz,distr);
-    return dwall;
-  }
-
-   // FV Variables
-  // Lifted from Minituple code
-
-  float ComputeTowall(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct)
-  {
-    float x = rad_struct.fq1rpos[nsubevent][i_particle][0];
-    float y = rad_struct.fq1rpos[nsubevent][i_particle][1];
-    float z = rad_struct.fq1rpos[nsubevent][i_particle][2];
-
-    float dx = rad_struct.fq1rdir[nsubevent][i_particle][0];
-    float dy = rad_struct.fq1rdir[nsubevent][i_particle][1];
-    float dz = rad_struct.fq1rdir[nsubevent][i_particle][2];
-    
-    Double_t const R(1690);
-    Double_t l_b(100000.0), H;
-    Double_t l_t(100000.0);
-    Double_t A, B, C, RAD;
-    if(dx!=0 || dy!=0){
-      A = (dx*dx+dy*dy);
-      B = 2*(x*dx+y*dy);
-      C = (x*x+y*y-R*R);
-      RAD = (B*B) - (4*A*C);
-      l_b = ((-1*B) + sqrt(RAD))/(2*A);
-    }
-    if (dz==0){return l_b;}
-    else if(dz>0){H=1810;}
-    else if(dz<0){H=-1810;}
-    l_t=(H - z)/dz;
-    return  (l_t > l_b ? l_b:l_t);
-  }
-
-//Selection Cuts
-/*
-1.Fully-contained in SK fiducial volume: classified by OD activity and total PMT hits as
-fully contained events; wall > 50cm, towall > 250cm. Here “wall”is the distance between
-vertex and the nearest ID wall; “towall”is the distance between the vertex and ID wall
-along the direction at which the particle (in the case of multiple rings, it refers to the
-particle with the most energetic ring) travels.
-*/
-bool is_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
-  if(rad_struct.nhitac >= 16) return false;
-  float wall_dist = ComputeWall(nsubevent, i_particle, rad_struct);
-  if(wall_dist <= 50 ) return false;
-  float to_wall_dist = ComputeTowall(nsubevent, i_particle, rad_struct);
-  if(to_wall_dist <= 250) return false;
-  return true;
-}
-/*
-2. Number of rings found by the fiTQun multi-ring fitter is one
-*/
-bool is_1ring(t2k_sk_radiative& rad_struct){
-  return (rad_struct.fqmrnring[0] == 1);
-}
-/*
-3.The ring is identified as muon-like by the single-ring fitter: ln (L_e /L_mu ) < 0.2 × p_e , where
-ln L_e is the fiTQun single-ring e-like hypothesis log likelihood, ln L_mu single-ring mu-like log
-likelihood, and p_e reconstructed electron momentum of single-ring e-like hypothesis
-*/
-bool pass_e_mu_nll_cut(t2k_sk_radiative& rad_struct){
-  bool is_mu = false;
-  float discr = rad_struct.fq1rnll[0][MUON]-rad_struct.fq1rnll[0][ELECTRON]-0.2*rad_struct.fq1rmom[0][ELECTRON];
-  if(discr < 0){
-    is_mu=true;
-  } 
-  return is_mu;
-}
-/*
-4.Reconstructed muon momentum of the single-ring mu-like hypothesis p_mu is larger than 200
-MeV/c
-*/
-bool pass_mu_mom_cut(t2k_sk_radiative& rad_struct, float min_mu_mom){
-  return (rad_struct.fq1rmom[0][MUON] > min_mu_mom);
-}
-/*
-5. Number of sub-events (identified by hits timing clusters) is 1 or 2 (i.e. number of decay
-electrons is 0 or 1).
-*/
-bool pass_nb_decay_e_cut(t2k_sk_radiative& rad_struct){
-  return ( (rad_struct.fqnse == 1) || (rad_struct.fqnse ==2) );
-}
-/*
-6.fiTQun pi+ rejection cut: ln (L_pi+ /L_mu ) < 0.15 × p_mu , where ln L_pi+ is the log likelihood of
-fiTQun single-ring pi+ hypothesis
-*/
-bool pass_pi_mu_nll_cut(t2k_sk_radiative& rad_struct){
-  bool is_mu = false;
-  float discr = rad_struct.fq1rnll[0][MUON]-rad_struct.fq1rnll[0][PION]-0.15*rad_struct.fq1rmom[0][MUON];
-  if(discr < 0){
-    is_mu=true;
-  } 
-  return is_mu;  
-}
-
-bool pass_evis_cut(t2k_sk_radiative& rad_struct, float min_e_mom){
-
-  return (rad_struct.fq1rmom[0][ELECTRON] > min_e_mom);
-}
-
-bool pass_1muring(t2k_sk_radiative& rad_struct){
-  return  is_FCFV(0, MUON, rad_struct) &&
-          is_1ring(rad_struct) &&
-          pass_e_mu_nll_cut(rad_struct)&&
-          pass_mu_mom_cut(rad_struct, float(200.0)) &&
-          pass_nb_decay_e_cut(rad_struct)&&
-          pass_pi_mu_nll_cut(rad_struct)&&
-          pass_evis_cut(rad_struct, float(30.0));
-}
-
-void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct){
-  // disable all branches
-  tr->SetBranchStatus("*", 0);
-  // fiTQun variables
-  tr->SetBranchStatus("fqnse", 1);
-  tr->SetBranchAddress("fqnse", &(rad_struct.fqnse) );
-  tr->SetBranchStatus("fq1rmom", 1);
-  tr->SetBranchAddress("fq1rmom", rad_struct.fq1rmom);
-  tr->SetBranchStatus("fq1rnll", 1);
-  tr->SetBranchAddress("fq1rnll", rad_struct.fq1rnll);
-  tr->SetBranchStatus("fq1rpos", 1);
-  tr->SetBranchAddress("fq1rpos", rad_struct.fq1rpos);
-  tr->SetBranchStatus("fq1rdir", 1);
-  tr->SetBranchAddress("fq1rdir", rad_struct.fq1rdir);
-  tr->SetBranchStatus("fqmrnring", 1);
-  tr->SetBranchAddress("fqmrnring", rad_struct.fqmrnring);
-  tr->SetBranchStatus("fqmrpid", 1);
-  tr->SetBranchAddress("fqmrpid", rad_struct.fqmrpid);
-
-  // NEUT (truth) variable
-  tr->SetBranchStatus("npar", 1);
-  tr->SetBranchAddress("npar", &rad_struct.npar);
-  tr->SetBranchStatus("ipv", 1);
-  tr->SetBranchAddress("ipv", rad_struct.ipv);
-  tr->SetBranchStatus("pmomv", 1);
-  tr->SetBranchAddress("pmomv", rad_struct.pmomv);
-  tr->SetBranchStatus("dirv", 1);
-  tr->SetBranchAddress("dirv", rad_struct.dirv); 
-
-  // other variables
-  tr->SetBranchStatus("nhitac", 1);
-  tr->SetBranchAddress("nhitac", &(rad_struct.nhitac));
-}
+//============================================================================//
