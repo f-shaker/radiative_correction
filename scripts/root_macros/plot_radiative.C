@@ -1,34 +1,18 @@
 #include "plot_radiative.h"
-  // Sub-event finder
-  int fqnse;
-  // Single-ring fits
-  float fq1rmom[100][7];
-  float fq1rnll[100][7];
-  float fq1rpos[100][7][3];
-  float fq1rdir[100][7][3];
-  // Other variables
-  int evclass;
-  unsigned short int nhitac;
-
-  int fq_mr_nring[100];
-  int fq_mr_nring_mu_fin[100];
-  int fq_mr_nring_mu_init[100];
+#include "radiative_ana_cfg.h"
 //==========================================================
 void plot_radiative(){
 
   TH1::AddDirectory(kFALSE); 
   TFile *f=new TFile(in_file.c_str()); // opens the root file
   TTree *tr=(TTree*)f->Get("h1"); // creates the TTree object
+  t2k_sk_radiative mu_gamm_struct;
 
-  int  nb_particles;
-  //numbering convension is 0 = neutrino, 1 = nucleon, 2 = lepton, 4 = output hadron, >= 5 others (not in case of 2p2h)
-  UChar_t particle_ipv_code[MAX_NB_PARTICLES];
+  // tst
 
-  float particle_mom[MAX_NB_PARTICLES];
   float gamma_mom;
   float mu_mom;
-  
-  float particle_dir[MAX_NB_PARTICLES][3];
+
   float gamma_dir[3];
   float mu_dir[3];      
 
@@ -38,10 +22,8 @@ void plot_radiative(){
   bool is_3_more_ring = false;
   int fq_mr_fits;
 
-  //fqmrpid   : fqmrpid[fqnmrfit][6]
-  int fq_mr_pid[MAX_FQ_FITS][6];
 
-
+// tsts
   float cos_theta;
   //momentum binning
   double mom_bining_arr[22];//22 entries for bin edges
@@ -93,20 +75,23 @@ void plot_radiative(){
     cos_theta_1mur_hist->Sumw2(1);
     cos_theta_1mu1epir_hist->Sumw2(1);   
 
-  tr->SetBranchAddress("npar", &nb_particles);
-  tr->SetBranchAddress("ipv", particle_ipv_code);
-  tr->SetBranchAddress("pmomv", particle_mom);
-  tr->SetBranchAddress("dirv", particle_dir); 
-  tr->SetBranchAddress("fqnmrfit", &fq_mr_fits);
-  tr->SetBranchAddress("fqmrnring", fq_mr_nring);
-  tr->SetBranchAddress("fqmrpid", fq_mr_pid);   
+  set_tree_addresses(tr, mu_gamm_struct);
+
+  //tr->SetBranchAddress("npar", &nb_particles);
+  //tr->SetBranchAddress("ipv", particle_ipv_code);
+  //tr->SetBranchAddress("pmomv", particle_mom);
+  //tr->SetBranchAddress("dirv", particle_dir); 
+  //tr->SetBranchAddress("fqnmrfit", &fq_mr_fits);
+  //tr->SetBranchAddress("fqmrnring", fq_mr_nring);
+  //tr->SetBranchAddress("fqmrpid", fq_mr_pid);  
+  /* 
   //CCQE
   tr->SetBranchAddress("nhitac", &nhitac);
   //tr->SetBranchAddress("evclass", &evclass); not available for MC use nhitac and fv cuts, evclass takes daq status into consideration
   tr->SetBranchAddress("fqnse", &fqnse);
   tr->SetBranchAddress("fq1rpos", fq1rpos);
   tr->SetBranchAddress("fq1rdir", fq1rdir);
-
+*/
 
   for (int i=0;i<tr->GetEntries();i++){
     
@@ -114,6 +99,7 @@ void plot_radiative(){
     print_perc(i, tr->GetEntries(), 10);
     // loop over the tree
     tr->GetEntry(i);
+    /*
     //JUST FOR TESTING
     bool fady_pass = pass_1muring();
     bool cris_pass = is1Rmu();
@@ -123,20 +109,21 @@ void plot_radiative(){
       std::cout <<" good job" <<std::endl;
     }
     //JUST FOR TESTING
+    */
     //Selection Cuts
-    if (is_FCFV(0, MUON, nhitac) == false) continue;
+    if (is_FCFV(0, MUON, mu_gamm_struct) == false) continue;
 
     // in GEANT particle code 1 = gamma, 6 = mu-
-    int gamma_idx = find_particle_idx(particle_ipv_code, nb_particles, 1);
-    int mu_idx = find_particle_idx(particle_ipv_code, nb_particles, 6);
+    int gamma_idx = find_particle_idx(mu_gamm_struct.ipv, mu_gamm_struct.npar, 1);
+    int mu_idx = find_particle_idx(mu_gamm_struct.ipv, mu_gamm_struct.npar, 6);
 
     //filling gamma and muon kinematics
-    gamma_mom = particle_mom[gamma_idx];
-    mu_mom = particle_mom[mu_idx];
+    gamma_mom = mu_gamm_struct.pmomv[gamma_idx];
+    mu_mom = mu_gamm_struct.pmomv[mu_idx];
 
     for(int ix = 0 ; ix < 3; ix++){
-      gamma_dir[ix] = particle_dir[gamma_idx][ix];
-      mu_dir[ix] = particle_dir[mu_idx][ix];      
+      gamma_dir[ix] = mu_gamm_struct.dirv[gamma_idx][ix];
+      mu_dir[ix] = mu_gamm_struct.dirv[mu_idx][ix];      
     }
     cos_theta = ( gamma_dir[0] * mu_dir[0] ) + ( gamma_dir[1] * mu_dir[1] ) + ( gamma_dir[2] * mu_dir[2] ); 
     //std::cout<< "cos theta = " << cos_theta  <<std::endl;
@@ -146,12 +133,12 @@ void plot_radiative(){
     gamma_mom_all_hist->Fill(gamma_mom);
     
     cos_theta_all_hist->Fill(cos_theta);
-    is_1ring = (fq_mr_nring[0] == 1);
-    is_2ring = (fq_mr_nring[0] == 2);
-    is_3_more_ring = (fq_mr_nring[0] >= 3);
+    is_1ring = (mu_gamm_struct.fqmrnring[0] == 1);
+    is_2ring = (mu_gamm_struct.fqmrnring[0] == 2);
+    is_3_more_ring = (mu_gamm_struct.fqmrnring[0] >= 3);
 
-    is_1mu_ring_only = is_1ring && (fq_mr_pid[0][0] == 2);
-    bool is_1mu_1e_pi = ( (fq_mr_pid[0][0] == 2) || (fq_mr_pid[0][1] == 2) ) && ( (fq_mr_pid[0][0] == 1) || (fq_mr_pid[0][1] == 1) || (fq_mr_pid[0][0] == 3) || (fq_mr_pid[0][1] == 3) );
+    is_1mu_ring_only = is_1ring && (mu_gamm_struct.fqmrpid[0][0] == 2);
+    bool is_1mu_1e_pi = ( (mu_gamm_struct.fqmrpid[0][0] == 2) || (mu_gamm_struct.fqmrpid[0][1] == 2) ) && ( (mu_gamm_struct.fqmrpid[0][0] == 1) || (mu_gamm_struct.fqmrpid[0][1] == 1) || (mu_gamm_struct.fqmrpid[0][0] == 3) || (mu_gamm_struct.fqmrpid[0][1] == 3) );
     bool is_1mu_1e_pi_ring = is_2ring && is_1mu_1e_pi;
     
 
@@ -179,12 +166,13 @@ void plot_radiative(){
       gamma_mom_1muring_1ering_hist->Fill(gamma_mom);
       cos_theta_1mu1epir_hist->Fill(cos_theta);
     }  
-    nring_mu_gamma_hist->Fill(fq_mr_nring[0]);
+    nring_mu_gamma_hist->Fill(mu_gamm_struct.fqmrnring[0]);
     
    }
   TFile *f_mu_fin=new TFile(in_file_fin.c_str()); // opens the root file
   TTree *tr_mu_fin=(TTree*)f_mu_fin->Get("h1"); // creates the TTree object
   // for the final mu file
+  int fq_mr_nring_mu_fin[100];
   tr_mu_fin->SetBranchAddress("fqmrnring", fq_mr_nring_mu_fin);
   for (int i=0;i<tr_mu_fin->GetEntries();i++){
     tr_mu_fin->GetEntry(i);
@@ -228,7 +216,7 @@ void plot_radiative(){
 
 }
 
-int find_particle_idx(UChar_t* ipv_arr, int size, UChar_t particle_ipv){
+int find_particle_idx(unsigned char* ipv_arr, int size, UChar_t particle_ipv){
   int idx = -1;
   for(int i = 0; i< size; i++){
     if(ipv_arr[i] == particle_ipv){
@@ -420,11 +408,11 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string
 //It only takes the fitted 1 ring vertex postion and does not care about the direction of the particle.
 
   // Lifted from minituple code
-  float ComputeWall(int nsubevent, fq_particle i_particle)
+  float ComputeWall(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct)
   {
-    float x = fq1rpos[nsubevent][i_particle][0];
-    float y = fq1rpos[nsubevent][i_particle][1];
-    float z = fq1rpos[nsubevent][i_particle][2];
+    float x = rad_struct.fq1rpos[nsubevent][i_particle][0];
+    float y = rad_struct.fq1rpos[nsubevent][i_particle][1];
+    float z = rad_struct.fq1rpos[nsubevent][i_particle][2];
 
 
     float Rmax = 1690.;
@@ -445,15 +433,15 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string
    // FV Variables
   // Lifted from Minituple code
 
-  float ComputeTowall(int nsubevent, fq_particle i_particle)
+  float ComputeTowall(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct)
   {
-    float x = fq1rpos[nsubevent][i_particle][0];
-    float y = fq1rpos[nsubevent][i_particle][1];
-    float z = fq1rpos[nsubevent][i_particle][2];
+    float x = rad_struct.fq1rpos[nsubevent][i_particle][0];
+    float y = rad_struct.fq1rpos[nsubevent][i_particle][1];
+    float z = rad_struct.fq1rpos[nsubevent][i_particle][2];
 
-    float dx = fq1rdir[nsubevent][i_particle][0];
-    float dy = fq1rdir[nsubevent][i_particle][1];
-    float dz = fq1rdir[nsubevent][i_particle][2];
+    float dx = rad_struct.fq1rdir[nsubevent][i_particle][0];
+    float dy = rad_struct.fq1rdir[nsubevent][i_particle][1];
+    float dz = rad_struct.fq1rdir[nsubevent][i_particle][2];
     
     Double_t const R(1690);
     Double_t l_b(100000.0), H;
@@ -481,28 +469,28 @@ vertex and the nearest ID wall; “towall”is the distance between the vertex a
 along the direction at which the particle (in the case of multiple rings, it refers to the
 particle with the most energetic ring) travels.
 */
-bool is_FCFV(int nsubevent, fq_particle i_particle, unsigned int nhitac){
-  if(nhitac >= 16) return false;
-  float wall_dist = ComputeWall(nsubevent, i_particle);
+bool is_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
+  if(rad_struct.nhitac >= 16) return false;
+  float wall_dist = ComputeWall(nsubevent, i_particle, rad_struct);
   if(wall_dist <= 50 ) return false;
-  float to_wall_dist = ComputeTowall(nsubevent, i_particle);
+  float to_wall_dist = ComputeTowall(nsubevent, i_particle, rad_struct);
   if(to_wall_dist <= 250) return false;
   return true;
 }
 /*
 2. Number of rings found by the fiTQun multi-ring fitter is one
 */
-bool is_1ring(){
-  return (fq_mr_nring[0] == 1);
+bool is_1ring(t2k_sk_radiative& rad_struct){
+  return (rad_struct.fqmrnring[0] == 1);
 }
 /*
 3.The ring is identified as muon-like by the single-ring fitter: ln (L_e /L_mu ) < 0.2 × p_e , where
 ln L_e is the fiTQun single-ring e-like hypothesis log likelihood, ln L_mu single-ring mu-like log
 likelihood, and p_e reconstructed electron momentum of single-ring e-like hypothesis
 */
-bool pass_e_mu_nll_cut(){
+bool pass_e_mu_nll_cut(t2k_sk_radiative& rad_struct){
   bool is_mu = false;
-  float discr = fq1rnll[0][MUON]-fq1rnll[0][ELECTRON]-0.2*fq1rmom[0][ELECTRON];
+  float discr = rad_struct.fq1rnll[0][MUON]-rad_struct.fq1rnll[0][ELECTRON]-0.2*rad_struct.fq1rmom[0][ELECTRON];
   if(discr < 0){
     is_mu=true;
   } 
@@ -512,96 +500,74 @@ bool pass_e_mu_nll_cut(){
 4.Reconstructed muon momentum of the single-ring mu-like hypothesis p_mu is larger than 200
 MeV/c
 */
-bool pass_mu_mom_cut(float min_mu_mom){
-  return (fq1rmom[0][MUON] > min_mu_mom);
+bool pass_mu_mom_cut(t2k_sk_radiative& rad_struct, float min_mu_mom){
+  return (rad_struct.fq1rmom[0][MUON] > min_mu_mom);
 }
 /*
 5. Number of sub-events (identified by hits timing clusters) is 1 or 2 (i.e. number of decay
 electrons is 0 or 1).
 */
-bool pass_nb_decay_e_cut(){
-  return ( (fqnse == 1) || (fqnse ==2) );
+bool pass_nb_decay_e_cut(t2k_sk_radiative& rad_struct){
+  return ( (rad_struct.fqnse == 1) || (rad_struct.fqnse ==2) );
 }
 /*
 6.fiTQun pi+ rejection cut: ln (L_pi+ /L_mu ) < 0.15 × p_mu , where ln L_pi+ is the log likelihood of
 fiTQun single-ring pi+ hypothesis
 */
-bool pass_pi_mu_nll_cut(){
+bool pass_pi_mu_nll_cut(t2k_sk_radiative& rad_struct){
   bool is_mu = false;
-  float discr = fq1rnll[0][MUON]-fq1rnll[0][PION]-0.15*fq1rmom[0][MUON];
+  float discr = rad_struct.fq1rnll[0][MUON]-rad_struct.fq1rnll[0][PION]-0.15*rad_struct.fq1rmom[0][MUON];
   if(discr < 0){
     is_mu=true;
   } 
   return is_mu;  
 }
 
-bool pass_evis_cut(float min_e_mom){
+bool pass_evis_cut(t2k_sk_radiative& rad_struct, float min_e_mom){
 
-  return (fq1rmom[0][ELECTRON] > min_e_mom);
+  return (rad_struct.fq1rmom[0][ELECTRON] > min_e_mom);
 }
 
-bool pass_1muring(){
-  return  is_FCFV(0, MUON, nhitac) &&
-          is_1ring() &&
-          pass_e_mu_nll_cut()&&
-          pass_mu_mom_cut(float(200.0)) &&
-          pass_nb_decay_e_cut()&&
-          pass_pi_mu_nll_cut()&&
-          pass_evis_cut(float(30.0));
+bool pass_1muring(t2k_sk_radiative& rad_struct){
+  return  is_FCFV(0, MUON, rad_struct) &&
+          is_1ring(rad_struct) &&
+          pass_e_mu_nll_cut(rad_struct)&&
+          pass_mu_mom_cut(rad_struct, float(200.0)) &&
+          pass_nb_decay_e_cut(rad_struct)&&
+          pass_pi_mu_nll_cut(rad_struct)&&
+          pass_evis_cut(rad_struct, float(30.0));
 }
-//Just for testing start
 
- // Some useful quantities
-  float electron_momentum(){
-    return fq1rmom[0][ELECTRON];
-  }
+void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct){
+  // disable all branches
+  tr->SetBranchStatus("*", 0);
+  // fiTQun variables
+  tr->SetBranchStatus("fqnse", 1);
+  tr->SetBranchAddress("fqnse", &(rad_struct.fqnse) );
+  tr->SetBranchStatus("fq1rmom", 1);
+  tr->SetBranchAddress("fq1rmom", rad_struct.fq1rmom);
+  tr->SetBranchStatus("fq1rnll", 1);
+  tr->SetBranchAddress("fq1rnll", rad_struct.fq1rnll);
+  tr->SetBranchStatus("fq1rpos", 1);
+  tr->SetBranchAddress("fq1rpos", rad_struct.fq1rpos);
+  tr->SetBranchStatus("fq1rdir", 1);
+  tr->SetBranchAddress("fq1rdir", rad_struct.fq1rdir);
+  tr->SetBranchStatus("fqmrnring", 1);
+  tr->SetBranchAddress("fqmrnring", rad_struct.fqmrnring);
+  tr->SetBranchStatus("fqmrpid", 1);
+  tr->SetBranchAddress("fqmrpid", rad_struct.fqmrpid);
 
-  float muon_momentum(){
-    return fq1rmom[0][MUON];
-  }
+  // NEUT (truth) variable
+  tr->SetBranchStatus("npar", 1);
+  tr->SetBranchAddress("npar", &rad_struct.npar);
+  tr->SetBranchStatus("ipv", 1);
+  tr->SetBranchAddress("ipv", rad_struct.ipv);
+  tr->SetBranchStatus("pmomv", 1);
+  tr->SetBranchAddress("pmomv", rad_struct.pmomv);
+  tr->SetBranchStatus("dirv", 1);
+  tr->SetBranchAddress("dirv", rad_struct.dirv); 
 
-  // PID cuts
-  float electron_muon_PID(){
-    // Electrons are positive
-    return fq1rnll[0][MUON]-fq1rnll[0][ELECTRON]-0.2*electron_momentum();
-  }
-
-  float piplus_muon_PID(){
-    // Pions are positive
-    return fq1rnll[0][MUON]-fq1rnll[0][PION] - 0.15*muon_momentum();
-  }
-/*
-  float pi0_electron_PID(){
-    // Pions are positive
-    return fq1rnll[0][ELECTRON]-fqpi0nll[0]-175+0.875*fqpi0mass[0];
-  }
-*/
-
- bool is1Rmu(int this_evclass, float wall, float towall, float e_momentum, int nring, float emu_PID, float mu_momentum, int this_fqnse, float mupip_PID){
-    if (this_evclass != 1) return false;
-    else if (nhitac >= 16) return false;
-    else if (wall <= 50) return false;
-    else if (towall <= 250) return false;
-    else if (e_momentum <= 30) return false;
-    else if (nring != 1) return false;
-    else if (emu_PID >= 0) return false;
-    else if (mu_momentum <= 200) return false;
-    else if ((this_fqnse < 1) or (this_fqnse > 2)) return false;
-    else if (mupip_PID >= 0) return false;
-    else return true;
-  }
-
-  bool is1Rmu(){
-    return is1Rmu(1,
-		  ComputeWall(0, MUON),
-		  ComputeTowall(0, MUON),
-		  electron_momentum(),
-		  fq_mr_nring[0],
-		  electron_muon_PID(),
-		  muon_momentum(),
-		  fqnse,
-		  piplus_muon_PID());
-  }
-
-
-//just for testing end
+  // other variables
+  tr->SetBranchStatus("nhitac", 1);
+  tr->SetBranchAddress("nhitac", &(rad_struct.nhitac));
+}
