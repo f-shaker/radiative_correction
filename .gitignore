@@ -3,7 +3,11 @@
 
 #ignore plots folder content
 **/plots
-**/plots_old
 
 # ignore root_files folder content
 **/root_files
+
+#ignore compilation output
+**/scripts/root_macros/*.so
+**/scripts/root_macros/*.d
+**/scripts/root_macros/*.pcm
