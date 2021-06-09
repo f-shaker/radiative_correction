@@ -57,7 +57,9 @@ bool is_1ring();
 bool pass_e_mu_nll_cut();
 bool pass_pi_mu_nll_cut();
 bool pass_nb_decay_e_cut();
-bool pass_mu_mom_cut(float min_mu_mom =200);
+bool pass_mu_mom_cut(float min_mu_mom =200.0);
+bool pass_evis_cut(float min_e_mom = 30.0);
+bool pass_1muring();
 
 //Global variable configuration
 std::string in_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/radiative.root";
@@ -72,4 +74,14 @@ const int MAX_NB_PARTICLES = 2;
 const int MAX_FQ_FITS = 22; //ToDo CHANGE THAT IN ANY NEW FILES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 float MUON_MASS = 105.66; //MeV/c^2
 
-
+//just for testing start
+bool is1Rmu(int this_evclass, float wall, float towall, float e_momentum, int nring, float emu_PID, float mu_momentum, int this_fqnse, float mupip_PID);
+ bool is1Rmu();
+ float electron_momentum();
+ float muon_momentum();
+ float electron_muon_PID();
+ float piplus_muon_PID();
+ float pi0_electron_PID();
+ 
+     
+//just for testing end

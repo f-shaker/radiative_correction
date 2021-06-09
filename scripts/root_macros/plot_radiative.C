@@ -114,6 +114,15 @@ void plot_radiative(){
     print_perc(i, tr->GetEntries(), 10);
     // loop over the tree
     tr->GetEntry(i);
+    //JUST FOR TESTING
+    bool fady_pass = pass_1muring();
+    bool cris_pass = is1Rmu();
+    if (fady_pass!= cris_pass){
+      std::cout<<" ERROR : entry " << i << " has different calculation output! Check your code" << std::endl;
+    }else{
+      std::cout <<" good job" <<std::endl;
+    }
+    //JUST FOR TESTING
     //Selection Cuts
     if (is_FCFV(0, MUON, nhitac) == false) continue;
 
@@ -526,5 +535,73 @@ bool pass_pi_mu_nll_cut(){
   return is_mu;  
 }
 
+bool pass_evis_cut(float min_e_mom){
+
+  return (fq1rmom[0][ELECTRON] > min_e_mom);
+}
+
+bool pass_1muring(){
+  return  is_FCFV(0, MUON, nhitac) &&
+          is_1ring() &&
+          pass_e_mu_nll_cut()&&
+          pass_mu_mom_cut(float(200.0)) &&
+          pass_nb_decay_e_cut()&&
+          pass_pi_mu_nll_cut()&&
+          pass_evis_cut(float(30.0));
+}
+//Just for testing start
+
+ // Some useful quantities
+  float electron_momentum(){
+    return fq1rmom[0][ELECTRON];
+  }
+
+  float muon_momentum(){
+    return fq1rmom[0][MUON];
+  }
+
+  // PID cuts
+  float electron_muon_PID(){
+    // Electrons are positive
+    return fq1rnll[0][MUON]-fq1rnll[0][ELECTRON]-0.2*electron_momentum();
+  }
+
+  float piplus_muon_PID(){
+    // Pions are positive
+    return fq1rnll[0][MUON]-fq1rnll[0][PION] - 0.15*muon_momentum();
+  }
+/*
+  float pi0_electron_PID(){
+    // Pions are positive
+    return fq1rnll[0][ELECTRON]-fqpi0nll[0]-175+0.875*fqpi0mass[0];
+  }
+*/
+
+ bool is1Rmu(int this_evclass, float wall, float towall, float e_momentum, int nring, float emu_PID, float mu_momentum, int this_fqnse, float mupip_PID){
+    if (this_evclass != 1) return false;
+    else if (nhitac >= 16) return false;
+    else if (wall <= 50) return false;
+    else if (towall <= 250) return false;
+    else if (e_momentum <= 30) return false;
+    else if (nring != 1) return false;
+    else if (emu_PID >= 0) return false;
+    else if (mu_momentum <= 200) return false;
+    else if ((this_fqnse < 1) or (this_fqnse > 2)) return false;
+    else if (mupip_PID >= 0) return false;
+    else return true;
+  }
+
+  bool is1Rmu(){
+    return is1Rmu(1,
+		  ComputeWall(0, MUON),
+		  ComputeTowall(0, MUON),
+		  electron_momentum(),
+		  fq_mr_nring[0],
+		  electron_muon_PID(),
+		  muon_momentum(),
+		  fqnse,
+		  piplus_muon_PID());
+  }
 
 
+//just for testing end
