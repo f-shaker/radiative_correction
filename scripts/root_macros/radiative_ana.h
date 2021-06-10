@@ -72,8 +72,8 @@ void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct);
 // CCQE (CC0pi) nu_mu sample selection 
 float ComputeWall(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
 float ComputeTowall(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
-bool is_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
-bool is_1ring(t2k_sk_radiative& rad_struct);
+bool pass_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
+bool pass_1ring(t2k_sk_radiative& rad_struct);
 bool pass_e_mu_nll_cut(t2k_sk_radiative& rad_struct);
 bool pass_pi_mu_nll_cut(t2k_sk_radiative& rad_struct);
 bool pass_nb_decay_e_cut(t2k_sk_radiative& rad_struct);
@@ -88,5 +88,8 @@ void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, st
 void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title);
 void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt);
 void print_perc(size_t ientry, size_t total_entries, int perc_step);
+void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_opt1, std::string draw_opt2);
+void plot_cut(TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
+              TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name);
 //============================================================================//
 #endif

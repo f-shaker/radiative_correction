@@ -64,6 +64,56 @@ Main analysis function
   
   //gamma transverse mom vs number of rings
   TH2D * gamma_tr_mom_nring_2D = new TH2D("gamma_tr_mom_nring", "gamma_tr_mom_nring", 3, 1, 4, 25, 0, 500);
+  // EVIS
+  TH1D * gamma_mom_evis_pass = new TH1D("gamma_mom_evis_pass", "gamma_mom_evis_pass", 21,  mom_bining_arr);
+  TH1D * gamma_mom_evis_fail = new TH1D("gamma_mom_evis_fail", "gamma_mom_evis_fail", 21,  mom_bining_arr);
+  TH1D * cos_theta_evis_pass = new TH1D("cos_theta_evis_pass", "cos_theta_evis_pass", 10, -1, 1);  
+  TH1D * cos_theta_evis_fail = new TH1D("cos_theta_evis_fail", "cos_theta_evis_fail", 10, -1, 1);  
+  TH1D * gamma_tr_mom_evis_pass = new TH1D("gamma_tr_mom_evis_pass", "gamma_tr_mom_evis_pass", 21,  mom_bining_arr);
+  TH1D * gamma_tr_mom_evis_fail = new TH1D("gamma_tr_mom_evis_fail", "gamma_tr_mom_evis_fail", 21,  mom_bining_arr);
+  // FCFV
+  TH1D * gamma_mom_fcfv_pass = new TH1D("gamma_mom_fcfv_pass", "gamma_mom_fcfv_pass", 21,  mom_bining_arr);
+  TH1D * gamma_mom_fcfv_fail = new TH1D("gamma_mom_fcfv_fail", "gamma_mom_fcfv_fail", 21,  mom_bining_arr);
+  TH1D * cos_theta_fcfv_pass = new TH1D("cos_theta_fcfv_pass", "cos_theta_fcfv_pass", 10, -1, 1);  
+  TH1D * cos_theta_fcfv_fail = new TH1D("cos_theta_fcfv_fail", "cos_theta_fcfv_fail", 10, -1, 1);  
+  TH1D * gamma_tr_mom_fcfv_pass = new TH1D("gamma_tr_mom_fcfv_pass", "gamma_tr_mom_fcfv_pass", 21,  mom_bining_arr);
+  TH1D * gamma_tr_mom_fcfv_fail = new TH1D("gamma_tr_mom_fcfv_fail", "gamma_tr_mom_fcfv_fail", 21,  mom_bining_arr);
+  // 1 ring
+  TH1D * gamma_mom_1ring_pass = new TH1D("gamma_mom_1ring_pass", "gamma_mom_1ring_pass", 21,  mom_bining_arr);
+  TH1D * gamma_mom_1ring_fail = new TH1D("gamma_mom_1ring_fail", "gamma_mom_1ring_fail", 21,  mom_bining_arr);
+  TH1D * cos_theta_1ring_pass = new TH1D("cos_theta_1ring_pass", "cos_theta_1ring_pass", 10, -1, 1);  
+  TH1D * cos_theta_1ring_fail = new TH1D("cos_theta_1ring_fail", "cos_theta_1ring_fail", 10, -1, 1);  
+  TH1D * gamma_tr_mom_1ring_pass = new TH1D("gamma_tr_mom_1ring_pass", "gamma_tr_mom_1ring_pass", 21,  mom_bining_arr);
+  TH1D * gamma_tr_mom_1ring_fail = new TH1D("gamma_tr_mom_1ring_fail", "gamma_tr_mom_1ring_fail", 21,  mom_bining_arr);
+  // emu_pid
+  TH1D * gamma_mom_emu_pid_pass = new TH1D("gamma_mom_emu_pid_pass", "gamma_mom_emu_pid_pass", 21,  mom_bining_arr);
+  TH1D * gamma_mom_emu_pid_fail = new TH1D("gamma_mom_emu_pid_fail", "gamma_mom_emu_pid_fail", 21,  mom_bining_arr);
+  TH1D * cos_theta_emu_pid_pass = new TH1D("cos_theta_emu_pid_pass", "cos_theta_emu_pid_pass", 10, -1, 1);  
+  TH1D * cos_theta_emu_pid_fail = new TH1D("cos_theta_emu_pid_fail", "cos_theta_emu_pid_fail", 10, -1, 1);  
+  TH1D * gamma_tr_mom_emu_pid_pass = new TH1D("gamma_tr_mom_emu_pid_pass", "gamma_tr_mom_emu_pid_pass", 21,  mom_bining_arr);
+  TH1D * gamma_tr_mom_emu_pid_fail = new TH1D("gamma_tr_mom_emu_pid_fail", "gamma_tr_mom_emu_pid_fail", 21,  mom_bining_arr);
+  // mu mom
+  TH1D * gamma_mom_mu_mom_pass = new TH1D("gamma_mom_mu_mom_pass", "gamma_mom_mu_mom_pass", 21,  mom_bining_arr);
+  TH1D * gamma_mom_mu_mom_fail = new TH1D("gamma_mom_mu_mom_fail", "gamma_mom_mu_mom_fail", 21,  mom_bining_arr);
+  TH1D * cos_theta_mu_mom_pass = new TH1D("cos_theta_mu_mom_pass", "cos_theta_mu_mom_pass", 10, -1, 1);  
+  TH1D * cos_theta_mu_mom_fail = new TH1D("cos_theta_mu_mom_fail", "cos_theta_mu_mom_fail", 10, -1, 1);  
+  TH1D * gamma_tr_mom_mu_mom_pass = new TH1D("gamma_tr_mom_mu_mom_pass", "gamma_tr_mom_mu_mom_pass", 21,  mom_bining_arr);
+  TH1D * gamma_tr_mom_mu_mom_fail = new TH1D("gamma_tr_mom_mu_mom_fail", "gamma_tr_mom_mu_mom_fail", 21,  mom_bining_arr);
+  // nb e decay
+  TH1D * gamma_mom_e_decay_pass = new TH1D("gamma_mom_e_decay_pass", "gamma_mom_e_decay_pass", 21,  mom_bining_arr);
+  TH1D * gamma_mom_e_decay_fail = new TH1D("gamma_mom_e_decay_fail", "gamma_mom_e_decay_fail", 21,  mom_bining_arr);
+  TH1D * cos_theta_e_decay_pass = new TH1D("cos_theta_e_decay_pass", "cos_theta_e_decay_pass", 10, -1, 1);  
+  TH1D * cos_theta_e_decay_fail = new TH1D("cos_theta_e_decay_fail", "cos_theta_e_decay_fail", 10, -1, 1);  
+  TH1D * gamma_tr_mom_e_decay_pass = new TH1D("gamma_tr_mom_e_decay_pass", "gamma_tr_mom_e_decay_pass", 21,  mom_bining_arr);
+  TH1D * gamma_tr_mom_e_decay_fail = new TH1D("gamma_tr_mom_e_decay_fail", "gamma_tr_mom_e_decay_fail", 21,  mom_bining_arr);
+  // pi mu pid
+  TH1D * gamma_mom_pimu_pid_pass = new TH1D("gamma_mom_pimu_pid_pass", "gamma_mom_pimu_pid_pass", 21,  mom_bining_arr);
+  TH1D * gamma_mom_pimu_pid_fail = new TH1D("gamma_mom_pimu_pid_fail", "gamma_mom_pimu_pid_fail", 21,  mom_bining_arr);
+  TH1D * cos_theta_pimu_pid_pass = new TH1D("cos_theta_pimu_pid_pass", "cos_theta_pimu_pid_pass", 10, -1, 1);  
+  TH1D * cos_theta_pimu_pid_fail = new TH1D("cos_theta_pimu_pid_fail", "cos_theta_pimu_pid_fail", 10, -1, 1);  
+  TH1D * gamma_tr_mom_pimu_pid_pass = new TH1D("gamma_tr_mom_pimu_pid_pass", "gamma_tr_mom_pimu_pid_pass", 21,  mom_bining_arr);
+  TH1D * gamma_tr_mom_pimu_pid_fail = new TH1D("gamma_tr_mom_pimu_pid_fail", "gamma_tr_mom_pimu_pid_fail", 21,  mom_bining_arr);
+
   /*
   //setting the error bins correctly
   gamma_mom_all_hist->Sumw2(1);
@@ -80,13 +130,28 @@ Main analysis function
   cos_theta_1mur_hist->Sumw2(1);
   cos_theta_1mu1epir_hist->Sumw2(1);   
 */
-  //Main event loop 
+  //Main event loop
+  long int mu_gamma_nb_ev = tr->GetEntries(); 
+  int mu_gamma_fcfv_passed = 0;
+  int mu_gamma_fcfv_failed = 0;
+  int mu_gamma_evis_passed = 0;
+  int mu_gamma_evis_failed = 0;
+  int mu_gamma_1ring_passed = 0;
+  int mu_gamma_1ring_failed = 0;
+  int mu_gamma_emu_pid_passed = 0;
+  int mu_gamma_emu_pid_failed = 0;
+  int mu_gamma_mu_mom_passed = 0;
+  int mu_gamma_mu_mom_failed = 0;
+  int mu_gamma_e_decay_passed = 0;
+  int mu_gamma_e_decay_failed = 0;
+  int mu_gamma_pimu_pid_passed = 0;
+  int mu_gamma_pimu_pid_failed = 0;
+
+
   for (int i=0;i<tr->GetEntries();i++){
     //progress
     print_perc(i, tr->GetEntries(), 10);
     tr->GetEntry(i);
-
-    if (is_FCFV(0, MUON, mu_gamma_struct) == false) continue;
 
     // in GEANT particle code 1 = gamma, 6 = mu-
     int gamma_idx = find_particle_idx(mu_gamma_struct.ipv, mu_gamma_struct.npar, 1);
@@ -143,7 +208,128 @@ Main analysis function
     }  
     nring_mu_gamma_hist->Fill(mu_gamma_struct.fqmrnring[0]);
     gamma_tr_mom_nring_2D->Fill(mu_gamma_struct.fqmrnring[0], gamma_tr_mom);
+
+    //Applying the numu sample cuts
+    // 0. EVIS
+    if (pass_evis_cut(mu_gamma_struct, float(30.0)) == true){
+      //pass
+      gamma_mom_evis_pass->Fill(gamma_mom);
+      gamma_tr_mom_evis_pass->Fill(gamma_tr_mom);
+      cos_theta_evis_pass->Fill(cos_theta);
+      mu_gamma_evis_passed++;
+    }else{
+      //fail
+      gamma_mom_evis_fail->Fill(gamma_mom);
+      gamma_tr_mom_evis_fail->Fill(gamma_tr_mom);
+      cos_theta_evis_fail->Fill(cos_theta);
+      mu_gamma_evis_failed++;
+    }
+    //apply the cut
+    if (pass_evis_cut(mu_gamma_struct, float(30.0)) == false) continue;
+
+    // 1. FCFV CUT
+    if (pass_FCFV(0, MUON, mu_gamma_struct) == true){
+      //pass
+      gamma_mom_fcfv_pass->Fill(gamma_mom);
+      gamma_tr_mom_fcfv_pass->Fill(gamma_tr_mom);
+      cos_theta_fcfv_pass->Fill(cos_theta);
+      mu_gamma_fcfv_passed++;
+    }else{
+      //fail
+      gamma_mom_fcfv_fail->Fill(gamma_mom);
+      gamma_tr_mom_fcfv_fail->Fill(gamma_tr_mom);
+      cos_theta_fcfv_fail->Fill(cos_theta);
+      mu_gamma_fcfv_failed++;
+    }
+    //apply the cut
+    if (pass_FCFV(0, MUON, mu_gamma_struct) == false) continue;
     
+    // 2. 1ring
+    if (pass_1ring(mu_gamma_struct) == true){
+      //pass
+      gamma_mom_1ring_pass->Fill(gamma_mom);
+      gamma_tr_mom_1ring_pass->Fill(gamma_tr_mom);
+      cos_theta_1ring_pass->Fill(cos_theta);
+      mu_gamma_1ring_passed++;
+    }else{
+      //fail
+      gamma_mom_1ring_fail->Fill(gamma_mom);
+      gamma_tr_mom_1ring_fail->Fill(gamma_tr_mom);
+      cos_theta_1ring_fail->Fill(cos_theta);
+      mu_gamma_1ring_failed++;
+    }
+    //apply the cut
+    if (pass_1ring(mu_gamma_struct) == false) continue;
+
+    // 3. e/mu pid
+    if (pass_e_mu_nll_cut(mu_gamma_struct) == true){
+      //pass
+      gamma_mom_emu_pid_pass->Fill(gamma_mom);
+      gamma_tr_mom_emu_pid_pass->Fill(gamma_tr_mom);
+      cos_theta_emu_pid_pass->Fill(cos_theta);
+      mu_gamma_emu_pid_passed++;
+    }else{
+      //fail
+      gamma_mom_emu_pid_fail->Fill(gamma_mom);
+      gamma_tr_mom_emu_pid_fail->Fill(gamma_tr_mom);
+      cos_theta_emu_pid_fail->Fill(cos_theta);
+      mu_gamma_emu_pid_failed++;
+    }
+    //apply the cut
+    if (pass_e_mu_nll_cut(mu_gamma_struct) == false) continue;
+
+    // 4. mu mom 
+    if (pass_mu_mom_cut(mu_gamma_struct, float(200.0)) == true){
+      //pass
+      gamma_mom_mu_mom_pass->Fill(gamma_mom);
+      gamma_tr_mom_mu_mom_pass->Fill(gamma_tr_mom);
+      cos_theta_mu_mom_pass->Fill(cos_theta);
+      mu_gamma_mu_mom_passed++;
+    }else{
+      //fail
+      gamma_mom_mu_mom_fail->Fill(gamma_mom);
+      gamma_tr_mom_mu_mom_fail->Fill(gamma_tr_mom);
+      cos_theta_mu_mom_fail->Fill(cos_theta);
+      mu_gamma_mu_mom_failed++;
+    }
+    //apply the cut
+    if (pass_mu_mom_cut(mu_gamma_struct, float(200.0)) == false) continue;
+
+    // 5. number of e decay  
+    if (pass_nb_decay_e_cut(mu_gamma_struct) == true){
+      //pass
+      gamma_mom_e_decay_pass->Fill(gamma_mom);
+      gamma_tr_mom_e_decay_pass->Fill(gamma_tr_mom);
+      cos_theta_e_decay_pass->Fill(cos_theta);
+      mu_gamma_e_decay_passed++;
+    }else{
+      //fail
+      gamma_mom_e_decay_fail->Fill(gamma_mom);
+      gamma_tr_mom_e_decay_fail->Fill(gamma_tr_mom);
+      cos_theta_e_decay_fail->Fill(cos_theta);
+      mu_gamma_e_decay_failed++;
+    }
+    //apply the cut
+    if (pass_nb_decay_e_cut(mu_gamma_struct) == false) continue;
+
+    // 6. pi/mu pid  
+    if (pass_pi_mu_nll_cut(mu_gamma_struct) == true){
+      //pass
+      gamma_mom_pimu_pid_pass->Fill(gamma_mom);
+      gamma_tr_mom_pimu_pid_pass->Fill(gamma_tr_mom);
+      cos_theta_pimu_pid_pass->Fill(cos_theta);
+      mu_gamma_pimu_pid_passed++;
+    }else{
+      //fail
+      gamma_mom_pimu_pid_fail->Fill(gamma_mom);
+      gamma_tr_mom_pimu_pid_fail->Fill(gamma_tr_mom);
+      cos_theta_pimu_pid_fail->Fill(cos_theta);
+      mu_gamma_pimu_pid_failed++;
+    }
+    //apply the cut
+    if (pass_pi_mu_nll_cut(mu_gamma_struct) == false) continue;
+
+
   }
   TFile *f_mu_fin=new TFile(mu_file_fin.c_str()); // opens the root file
   TTree *tr_mu_fin=(TTree*)f_mu_fin->Get("h1"); // creates the TTree object
@@ -153,7 +339,7 @@ Main analysis function
   
   for (int i=0;i<tr_mu_fin->GetEntries();i++){
     tr_mu_fin->GetEntry(i);
-    if(is_FCFV(0, MUON, mu_fin_struct) == false) continue;
+    if(pass_FCFV(0, MUON, mu_fin_struct) == false) continue;
     nring_mu_fin_hist->Fill(mu_fin_struct.fqmrnring[0]);
   }
 
@@ -189,6 +375,23 @@ Main analysis function
   plot_ratio_hist1D(nring_mu_gamma_hist, nring_mu_fin_hist, "nring", "nring", "entries", "ratio");
 
   plot_hist2D(gamma_tr_mom_nring_2D, "p_{T}_{#gamma} vs nring;nring;p_{T}_{#gamma} [MeV]", "colz");
+
+  plot_cut(gamma_mom_fcfv_pass, gamma_mom_fcfv_fail, cos_theta_fcfv_pass, cos_theta_fcfv_fail,
+           gamma_tr_mom_fcfv_pass, gamma_tr_mom_fcfv_fail, "cut_FCFV");
+  plot_cut(gamma_mom_evis_pass, gamma_mom_evis_fail, cos_theta_evis_pass, cos_theta_evis_fail,
+           gamma_tr_mom_evis_pass, gamma_tr_mom_evis_fail, "cut_EVIS");
+  plot_cut(gamma_mom_1ring_pass, gamma_mom_1ring_fail, cos_theta_1ring_pass, cos_theta_1ring_fail,
+           gamma_tr_mom_1ring_pass, gamma_tr_mom_1ring_fail, "cut_1ring");
+  plot_cut(gamma_mom_emu_pid_pass, gamma_mom_emu_pid_fail, cos_theta_emu_pid_pass, cos_theta_emu_pid_fail,
+           gamma_tr_mom_emu_pid_pass, gamma_tr_mom_emu_pid_fail, "cut_emu_pid");
+  plot_cut(gamma_mom_mu_mom_pass, gamma_mom_mu_mom_fail, cos_theta_mu_mom_pass, cos_theta_mu_mom_fail,
+           gamma_tr_mom_mu_mom_pass, gamma_tr_mom_mu_mom_fail, "cut_mu_mom");
+  plot_cut(gamma_mom_e_decay_pass, gamma_mom_e_decay_fail, cos_theta_e_decay_pass, cos_theta_e_decay_fail,
+           gamma_tr_mom_e_decay_pass, gamma_tr_mom_e_decay_fail, "cut_e_decay");
+  plot_cut(gamma_mom_pimu_pid_pass, gamma_mom_pimu_pid_fail, cos_theta_pimu_pid_pass, cos_theta_pimu_pid_fail,
+           gamma_tr_mom_pimu_pid_pass, gamma_tr_mom_pimu_pid_fail, "cut_pimu_pid");
+
+  
   
 }
 //============================================================================//
@@ -277,7 +480,7 @@ bool pass_evis_cut(t2k_sk_radiative& rad_struct, float min_e_mom){
   return (rad_struct.fq1rmom[0][ELECTRON] > min_e_mom);
 }
 //============================================================================//
-bool is_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
+bool pass_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
 //============================================================================//  
 /*
 1.Fully-contained in SK fiducial volume: classified by OD activity and total PMT hits as
@@ -294,7 +497,7 @@ particle with the most energetic ring) travels.
   return true;
 }
 //============================================================================//
-bool is_1ring(t2k_sk_radiative& rad_struct){
+bool pass_1ring(t2k_sk_radiative& rad_struct){
 //============================================================================//  
 /*
 2. Number of rings found by the fiTQun multi-ring fitter is one
@@ -357,8 +560,8 @@ Combined selectection cuts for nu_mu CC0pi selection (CCQE + 2p2h)
   float min_e_mom = 30.0;//MeV
   float min_mu_mom = 200;//MeV
   return  pass_evis_cut(rad_struct, min_e_mom)&&
-          is_FCFV(0, MUON, rad_struct) &&
-          is_1ring(rad_struct) &&
+          pass_FCFV(0, MUON, rad_struct) &&
+          pass_1ring(rad_struct) &&
           pass_e_mu_nll_cut(rad_struct)&&
           pass_mu_mom_cut(rad_struct, min_mu_mom) &&
           pass_nb_decay_e_cut(rad_struct)&&
@@ -430,28 +633,9 @@ void format_hist1D(TH1* hist, std::string title, int col , int width, int sty){
   hist->GetYaxis()->SetTitleOffset(1.2);
 }
 //============================================================================//
-void format_hist1I(TH1I* hist, std::string title, int col , int width, int sty){
-//============================================================================//
-  hist->SetTitle(title.c_str());
-  hist->SetLineColor(col);
-  hist->SetLineWidth(width);
-  hist->SetLineStyle(sty);
-  hist->GetYaxis()->SetTitleOffset(1.2);
-}
-//============================================================================//
 void plot_hist1D(TH1* hist,  std::string filename, std::string title, int col , int width, int sty){
 //============================================================================//
   format_hist1D(hist, title, col , width, sty);
-  TCanvas * canv = new TCanvas(Form("canv_%s",hist->GetName()), Form("canv_%s",hist->GetName()), 1200, 800);
-  canv->cd();
-  hist->Draw();
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),filename.c_str()));
-  delete canv;
-}
-//============================================================================//
-void plot_hist1I(TH1I* hist,  std::string filename, std::string title, int col , int width, int sty){
-//============================================================================//
-  format_hist1I(hist, title, col , width, sty);
   TCanvas * canv = new TCanvas(Form("canv_%s",hist->GetName()), Form("canv_%s",hist->GetName()), 1200, 800);
   canv->cd();
   hist->Draw();
@@ -538,5 +722,53 @@ void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt){
   hist->Draw(draw_opt.c_str());
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),hist->GetName()));
   delete canv;
+}
+//============================================================================//
+void plot_cut(TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
+              TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name){
+
+  format_hist1D(gamma_mom_pass, "p_{#gamma};mom[MeV];count" , kBlue , 2, 1);
+  format_hist1D(gamma_mom_fail, "p_{#gamma};mom[MeV];count" , kRed , 2, 1);
+  format_hist1D(cos_theta_pass, "Cos#theta;Cos#theta;count" , kBlue , 2, 1);
+  format_hist1D(cos_theta_fail, "Cos#theta;Cos#theta;count" , kRed , 2, 1);
+  format_hist1D(gamma_tr_mom_pass, "p_{T}_{#gamma};mom[MeV];count" , kBlue , 2, 1);
+  format_hist1D(gamma_tr_mom_fail, "p_{T}_{#gamma};mom[MeV];count" , kRed , 2, 1);
+  
+  TCanvas * canv = new TCanvas(Form("canv_%s",cut_name.c_str()), Form("canv_%s",cut_name.c_str()), 1200, 800); 
+  canv->SetTitle(cut_name.c_str()); 
+  canv->Divide(2,2);
+  canv->cd(1);
+  prep_draw_superimposed_hist1D(gamma_mom_pass, gamma_mom_fail, "", "SAME");
+  canv->cd(2);
+  prep_draw_superimposed_hist1D(cos_theta_pass, cos_theta_fail, "", "SAME"); 
+  canv->cd(3);
+  prep_draw_superimposed_hist1D(gamma_tr_mom_pass, gamma_tr_mom_fail, "", "SAME");   
+  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),cut_name.c_str()));
+  delete canv;
+}
+//============================================================================//
+void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_opt1, std::string draw_opt2){
+//============================================================================//
+  hist1->SetStats(0);
+  hist2->SetStats(0);
+  double max = hist1->GetMaximum() > hist2->GetMaximum()? hist1->GetMaximum():hist2->GetMaximum();
+  double min = hist1->GetMinimum() < hist2->GetMinimum()? hist1->GetMinimum():hist2->GetMinimum();
+  max*=1.1;
+  hist1->SetMaximum(max);
+  hist2->SetMaximum(max);
+  hist1->SetMinimum(0);// min but set it to 0 for now
+  hist2->SetMinimum(0);// set it to 0 for now 
+  hist1->GetYaxis()->SetTitleOffset(1.2);
+  hist2->GetYaxis()->SetTitleOffset(1.2);
+  hist1->Draw(draw_opt1.c_str());
+  hist2->Draw(draw_opt2.c_str());
+  TLegend* legend = new TLegend(0.8,0.7,1.0,0.9);
+  legend->AddEntry(hist1->GetName(),hist1->GetName(),"l");
+  legend->AddEntry(hist2->GetName(),hist2->GetName(),"l");
+  //legend->Draw("SAME"); fsamir check if i remove same from legend
+  legend->Draw("SAME");
+  
+    std::cout << "integral of hist1 = "<< hist1->Integral()<<
+               " integral of hist2 = "<< hist2->Integral() << std::endl;
 }
 //============================================================================//
