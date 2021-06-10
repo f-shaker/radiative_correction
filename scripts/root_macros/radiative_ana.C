@@ -7,18 +7,21 @@ void radiative_ana(){
 Main analysis function
 */
   TH1::AddDirectory(kFALSE);
+  TH1::SetDefaultSumw2(kTRUE); 	
+  TH2::SetDefaultSumw2(kTRUE);
 
   TFile *f=new TFile(mu_gamma_file.c_str()); // opens the root file
   TTree *tr=(TTree*)f->Get("h1"); // creates the TTree object
-  t2k_sk_radiative mu_gamm_struct;
-  set_tree_addresses(tr, mu_gamm_struct);
+  t2k_sk_radiative mu_gamma_struct;
+  set_tree_addresses(tr, mu_gamma_struct);
 
   float gamma_mom;
   float gamma_dir[3];
   float mu_mom;
   float mu_dir[3];      
   float cos_theta;
-
+  float gamma_tr_mom;
+  
   bool is_1mu_ring_only = false;
   bool is_1ring = false;
   bool is_2ring = false;
@@ -59,6 +62,9 @@ Main analysis function
   TH1I * nring_mu_gamma_hist = new TH1I("nring_mu_gamma", "nring_mu_gamma", 6, 0, 6);
   TH1I * nring_mu_fin_hist = new TH1I("nring_mu_fin", "nring_mu_fin", 6, 0, 6);
   
+  //gamma transverse mom vs number of rings
+  TH2D * gamma_tr_mom_nring_2D = new TH2D("gamma_tr_mom_nring", "gamma_tr_mom_nring", 3, 1, 4, 25, 0, 500);
+  /*
   //setting the error bins correctly
   gamma_mom_all_hist->Sumw2(1);
   gamma_mom_1ring_hist->Sumw2(1);
@@ -73,39 +79,43 @@ Main analysis function
   cos_theta_3mr_hist->Sumw2(1);
   cos_theta_1mur_hist->Sumw2(1);
   cos_theta_1mu1epir_hist->Sumw2(1);   
-
+*/
   //Main event loop 
   for (int i=0;i<tr->GetEntries();i++){
     //progress
     print_perc(i, tr->GetEntries(), 10);
     tr->GetEntry(i);
 
-    if (is_FCFV(0, MUON, mu_gamm_struct) == false) continue;
+    if (is_FCFV(0, MUON, mu_gamma_struct) == false) continue;
 
     // in GEANT particle code 1 = gamma, 6 = mu-
-    int gamma_idx = find_particle_idx(mu_gamm_struct.ipv, mu_gamm_struct.npar, 1);
-    int mu_idx = find_particle_idx(mu_gamm_struct.ipv, mu_gamm_struct.npar, 6);
+    int gamma_idx = find_particle_idx(mu_gamma_struct.ipv, mu_gamma_struct.npar, 1);
+    int mu_idx = find_particle_idx(mu_gamma_struct.ipv, mu_gamma_struct.npar, 6);
 
     //filling gamma and muon kinematics
-    gamma_mom = mu_gamm_struct.pmomv[gamma_idx];
-    mu_mom = mu_gamm_struct.pmomv[mu_idx];
+    gamma_mom = mu_gamma_struct.pmomv[gamma_idx];
+    mu_mom = mu_gamma_struct.pmomv[mu_idx];
 
     for(int ix = 0 ; ix < 3; ix++){
-      gamma_dir[ix] = mu_gamm_struct.dirv[gamma_idx][ix];
-      mu_dir[ix] = mu_gamm_struct.dirv[mu_idx][ix];      
+      gamma_dir[ix] = mu_gamma_struct.dirv[gamma_idx][ix];
+      mu_dir[ix] = mu_gamma_struct.dirv[mu_idx][ix];      
     }
     cos_theta = ( gamma_dir[0] * mu_dir[0] ) + ( gamma_dir[1] * mu_dir[1] ) + ( gamma_dir[2] * mu_dir[2] ); 
+    // transverse momentum, i.e perpondicular to the mu direction = gamma_mom * sin_theta
+    gamma_tr_mom = gamma_mom * sqrt(1- (cos_theta*cos_theta) );
     //std::cout<< "cos theta = " << cos_theta  <<std::endl;
     //bool fill_ok = (particle_idx > 0) && ( (neut_code == 1) || (neut_code == 2) );
     //if(!fill_ok) continue;
     gamma_mom_all_hist->Fill(gamma_mom);
     cos_theta_all_hist->Fill(cos_theta);
-    is_1ring = (mu_gamm_struct.fqmrnring[0] == 1);
-    is_2ring = (mu_gamm_struct.fqmrnring[0] == 2);
-    is_3_more_ring = (mu_gamm_struct.fqmrnring[0] >= 3);
+    is_1ring = (mu_gamma_struct.fqmrnring[0] == 1);
+    is_2ring = (mu_gamma_struct.fqmrnring[0] == 2);
+    is_3_more_ring = (mu_gamma_struct.fqmrnring[0] >= 3);
 
-    is_1mu_ring_only = is_1ring && (mu_gamm_struct.fqmrpid[0][0] == 2);
-    bool is_1mu_1e_pi = ( (mu_gamm_struct.fqmrpid[0][0] == 2) || (mu_gamm_struct.fqmrpid[0][1] == 2) ) && ( (mu_gamm_struct.fqmrpid[0][0] == 1) || (mu_gamm_struct.fqmrpid[0][1] == 1) || (mu_gamm_struct.fqmrpid[0][0] == 3) || (mu_gamm_struct.fqmrpid[0][1] == 3) );
+    is_1mu_ring_only = is_1ring && (mu_gamma_struct.fqmrpid[0][0] == 2);
+    bool is_1mu_1e_pi = ( (mu_gamma_struct.fqmrpid[0][0] == 2) || (mu_gamma_struct.fqmrpid[0][1] == 2) ) &&
+                        ( (mu_gamma_struct.fqmrpid[0][0] == 1) || (mu_gamma_struct.fqmrpid[0][1] == 1) ||
+                          (mu_gamma_struct.fqmrpid[0][0] == 3) || (mu_gamma_struct.fqmrpid[0][1] == 3) );
     bool is_1mu_1e_pi_ring = is_2ring && is_1mu_1e_pi;
     
 
@@ -131,17 +141,20 @@ Main analysis function
       gamma_mom_1muring_1ering_hist->Fill(gamma_mom);
       cos_theta_1mu1epir_hist->Fill(cos_theta);
     }  
-    nring_mu_gamma_hist->Fill(mu_gamm_struct.fqmrnring[0]);
+    nring_mu_gamma_hist->Fill(mu_gamma_struct.fqmrnring[0]);
+    gamma_tr_mom_nring_2D->Fill(mu_gamma_struct.fqmrnring[0], gamma_tr_mom);
     
   }
-  TFile *f_mu_fin=new TFile(in_file_fin.c_str()); // opens the root file
+  TFile *f_mu_fin=new TFile(mu_file_fin.c_str()); // opens the root file
   TTree *tr_mu_fin=(TTree*)f_mu_fin->Get("h1"); // creates the TTree object
   // for the final mu file
-  int fq_mr_nring_mu_fin[100];
-  tr_mu_fin->SetBranchAddress("fqmrnring", fq_mr_nring_mu_fin);
+  t2k_sk_radiative mu_fin_struct;
+  set_tree_addresses(tr_mu_fin, mu_fin_struct);
+  
   for (int i=0;i<tr_mu_fin->GetEntries();i++){
     tr_mu_fin->GetEntry(i);
-    nring_mu_fin_hist->Fill(fq_mr_nring_mu_fin[0]);
+    if(is_FCFV(0, MUON, mu_fin_struct) == false) continue;
+    nring_mu_fin_hist->Fill(mu_fin_struct.fqmrnring[0]);
   }
 
   //plotting
@@ -174,12 +187,14 @@ Main analysis function
   plot_hist1D(nring_mu_gamma_hist,"nring_mu_gamma", "nring_mu_gamma;nring;count", kBlue , 2, 1);
   plot_hist1D(nring_mu_fin_hist,"nring_mu_fin", "nring_mu_fin;nring;count", kBlue , 2, 1);
   plot_ratio_hist1D(nring_mu_gamma_hist, nring_mu_fin_hist, "nring", "nring", "entries", "ratio");
+
+  plot_hist2D(gamma_tr_mom_nring_2D, "p_{T}_{#gamma} vs nring;nring;p_{T}_{#gamma} [MeV]", "colz");
   
 }
 //============================================================================//
 // Support Function for Truth Information
 //============================================================================//
-int find_particle_idx(unsigned char* ipv_arr, int size, UChar_t particle_ipv){
+int find_particle_idx(unsigned char* ipv_arr, int size, unsigned char particle_ipv){
 //============================================================================//  
   int idx = -1;
   for(int i = 0; i< size; i++){
@@ -511,5 +526,17 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string
   delete legend;
   delete canv;
 
+}
+//============================================================================//
+void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt){
+//============================================================================//
+  hist->SetTitle(title.c_str());
+  TCanvas * canv = new TCanvas(Form("canv_%s",hist->GetName()), Form("canv_%s",hist->GetName()), 1200, 800);   
+  canv->cd();
+  hist->SetStats(0);
+  gStyle->SetPalette(kDeepSea);// kDeepSea=51, kDarkBodyRadiator=53 (better if I had higher stats)
+  hist->Draw(draw_opt.c_str());
+  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),hist->GetName()));
+  delete canv;
 }
 //============================================================================//
