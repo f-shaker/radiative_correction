@@ -98,6 +98,8 @@ void print_perc(size_t ientry, size_t total_entries, int perc_step);
 void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_opt1, std::string draw_opt2);
 void plot_cut(TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
               TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name);
-void plot_efficency(cut_step_efficiency steps_eff);              
+void plot_efficency(cut_step_efficiency steps_eff, std::string fname);
+void plot_efficency(cut_step_efficiency steps_eff_in1, cut_step_efficiency steps_eff_in2,
+                    std::string h1_name, std::string h2_name, std::string fname);             
 //============================================================================//
 #endif

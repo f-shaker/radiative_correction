@@ -352,17 +352,102 @@ Main analysis function
     std::cout<<" cut " << k << " name = " << mu_g_cut_step_eff[k].first << " , passed events = " << mu_g_cut_step_eff[k].second <<std::endl;
 
   }
+
+
   TFile *f_mu_fin=new TFile(mu_file_fin.c_str()); // opens the root file
   TTree *tr_mu_fin=(TTree*)f_mu_fin->Get("h1"); // creates the TTree object
   // for the final mu file
   t2k_sk_radiative mu_fin_struct;
   set_tree_addresses(tr_mu_fin, mu_fin_struct);
-  
-  for (int i=0;i<tr_mu_fin->GetEntries();i++){
+  long int mu_fin_nb_ev = tr->GetEntries(); 
+  unsigned int mu_fin_fcfv_passed = 0;
+  unsigned int mu_fin_evis_passed = 0;
+  unsigned int mu_fin_1ring_passed = 0;
+  unsigned int mu_fin_emu_pid_passed = 0;
+  unsigned int mu_fin_mu_mom_passed = 0;
+  unsigned int mu_fin_e_decay_passed = 0;
+  unsigned int mu_fin_pimu_pid_passed = 0;
+  cut_step_efficiency mu_fin_cut_step_eff;
+
+  for (int i = 0; i < tr_mu_fin->GetEntries(); i++){
     tr_mu_fin->GetEntry(i);
-    if(pass_FCFV(0, MUON, mu_fin_struct) == false) continue;
     nring_mu_fin_hist->Fill(mu_fin_struct.fqmrnring[0]);
+    //Applying the numu sample cuts
+    // 0. EVIS
+    if (pass_evis_cut(mu_fin_struct, float(30.0)) == true){
+      //pass
+      mu_fin_evis_passed++;
+    }else{
+      //fail
+      continue;
+    }
+    // 1. FCFV CUT
+    if (pass_FCFV(0, MUON, mu_fin_struct) == true){
+      //pass
+      mu_fin_fcfv_passed++;
+    }else{
+      //fail
+      continue;
+    }
+    // 2. 1ring
+    if (pass_1ring(mu_fin_struct) == true){
+      //pass
+      mu_fin_1ring_passed++;
+    }else{
+      //fail
+      continue;
+    }
+
+    // 3. e/mu pid
+    if (pass_e_mu_nll_cut(mu_fin_struct) == true){
+      //pass
+      mu_fin_emu_pid_passed++;
+    }else{
+      //fail
+      continue;
+    }
+    // 4. mu mom 
+    if (pass_mu_mom_cut(mu_fin_struct, float(200.0)) == true){
+      //pass
+       mu_fin_mu_mom_passed++;
+    }else{
+      //fail
+      continue;
+    }
+    // 5. number of e decay  
+    if (pass_nb_decay_e_cut(mu_fin_struct) == true){
+      //pass
+      mu_fin_e_decay_passed++;
+    }else{
+      //fail
+      continue;
+    }
+    // 6. pi/mu pid  
+    if (pass_pi_mu_nll_cut(mu_fin_struct) == true){
+      //pass
+      mu_fin_pimu_pid_passed++;
+    }else{
+      //fail
+      continue;
+    }
+
   }
+  mu_fin_cut_step_eff[0].first = "No cuts";
+  mu_fin_cut_step_eff[0].second = mu_fin_nb_ev;
+  mu_fin_cut_step_eff[1].first = "evis";
+  mu_fin_cut_step_eff[1].second = mu_fin_evis_passed;
+  mu_fin_cut_step_eff[2].first = "fcfv";
+  mu_fin_cut_step_eff[2].second = mu_fin_fcfv_passed;
+  mu_fin_cut_step_eff[3].first = "1ring";
+  mu_fin_cut_step_eff[3].second = mu_fin_1ring_passed;
+  mu_fin_cut_step_eff[4].first = "emu_pid";
+  mu_fin_cut_step_eff[4].second = mu_fin_emu_pid_passed;
+  mu_fin_cut_step_eff[5].first = "mu_mom";
+  mu_fin_cut_step_eff[5].second = mu_fin_mu_mom_passed;
+  mu_fin_cut_step_eff[6].first = "e_decay";
+  mu_fin_cut_step_eff[6].second = mu_fin_e_decay_passed;
+  mu_fin_cut_step_eff[7].first = "pimu_pid";
+  mu_fin_cut_step_eff[7].second = mu_fin_pimu_pid_passed;
 
   //plotting
   plot_hist1D(gamma_mom_all_hist,"gamma_all", "gamma mom;mom[MeV];count", kBlue , 2, 1);
@@ -412,7 +497,10 @@ Main analysis function
   plot_cut(gamma_mom_pimu_pid_pass, gamma_mom_pimu_pid_fail, cos_theta_pimu_pid_pass, cos_theta_pimu_pid_fail,
            gamma_tr_mom_pimu_pid_pass, gamma_tr_mom_pimu_pid_fail, "cut_pimu_pid");
 
-  plot_efficency(mu_g_cut_step_eff);
+  plot_efficency(mu_g_cut_step_eff, "mu_g_eff");
+  plot_efficency(mu_fin_cut_step_eff, "mu_fin_eff");
+  plot_efficency(mu_g_cut_step_eff, mu_fin_cut_step_eff, "mu_g_eff", "mu_fin_eff","mu_g_superimposed_eff");
+
   
 }
 //============================================================================//
@@ -792,44 +880,8 @@ void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_op
     std::cout << "integral of hist1 = "<< hist1->Integral()<<
                " integral of hist2 = "<< hist2->Integral() << std::endl;
 }
-/*
 //============================================================================//
-void plot_efficency(cut_step_efficiency steps_eff){
-//============================================================================//
-  TCanvas * canv = new TCanvas("eff","eff", 1200, 800); 
-  canv->SetGrid();
-
-  int nb_points = steps_eff.size();
-  TGraph* tg = new TGraph(nb_points);
-  //steps_eff[cut_index].first = cut_name
-  //steps_eff[cut_index].second = nb_passed_events
-  for (int i = 0; i< nb_points; i ++){
-    tg->SetPoint(i, i, steps_eff[i].second);
-  }
-
-  // alpha numeric labeling is only available for binned data (histograms)!
-  
-  TH1F* h = new TH1F("h","h",nb_points,0,nb_points);
-  //tg->SetHistogram(h);
-  for (int i = 0; i < nb_points; i++) {
-      h->GetXaxis()->SetBinLabel(i + 1, static_cast<const char *>( (steps_eff[i].first).c_str() ));
-   }
-  
-  //TH1F* h = (TH1F*) tg->GetHistogram()->Clone();
-  //for (int i = 0; i < nb_points; i++) {
-  //    h->GetXaxis()->SetBinLabel(i + 1, static_cast<const char *>( (steps_eff[i].first).c_str() ));
-  // }
-  //Draw
-  tg->SetMarkerStyle(20);// 20 = disc
-  h->Draw("AXIS");
-  tg->Draw("LPSAME");
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),"efficiency"));
-  delete canv;
-}
-//============================================================================//
-*/
-//============================================================================//
-void plot_efficency(cut_step_efficiency steps_eff){
+void plot_efficency(cut_step_efficiency steps_eff, std::string fname){
 //============================================================================//
   TCanvas * canv = new TCanvas("eff","eff", 1200, 800); 
   canv->SetGrid();
@@ -842,10 +894,42 @@ void plot_efficency(cut_step_efficiency steps_eff){
       h->SetBinContent(i+1, steps_eff[i].second);
       h->GetXaxis()->SetBinLabel(i + 1, static_cast<const char *>( (steps_eff[i].first).c_str() ));
    }
-  h->SetStats(0); 
-  format_hist1D(h, "Efficiency;cut;count", kRed , 2, 1);
+  h->SetStats(0);
+  h->SetMinimum(0); 
+  format_hist1D(h, "Efficiency;cut;count", kBlue , 2, 1);
   h->Draw("TEXT");
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),"efficiency"));
+  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),fname.c_str()));
+  delete canv;
+}
+//============================================================================//
+void plot_efficency(cut_step_efficiency steps_eff_in1, cut_step_efficiency steps_eff_in2,
+                    std::string h1_name, std::string h2_name, std::string fname){
+//============================================================================//
+  TCanvas * canv = new TCanvas("eff","eff", 1200, 800); 
+  canv->SetGrid();
+  if(steps_eff_in1.size()!= steps_eff_in2.size()){
+    std::cout<<"Efficiency Plotting ERROR: input number of steps does not match" << std::endl;
+    return;
+  }
+  int nb_points = steps_eff_in1.size();
+  // alpha numeric labeling is only available for binned data (histograms)!
+  
+  TH1D* h1 = new TH1D("h1","h1",nb_points,0,nb_points);
+  h1->SetName(h1_name.c_str());
+  TH1D* h2 = new TH1D("h2","h2",nb_points,0,nb_points);  
+  h2->SetName(h2_name.c_str());
+  for (int i = 0; i < nb_points; i++) {
+      h1->SetBinContent(i+1, steps_eff_in1[i].second);
+      h1->GetXaxis()->SetBinLabel(i + 1, static_cast<const char *>( (steps_eff_in1[i].first).c_str() ));
+
+      h2->SetBinContent(i+1, steps_eff_in2[i].second);
+      h2->GetXaxis()->SetBinLabel(i + 1, static_cast<const char *>( (steps_eff_in2[i].first).c_str() ));
+
+   }
+  format_hist1D(h1, "Efficiency;cut;count", kBlue , 2, 1);
+  format_hist1D(h2, "Efficiency;cut;count", kRed , 2, 1);
+  prep_draw_superimposed_hist1D(h1, h2, "TEXT", "TEXTSAME");
+  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),fname.c_str()));
   delete canv;
 }
 //============================================================================//
