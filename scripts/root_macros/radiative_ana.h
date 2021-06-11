@@ -3,6 +3,8 @@
 // C++ headers
 #include <iostream>
 #include <fstream>
+#include <map>
+#include <utility> //pair
 // Root headers
 #include "TFile.h"
 #include "TTree.h"
@@ -15,6 +17,7 @@
 #include "TLegend.h"
 #include "TRatioPlot.h"
 #include "TStyle.h"
+#include "TGraph.h"
 
 using namespace std;
 //============================================================================//
@@ -64,6 +67,10 @@ typedef struct t2k_sk_radiative{
     		
 } t2k_sk_radiative;
 //============================================================================//
+// cut step efficiency is a map (key, value), were key is the step index, i.e the order of the cut in the selection,
+// the value is a pair of cut name and the number of events that passed the cut
+typedef std::map<unsigned int, std::pair<std::string, unsigned int>> cut_step_efficiency;
+//============================================================================//
 // Functions Declarations
 //============================================================================//
 int find_particle_idx(unsigned char* ipv_arr, int size, unsigned char particle_ipv);
@@ -91,5 +98,6 @@ void print_perc(size_t ientry, size_t total_entries, int perc_step);
 void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_opt1, std::string draw_opt2);
 void plot_cut(TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
               TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name);
+void plot_efficency(cut_step_efficiency steps_eff);              
 //============================================================================//
 #endif
