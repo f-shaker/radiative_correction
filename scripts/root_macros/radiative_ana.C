@@ -368,10 +368,12 @@ Main analysis function
   unsigned int mu_fin_e_decay_passed = 0;
   unsigned int mu_fin_pimu_pid_passed = 0;
   cut_step_efficiency mu_fin_cut_step_eff;
+  TH1D * mu_fin_mom_all_hist = new TH1D("mu_fin_mom_all", "mu_fin_mom_all", 21,  mom_bining_arr);
 
   for (int i = 0; i < tr_mu_fin->GetEntries(); i++){
     tr_mu_fin->GetEntry(i);
     nring_mu_fin_hist->Fill(mu_fin_struct.fqmrnring[0]);
+    mu_fin_mom_all_hist->Fill(mu_fin_struct.pmomv[0]);
     //Applying the numu sample cuts
     // 0. EVIS
     if (pass_evis_cut(mu_fin_struct, float(30.0)) == true){
@@ -478,6 +480,7 @@ Main analysis function
 
   plot_hist1D(nring_mu_gamma_hist,"nring_mu_gamma", "nring_mu_gamma;nring;count", kBlue , 2, 1);
   plot_hist1D(nring_mu_fin_hist,"nring_mu_fin", "nring_mu_fin;nring;count", kBlue , 2, 1);
+  plot_hist1D(mu_fin_mom_all_hist,"mu_fin_mom_all", "p_{#mu};mom[MeV];count", kBlue , 2, 1);
   plot_ratio_hist1D(nring_mu_gamma_hist, nring_mu_fin_hist, "nring", "nring", "entries", "ratio");
 
   plot_hist2D(gamma_tr_mom_nring_2D, "p_{T}_{#gamma} vs nring;nring;p_{T}_{#gamma} [MeV]", "colz");
