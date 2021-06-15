@@ -500,6 +500,21 @@ Main analysis function
   plot_cut(gamma_mom_pimu_pid_pass, gamma_mom_pimu_pid_fail, cos_theta_pimu_pid_pass, cos_theta_pimu_pid_fail,
            gamma_tr_mom_pimu_pid_pass, gamma_tr_mom_pimu_pid_fail, "cut_pimu_pid");
 
+  plot_cut_2(gamma_mom_fcfv_pass, gamma_mom_fcfv_fail, cos_theta_fcfv_pass, cos_theta_fcfv_fail,
+           gamma_tr_mom_fcfv_pass, gamma_tr_mom_fcfv_fail, "cut_FCFV_eff");
+  plot_cut_2(gamma_mom_evis_pass, gamma_mom_evis_fail, cos_theta_evis_pass, cos_theta_evis_fail,
+           gamma_tr_mom_evis_pass, gamma_tr_mom_evis_fail, "cut_EVIS_eff");
+  plot_cut_2(gamma_mom_1ring_pass, gamma_mom_1ring_fail, cos_theta_1ring_pass, cos_theta_1ring_fail,
+           gamma_tr_mom_1ring_pass, gamma_tr_mom_1ring_fail, "cut_1ring_eff");
+  plot_cut_2(gamma_mom_emu_pid_pass, gamma_mom_emu_pid_fail, cos_theta_emu_pid_pass, cos_theta_emu_pid_fail,
+           gamma_tr_mom_emu_pid_pass, gamma_tr_mom_emu_pid_fail, "cut_emu_pid_eff");
+  plot_cut_2(gamma_mom_mu_mom_pass, gamma_mom_mu_mom_fail, cos_theta_mu_mom_pass, cos_theta_mu_mom_fail,
+           gamma_tr_mom_mu_mom_pass, gamma_tr_mom_mu_mom_fail, "cut_mu_mom_eff");
+  plot_cut_2(gamma_mom_e_decay_pass, gamma_mom_e_decay_fail, cos_theta_e_decay_pass, cos_theta_e_decay_fail,
+           gamma_tr_mom_e_decay_pass, gamma_tr_mom_e_decay_fail, "cut_e_decay_eff");
+  plot_cut_2(gamma_mom_pimu_pid_pass, gamma_mom_pimu_pid_fail, cos_theta_pimu_pid_pass, cos_theta_pimu_pid_fail,
+           gamma_tr_mom_pimu_pid_pass, gamma_tr_mom_pimu_pid_fail, "cut_pimu_pid_eff");
+
   plot_efficency(mu_g_cut_step_eff, "mu_g_eff");
   plot_efficency(mu_fin_cut_step_eff, "mu_fin_eff");
   plot_efficency(mu_g_cut_step_eff, mu_fin_cut_step_eff, "mu_g_eff", "mu_fin_eff","mu_g_superimposed_eff");
@@ -935,4 +950,98 @@ void plot_efficency(cut_step_efficiency steps_eff_in1, cut_step_efficiency steps
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),fname.c_str()));
   delete canv;
 }
+//fsamir start
 //============================================================================//
+void plot_eff_ratio(TH1* pass_hist, TH1* fail_hist, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title){
+//============================================================================//
+  pass_hist->SetStats(0);
+  //hist1->Sumw2(1);
+  pass_hist->SetMarkerColor(kBlue);
+  pass_hist->SetLineColor(kBlue);
+  pass_hist->GetXaxis()->SetTitle(x_axis_title.c_str()); 
+
+// construct the sum histogram for the denominator 
+  TH1D* sum_hist = (TH1D*)pass_hist->Clone();
+  sum_hist->SetName("sum_hist");
+  sum_hist->Add(fail_hist, 1.);
+  sum_hist->SetStats(0);
+  sum_hist->SetMarkerColor(kRed);
+  sum_hist->SetLineColor(kRed);
+  sum_hist->GetXaxis()->SetTitle(x_axis_title.c_str()); 
+
+
+  double max = sum_hist->GetMaximum();
+  max*=1.1;
+  pass_hist->SetMaximum(max);
+  sum_hist->SetMaximum(max);
+  pass_hist->SetMinimum(0.);
+  sum_hist->SetMinimum(0.);
+
+  TRatioPlot *rp = new TRatioPlot(pass_hist, sum_hist); //  defaults is error is: TGraphAsymmErrors::Divide (binomial), but we can especify "pois", "divsym", ...
+
+  rp->Draw();
+  rp->GetUpperRefYaxis()->SetTitle(y_up_axis_title.c_str());
+  rp->GetLowerRefYaxis()->SetTitle(y_down_axis_title.c_str());
+  //rp->GetLowerRefYaxis()->SetMinimum();
+
+  gPad->Modified();
+  gPad->Update(); // make sure it’s really (re)drawn
+  TPad *pad = rp->GetUpperPad();
+  TLegend *legend = pad->BuildLegend(0.8,0.7,1.0,0.9);
+  pad->Modified();
+  pad->Update();
+}
+//============================================================================//
+void plot_cut_2(TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
+              TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name){
+
+  format_hist1D(gamma_mom_pass, "p_{#gamma};mom[MeV];count" , kBlue , 2, 1);
+  format_hist1D(gamma_mom_fail, "p_{#gamma};mom[MeV];count" , kRed , 2, 1);
+  format_hist1D(cos_theta_pass, "Cos#theta;Cos#theta;count" , kBlue , 2, 1);
+  format_hist1D(cos_theta_fail, "Cos#theta;Cos#theta;count" , kRed , 2, 1);
+  format_hist1D(gamma_tr_mom_pass, "p_{T}_{#gamma};mom[MeV];count" , kBlue , 2, 1);
+  format_hist1D(gamma_tr_mom_fail, "p_{T}_{#gamma};mom[MeV];count" , kRed , 2, 1);
+  
+  TCanvas * canv = new TCanvas(Form("canv_%s",cut_name.c_str()), Form("canv_%s",cut_name.c_str()), 1200, 800); 
+  canv->SetTitle(cut_name.c_str()); 
+  canv->Divide(2,2);
+  canv->cd(1);
+  //prep_draw_superimposed_hist1D(gamma_mom_pass, gamma_mom_fail, "", "SAME");
+  //plot_eff_ratio(gamma_mom_pass, gamma_mom_fail,"mom[MeV]", "count", "efficiency");
+  plot_eff_ratio_2(gamma_mom_pass, gamma_mom_fail,";p_{#gamma}[MeV];efficiency");
+  canv->cd(2);
+  //prep_draw_superimposed_hist1D(cos_theta_pass, cos_theta_fail, "", "SAME"); 
+  //plot_eff_ratio(cos_theta_pass, cos_theta_fail,"cos#theta", "count", "efficiency");
+  plot_eff_ratio_2(cos_theta_pass, cos_theta_fail,";cos#theta;efficiency");
+  canv->cd(3);
+  //prep_draw_superimposed_hist1D(gamma_tr_mom_pass, gamma_tr_mom_fail, "", "SAME");   
+  //plot_eff_ratio(gamma_tr_mom_pass, gamma_tr_mom_fail,"mom[MeV]", "count", "efficiency");
+  plot_eff_ratio_2(gamma_tr_mom_pass, gamma_tr_mom_fail,";p_{T_{#gamma}}[MeV];efficiency");
+  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),cut_name.c_str()));
+  delete canv;
+}
+//============================================================================//
+//============================================================================//
+void plot_eff_ratio_2(TH1* pass_hist, TH1* fail_hist, std::string title){
+//============================================================================//
+// construct the sum histogram for the denominator 
+  TH1D* sum_hist = (TH1D*)pass_hist->Clone();
+  sum_hist->SetName("sum_hist");
+  sum_hist->Add(fail_hist, 1.);
+  //sum_hist->GetXaxis()->SetTitle(x_axis_title.c_str()); 
+
+// construct the ratio histogram 
+  TH1D* ratio_hist = (TH1D*)pass_hist->Clone();
+  ratio_hist->SetName("ratio_hist");
+  ratio_hist->Divide(sum_hist);
+  ratio_hist->SetStats(0);
+  ratio_hist->SetMarkerColor(kBlue);
+  ratio_hist->SetLineColor(kBlue);
+  ratio_hist->SetTitle(title.c_str()); 
+
+  ratio_hist->SetMaximum(1.0);
+  ratio_hist->SetMinimum(0.0);
+
+  ratio_hist->Draw();
+  
+}
