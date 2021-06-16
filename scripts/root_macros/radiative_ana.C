@@ -135,22 +135,7 @@ Main analysis function
   TH1D * mu_fin_delta_pos1r_vtx_h = new TH1D("mu_fin_delta_pos1r_vtx_h", "mu_fin_delta_pos1r_vtx_h", 10, 0., 100.);      
 
   TH2D * mu_g_tr_mom_vtx_res_2D = new TH2D("mu_g_tr_mom_vtx_res", "mu_g_tr_mom_vtx_res_2D", 25, 0, 500, 10, 0, 100);
-  /*
-  //setting the error bins correctly
-  gamma_mom_all_hist->Sumw2(1);
-  gamma_mom_1ring_hist->Sumw2(1);
-  gamma_mom_2ring_hist->Sumw2(1);
-  gamma_mom_3morering_hist->Sumw2(1);
-  gamma_mom_1muring_hist->Sumw2(1);
-  gamma_mom_1muring_1ering_hist->Sumw2(1);
-    
-  cos_theta_all_hist->Sumw2(1);  
-  cos_theta_1r_hist->Sumw2(1);
-  cos_theta_2r_hist->Sumw2(1);
-  cos_theta_3mr_hist->Sumw2(1);
-  cos_theta_1mur_hist->Sumw2(1);
-  cos_theta_1mu1epir_hist->Sumw2(1);   
-*/
+
   //Main event loop
   long int mu_gamma_nb_ev = tr->GetEntries(); 
   unsigned int mu_gamma_fcfv_passed = 0;
@@ -1063,7 +1048,7 @@ void plot_eff_ratio(TH1* pass_hist, TH1* fail_hist, std::string x_axis_title, st
 //============================================================================//
 void plot_cut_2(TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
               TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name){
-
+//============================================================================//
   format_hist1D(gamma_mom_pass, "p_{#gamma};mom[MeV];count" , kBlue , 2, 1);
   format_hist1D(gamma_mom_fail, "p_{#gamma};mom[MeV];count" , kRed , 2, 1);
   format_hist1D(cos_theta_pass, "Cos#theta;Cos#theta;count" , kBlue , 2, 1);
@@ -1090,7 +1075,6 @@ void plot_cut_2(TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass
   delete canv;
 }
 //============================================================================//
-//============================================================================//
 void plot_eff_ratio_2(TH1* pass_hist, TH1* fail_hist, std::string title){
 //============================================================================//
 // construct the sum histogram for the denominator 
@@ -1114,6 +1098,7 @@ void plot_eff_ratio_2(TH1* pass_hist, TH1* fail_hist, std::string title){
   ratio_hist->Draw();
   
 }
+//============================================================================//
 void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title){
 //============================================================================//
   hist1->SetStats(0);
@@ -1153,6 +1138,468 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string fi
   delete rp;
   delete legend;
   delete canv;
+
+}
+//============================================================================//
+ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
+//============================================================================//  
+  t2k_sk_radiative ana_struct;
+  set_tree_addresses(ana_tree, ana_struct);
+  ana_results_hists* res_h = new ana_results_hists;
+  init_result_hists(*res_h, is_radiative);
+
+  float cos_mu_g;
+  float g_tr_mom;
+  float cos_dir1r_mu;
+  float delta_pos1r_vtx;
+  
+
+ //Main event loop
+  long int nb_ev = ana_tree->GetEntries(); 
+  unsigned int nb_evis_passed = 0;
+  unsigned int nb_fcfv_passed = 0;
+  unsigned int nb_1ring_passed = 0;
+  unsigned int nb_emu_pid_passed = 0;
+  unsigned int nb_mu_mom_passed = 0;
+  unsigned int nb_e_decay_passed = 0;
+  unsigned int nb_pimu_pid_passed = 0;
+
+  cut_step_efficiency ana_cut_step_eff;
+
+  for (int i = 0; i < nb_ev; i++){
+    //progress
+    print_perc(i, nb_ev, 10);
+    ana_tree->GetEntry(i);
+    fill_particle_kin(ana_struct);
+    
+    res_h->nring_h->Fill(ana_struct.fqmrnring[0]);
+
+    res_h->mu_mom_all_h->Fill(ana_struct.mu_mom);    
+    if(is_radiative) res_h->g_mom_all_h->Fill(ana_struct.g_mom);
+
+    cos_mu_g = ( ana_struct.g_dir[0] * ana_struct.mu_dir[0] ) + ( ana_struct.g_dir[1] * ana_struct.mu_dir[1] )
+             + ( ana_struct.g_dir[2] * ana_struct.mu_dir[2] );
+    if(is_radiative) res_h->cos_mu_g_all_h->Fill(cos_mu_g);
+
+    if(ana_struct.fqmrnring[0] == 1){
+      res_h->mu_mom_1r_h->Fill(ana_struct.mu_mom);      
+      if(is_radiative) res_h->g_mom_1r_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->cos_mu_g_1r_h->Fill(cos_mu_g);
+    }
+
+    if(ana_struct.fqmrnring[0] == 2){
+      res_h->mu_mom_2r_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_2r_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->cos_mu_g_2r_h->Fill(cos_mu_g);
+    }
+
+    if(ana_struct.fqmrnring[0] >= 3){
+      res_h->mu_mom_3mr_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_3mr_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->cos_mu_g_3mr_h->Fill(cos_mu_g);      
+    }
+
+    // transverse momentum, i.e perpondicular to the mu direction = gamma_mom * sin_theta
+    g_tr_mom = ana_struct.g_mom * sqrt(1- (cos_mu_g * cos_mu_g) ); 
+    if(is_radiative) res_h->g_tr_mom_nring_2D->Fill(ana_struct.fqmrnring[0], g_tr_mom);
+
+    res_h->wall_h->Fill(ComputeWall(0, MUON, ana_struct));    
+    res_h->towall_h->Fill(ComputeTowall(0, MUON, ana_struct));
+
+    cos_dir1r_mu = (ana_struct.mu_dir[0] * ana_struct.fq1rdir[0][MUON][0])
+                  +(ana_struct.mu_dir[1] * ana_struct.fq1rdir[0][MUON][1])
+                  +(ana_struct.mu_dir[2] * ana_struct.fq1rdir[0][MUON][2]);
+    res_h->cos_dir1r_mu_h->Fill(cos_dir1r_mu);
+    if(is_radiative) res_h->g_tr_mom_cosalpha_2D->Fill(g_tr_mom, cos_dir1r_mu);
+    
+    delta_pos1r_vtx = sqrt(
+    ( (ana_struct.posv[0] - ana_struct.fq1rpos[0][MUON][0]) * (ana_struct.posv[0] - ana_struct.fq1rpos[0][MUON][0]) )+
+    ( (ana_struct.posv[1] - ana_struct.fq1rpos[0][MUON][1]) * (ana_struct.posv[1] - ana_struct.fq1rpos[0][MUON][1]) )+
+    ( (ana_struct.posv[2] - ana_struct.fq1rpos[0][MUON][2]) * (ana_struct.posv[2] - ana_struct.fq1rpos[0][MUON][2]) )
+    );
+    res_h->delta_pos1r_vtx_h->Fill(delta_pos1r_vtx); 
+    if(is_radiative) res_h->g_tr_mom_vtx_res_2D->Fill(g_tr_mom, delta_pos1r_vtx);
+   
+    //Applying the numu sample cuts
+    // 0. EVIS
+    if (pass_evis_cut(ana_struct, float(30.0)) == true){
+      //pass
+      res_h->mu_mom_evis_pass_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_evis_pass_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_evis_pass_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_evis_pass_h->Fill(cos_mu_g);
+      nb_evis_passed++;
+    }else{
+      //fail
+      res_h->mu_mom_evis_fail_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_evis_fail_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_evis_fail_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_evis_fail_h->Fill(cos_mu_g);
+    }
+    //apply the cut
+    if (pass_evis_cut(ana_struct, float(30.0)) == false) continue;
+
+    // 1. FCFV CUT
+    if (pass_FCFV(0, MUON, ana_struct) == true){
+      //pass
+      res_h->mu_mom_fcfv_pass_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_fcfv_pass_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_fcfv_pass_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_fcfv_pass_h->Fill(cos_mu_g);
+      nb_fcfv_passed++;
+    }else{
+      //fail
+      res_h->mu_mom_fcfv_fail_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_fcfv_fail_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_fcfv_fail_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_fcfv_fail_h->Fill(cos_mu_g);
+    }
+    //apply the cut
+    if (pass_FCFV(0, MUON, ana_struct) == false) continue;
+    
+    // 2. 1ring
+    if (pass_1ring(ana_struct) == true){
+      //pass
+      res_h->mu_mom_1ring_pass_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_1ring_pass_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_1ring_pass_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_1ring_pass_h->Fill(cos_mu_g);
+      nb_1ring_passed++;
+    }else{
+      //fail
+      res_h->mu_mom_1ring_fail_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_1ring_fail_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_1ring_fail_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_1ring_fail_h->Fill(cos_mu_g);
+    }
+    //apply the cut
+    if (pass_1ring(ana_struct) == false) continue;
+
+    // 3. e/mu pid
+    if (pass_e_mu_nll_cut(ana_struct) == true){
+      //pass
+      res_h->mu_mom_emu_pid_pass_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_emu_pid_pass_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_emu_pid_pass_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_emu_pid_pass_h->Fill(cos_mu_g);
+      nb_emu_pid_passed++;
+    }else{
+      //fail
+      res_h->mu_mom_emu_pid_fail_h->Fill(ana_struct.mu_mom);      
+      if(is_radiative) res_h->g_mom_emu_pid_fail_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_emu_pid_fail_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_emu_pid_fail_h->Fill(cos_mu_g);
+    }
+    //apply the cut
+    if (pass_e_mu_nll_cut(ana_struct) == false) continue;
+
+    // 4. mu mom 
+    if (pass_mu_mom_cut(ana_struct, float(200.0)) == true){
+      //pass
+      res_h->mu_mom_mu_mom_pass_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_mu_mom_pass_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_mu_mom_pass_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_mu_mom_pass_h->Fill(cos_mu_g);
+      nb_mu_mom_passed++;
+    }else{
+      //fail
+      res_h->mu_mom_mu_mom_fail_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_mu_mom_fail_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_mu_mom_fail_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_mu_mom_fail_h->Fill(cos_mu_g);
+    }
+    //apply the cut
+    if (pass_mu_mom_cut(ana_struct, float(200.0)) == false) continue;
+
+    // 5. number of e decay  
+    if (pass_nb_decay_e_cut(ana_struct) == true){
+      //pass
+      res_h->mu_mom_e_decay_pass_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_e_decay_pass_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_e_decay_pass_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_e_decay_pass_h->Fill(cos_mu_g);
+      nb_e_decay_passed++;
+    }else{
+      //fail
+      res_h->mu_mom_e_decay_pass_h->Fill(ana_struct.mu_mom);      
+      if(is_radiative) res_h->g_mom_e_decay_fail_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_e_decay_fail_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_e_decay_fail_h->Fill(cos_mu_g);
+    }
+    //apply the cut
+    if (pass_nb_decay_e_cut(ana_struct) == false) continue;
+
+    // 6. pi/mu pid  
+    if (pass_pi_mu_nll_cut(ana_struct) == true){
+      //pass
+      res_h->mu_mom_pimu_pid_pass_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_pimu_pid_pass_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_pimu_pid_pass_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_pimu_pid_pass_h->Fill(cos_mu_g);
+      nb_pimu_pid_passed++;
+    }else{
+      //fail
+      res_h->mu_mom_pimu_pid_fail_h->Fill(ana_struct.mu_mom);
+      if(is_radiative) res_h->g_mom_pimu_pid_fail_h->Fill(ana_struct.g_mom);
+      if(is_radiative) res_h->g_tr_mom_pimu_pid_fail_h->Fill(g_tr_mom);
+      if(is_radiative) res_h->cos_mu_g_pimu_pid_fail_h->Fill(cos_mu_g);
+    }
+    //apply the cut
+    if (pass_pi_mu_nll_cut(ana_struct) == false) continue;
+
+
+  }//end of the tree event loop
+
+  ana_cut_step_eff[0].first = "No cuts";
+  ana_cut_step_eff[0].second = nb_ev;
+  ana_cut_step_eff[1].first = "evis";
+  ana_cut_step_eff[1].second = nb_evis_passed;
+  ana_cut_step_eff[2].first = "fcfv";
+  ana_cut_step_eff[2].second = nb_fcfv_passed;
+  ana_cut_step_eff[3].first = "1ring";
+  ana_cut_step_eff[3].second = nb_1ring_passed;
+  ana_cut_step_eff[4].first = "emu_pid";
+  ana_cut_step_eff[4].second = nb_emu_pid_passed;
+  ana_cut_step_eff[5].first = "mu_mom";
+  ana_cut_step_eff[5].second = nb_mu_mom_passed;
+  ana_cut_step_eff[6].first = "e_decay";
+  ana_cut_step_eff[6].second = nb_e_decay_passed;
+  ana_cut_step_eff[7].first = "pimu_pid";
+  ana_cut_step_eff[7].second = nb_pimu_pid_passed;
+
+ return res_h;
+
+}
+//============================================================================//
+void fill_particle_kin(t2k_sk_radiative & ana_struct){
+//============================================================================//
+  // in GEANT particle code 1 = gamma, 6 = mu-
+  int g_idx = find_particle_idx(ana_struct.ipv, ana_struct.npar, 1);
+  int mu_idx = find_particle_idx(ana_struct.ipv, ana_struct.npar, 6);
+
+  //filling gamma and muon kinematics
+  if(g_idx != -1){
+    // gamma exists
+    ana_struct.g_mom = ana_struct.pmomv[g_idx];
+    for(int ix = 0 ; ix < 3; ix++){
+      ana_struct.g_dir[ix] = ana_struct.dirv[g_idx][ix];    
+    }    
+  } 
+  if(mu_idx != -1){
+    ana_struct.mu_mom = ana_struct.pmomv[mu_idx];
+    for(int ix = 0 ; ix < 3; ix++){
+      ana_struct.mu_dir[ix] = ana_struct.dirv[mu_idx][ix];    
+    }     
+  }  
+
+
+}
+//============================================================================//
+void init_result_hists(ana_results_hists& res_h, bool is_radiative){
+//============================================================================//
+  //In case of superimposing two histograms coming from different files, I want the histogram name to be indicative
+  std::string h_name_postfix;
+  if(is_radiative){
+    h_name_postfix = "mu_g";
+  }else{
+    h_name_postfix = "mu_only";
+  }
+  // number of rings histograms
+  res_h.nring_h = new TH1I(Form("nring_%s", h_name_postfix.c_str()), Form("nring_%s", h_name_postfix.c_str()), 6, 0, 6);
+  res_h.g_tr_mom_nring_2D = new TH2D("g_tr_mom_nring", "g_tr_mom_nring", 3, 1, 4, 25, 0, 500);
+
+  //momentum binning
+  double mom_bining_arr[22];//22 entries for bin edges
+  for(int i = 0 ; i < 21; i++){
+    double eq_step = 50;
+    mom_bining_arr[i] = i*eq_step;    
+  }
+  mom_bining_arr[21] = 2000;
+
+  //gamma histograms
+  res_h.g_mom_all_h = new TH1D("g_mom_all", "g_mom_all", 21,  mom_bining_arr);
+  res_h.g_mom_1r_h = new TH1D("g_mom_1r", "g_mom_1r", 21,  mom_bining_arr);
+  res_h.g_mom_2r_h = new TH1D("g_mom_2r", "g_mom_2r", 21,  mom_bining_arr);
+  res_h.g_mom_3mr_h = new TH1D("g_mom_3mr", "g_mom_3mr", 21,  mom_bining_arr);    
+  res_h.cos_mu_g_all_h = new TH1D("cos_mu_g_all", "cos_mu_g_all", 20, -1, 1);  
+  res_h.cos_mu_g_1r_h = new TH1D("cos_mu_g_1r", "cos_mu_g_1r", 20, -1, 1);  
+  res_h.cos_mu_g_2r_h = new TH1D("cos_mu_g_2r", "cos_mu_g_2r", 20, -1, 1);  
+  res_h.cos_mu_g_3mr_h = new TH1D("cos_mu_g_3mr", "cos_mu_g_3mr", 20, -1, 1);  
+  
+  //muon histograms
+  res_h.mu_mom_all_h = new TH1D(Form("mu_mom_all_%s", h_name_postfix.c_str()), Form("mu_mom_all_%s", h_name_postfix.c_str()), 21,  mom_bining_arr);
+  res_h.mu_mom_1r_h = new TH1D(Form("mu_mom_1r_%s", h_name_postfix.c_str()), Form("mu_mom_1r_%s", h_name_postfix.c_str()), 21,  mom_bining_arr);
+  res_h.mu_mom_2r_h = new TH1D(Form("mu_mom_2r_%s", h_name_postfix.c_str()), Form("mu_mom_2r_%s", h_name_postfix.c_str()), 21,  mom_bining_arr);
+  res_h.mu_mom_3mr_h = new TH1D(Form("mu_mom_3mr_%s", h_name_postfix.c_str()), Form("mu_mom_3mr_%s", h_name_postfix.c_str()), 21,  mom_bining_arr);
+
+  //Selection cuts histograms
+  // EVIS
+  res_h.mu_mom_evis_pass_h = new TH1D("mu_mom_evis_pass", "mu_mom_evis_pass", 21,  mom_bining_arr);
+  res_h.mu_mom_evis_fail_h = new TH1D("mu_mom_evis_fail", "mu_mom_evis_fail", 21,  mom_bining_arr);
+  res_h.g_mom_evis_pass_h = new TH1D("g_mom_evis_pass", "g_mom_evis_pass", 21,  mom_bining_arr);
+  res_h.g_mom_evis_fail_h = new TH1D("g_mom_evis_fail", "g_mom_evis_fail", 21,  mom_bining_arr);
+  res_h.cos_mu_g_evis_pass_h = new TH1D("cos_mu_g_evis_pass", "cos_mu_g_evis_pass", 10, -1, 1);  
+  res_h.cos_mu_g_evis_fail_h = new TH1D("cos_mu_g_evis_fail", "cos_mu_g_evis_fail", 10, -1, 1);  
+  res_h.g_tr_mom_evis_pass_h = new TH1D("g_tr_mom_evis_pass", "g_tr_mom_evis_pass", 21,  mom_bining_arr);
+  res_h.g_tr_mom_evis_fail_h = new TH1D("g_tr_mom_evis_fail", "g_tr_mom_evis_fail", 21,  mom_bining_arr);
+  // FCFV
+  res_h.mu_mom_fcfv_pass_h = new TH1D("mu_mom_fcfv_pass", "mu_mom_fcfv_pass", 21,  mom_bining_arr);
+  res_h.mu_mom_fcfv_fail_h = new TH1D("mu_mom_fcfv_fail", "mu_mom_fcfv_fail", 21,  mom_bining_arr);
+  res_h.g_mom_fcfv_pass_h = new TH1D("g_mom_fcfv_pass", "g_mom_fcfv_pass", 21,  mom_bining_arr);
+  res_h.g_mom_fcfv_fail_h = new TH1D("g_mom_fcfv_fail", "g_mom_fcfv_fail", 21,  mom_bining_arr);
+  res_h.cos_mu_g_fcfv_pass_h = new TH1D("cos_mu_g_fcfv_pass", "cos_mu_g_fcfv_pass", 10, -1, 1);  
+  res_h.cos_mu_g_fcfv_fail_h = new TH1D("cos_mu_g_fcfv_fail", "cos_mu_g_fcfv_fail", 10, -1, 1);  
+  res_h.g_tr_mom_fcfv_pass_h = new TH1D("g_tr_mom_fcfv_pass", "g_tr_mom_fcfv_pass", 21,  mom_bining_arr);
+  res_h.g_tr_mom_fcfv_fail_h = new TH1D("g_tr_mom_fcfv_fail", "g_tr_mom_fcfv_fail", 21,  mom_bining_arr);
+  // 1 ring
+  res_h.mu_mom_1ring_pass_h = new TH1D("mu_mom_1ring_pass", "mu_mom_1ring_pass", 21,  mom_bining_arr);
+  res_h.mu_mom_1ring_fail_h = new TH1D("mu_mom_1ring_fail", "mu_mom_1ring_fail", 21,  mom_bining_arr);
+  res_h.g_mom_1ring_pass_h = new TH1D("g_mom_1ring_pass", "g_mom_1ring_pass", 21,  mom_bining_arr);
+  res_h.g_mom_1ring_fail_h = new TH1D("g_mom_1ring_fail", "g_mom_1ring_fail", 21,  mom_bining_arr);
+  res_h.cos_mu_g_1ring_pass_h = new TH1D("cos_mu_g_1ring_pass", "cos_mu_g_1ring_pass", 10, -1, 1);  
+  res_h.cos_mu_g_1ring_fail_h = new TH1D("cos_mu_g_1ring_fail", "cos_mu_g_1ring_fail", 10, -1, 1);  
+  res_h.g_tr_mom_1ring_pass_h = new TH1D("g_tr_mom_1ring_pass", "g_tr_mom_1ring_pass", 21,  mom_bining_arr);
+  res_h.g_tr_mom_1ring_fail_h = new TH1D("g_tr_mom_1ring_fail", "g_tr_mom_1ring_fail", 21,  mom_bining_arr);
+  // emu_pid
+  res_h.mu_mom_emu_pid_pass_h = new TH1D("mu_mom_emu_pid_pass", "mu_mom_emu_pid_pass", 21,  mom_bining_arr);
+  res_h.mu_mom_emu_pid_fail_h = new TH1D("mu_mom_emu_pid_fail", "mu_mom_emu_pid_fail", 21,  mom_bining_arr);
+  res_h.g_mom_emu_pid_pass_h = new TH1D("g_mom_emu_pid_pass", "g_mom_emu_pid_pass", 21,  mom_bining_arr);
+  res_h.g_mom_emu_pid_fail_h = new TH1D("g_mom_emu_pid_fail", "g_mom_emu_pid_fail", 21,  mom_bining_arr);
+  res_h.cos_mu_g_emu_pid_pass_h = new TH1D("cos_mu_g_emu_pid_pass", "cos_mu_g_emu_pid_pass", 10, -1, 1);  
+  res_h.cos_mu_g_emu_pid_fail_h = new TH1D("cos_mu_g_emu_pid_fail", "cos_mu_g_emu_pid_fail", 10, -1, 1);  
+  res_h.g_tr_mom_emu_pid_pass_h = new TH1D("g_tr_mom_emu_pid_pass", "g_tr_mom_emu_pid_pass", 21,  mom_bining_arr);
+  res_h.g_tr_mom_emu_pid_fail_h = new TH1D("g_tr_mom_emu_pid_fail", "g_tr_mom_emu_pid_fail", 21,  mom_bining_arr);
+  // mu mom
+  res_h.mu_mom_mu_mom_pass_h = new TH1D("mu_mom_mu_mom_pass", "mu_mom_mu_mom_pass", 21,  mom_bining_arr);
+  res_h.mu_mom_mu_mom_fail_h = new TH1D("mu_mom_mu_mom_fail", "mu_mom_mu_mom_fail", 21,  mom_bining_arr);
+  res_h.g_mom_mu_mom_pass_h = new TH1D("g_mom_mu_mom_pass", "g_mom_mu_mom_pass", 21,  mom_bining_arr);
+  res_h.g_mom_mu_mom_fail_h = new TH1D("g_mom_mu_mom_fail", "g_mom_mu_mom_fail", 21,  mom_bining_arr);
+  res_h.cos_mu_g_mu_mom_pass_h = new TH1D("cos_mu_g_mu_mom_pass", "cos_mu_g_mu_mom_pass", 10, -1, 1);  
+  res_h.cos_mu_g_mu_mom_fail_h = new TH1D("cos_mu_g_mu_mom_fail", "cos_mu_g_mu_mom_fail", 10, -1, 1);  
+  res_h.g_tr_mom_mu_mom_pass_h = new TH1D("g_tr_mom_mu_mom_pass", "g_tr_mom_mu_mom_pass", 21,  mom_bining_arr);
+  res_h.g_tr_mom_mu_mom_fail_h = new TH1D("g_tr_mom_mu_mom_fail", "g_tr_mom_mu_mom_fail", 21,  mom_bining_arr);
+  // nb e decay
+  res_h.mu_mom_e_decay_pass_h = new TH1D("mu_mom_e_decay_pass", "mu_mom_e_decay_pass", 21,  mom_bining_arr);
+  res_h.mu_mom_e_decay_fail_h = new TH1D("mu_mom_e_decay_fail", "mu_mom_e_decay_fail", 21,  mom_bining_arr);
+  res_h.g_mom_e_decay_pass_h = new TH1D("g_mom_e_decay_pass", "g_mom_e_decay_pass", 21,  mom_bining_arr);
+  res_h.g_mom_e_decay_fail_h = new TH1D("g_mom_e_decay_fail", "g_mom_e_decay_fail", 21,  mom_bining_arr);
+  res_h.cos_mu_g_e_decay_pass_h = new TH1D("cos_mu_g_e_decay_pass", "cos_mu_g_e_decay_pass", 10, -1, 1);  
+  res_h.cos_mu_g_e_decay_fail_h = new TH1D("cos_mu_g_e_decay_fail", "cos_mu_g_e_decay_fail", 10, -1, 1);  
+  res_h.g_tr_mom_e_decay_pass_h = new TH1D("g_tr_mom_e_decay_pass", "g_tr_mom_e_decay_pass", 21,  mom_bining_arr);
+  res_h.g_tr_mom_e_decay_fail_h = new TH1D("g_tr_mom_e_decay_fail", "g_tr_mom_e_decay_fail", 21,  mom_bining_arr);
+  // pi mu pid
+  res_h.mu_mom_pimu_pid_pass_h = new TH1D("mu_mom_pimu_pid_pass", "mu_mom_pimu_pid_pass", 21,  mom_bining_arr);
+  res_h.mu_mom_pimu_pid_fail_h = new TH1D("mu_mom_pimu_pid_fail", "mu_mom_pimu_pid_fail", 21,  mom_bining_arr);
+  res_h.g_mom_pimu_pid_pass_h = new TH1D("g_mom_pimu_pid_pass", "g_mom_pimu_pid_pass", 21,  mom_bining_arr);
+  res_h.g_mom_pimu_pid_fail_h = new TH1D("g_mom_pimu_pid_fail", "g_mom_pimu_pid_fail", 21,  mom_bining_arr);
+  res_h.cos_mu_g_pimu_pid_pass_h = new TH1D("cos_mu_g_pimu_pid_pass", "cos_mu_g_pimu_pid_pass", 10, -1, 1);  
+  res_h.cos_mu_g_pimu_pid_fail_h = new TH1D("cos_mu_g_pimu_pid_fail", "cos_mu_g_pimu_pid_fail", 10, -1, 1);  
+  res_h.g_tr_mom_pimu_pid_pass_h = new TH1D("g_tr_mom_pimu_pid_pass", "g_tr_mom_pimu_pid_pass", 21,  mom_bining_arr);
+  res_h.g_tr_mom_pimu_pid_fail_h = new TH1D("g_tr_mom_pimu_pid_fail", "g_tr_mom_pimu_pid_fail", 21,  mom_bining_arr);
+
+  //FV histograms
+  res_h.wall_h = new TH1D(Form("wall_%s", h_name_postfix.c_str()), Form("wall_%s", h_name_postfix.c_str()), 36, 0., 1800.);
+  res_h.towall_h = new TH1D(Form("towall_%s", h_name_postfix.c_str()), Form("towall_%s", h_name_postfix.c_str()), 36, 0., 1800.);
+  res_h.cos_dir1r_mu_h = new TH1D(Form("cos_dir1r_mu_%s", h_name_postfix.c_str()), Form("cos_dir1r_mu_%s", h_name_postfix.c_str()), 10, -1, 1); 
+  res_h.delta_pos1r_vtx_h = new TH1D(Form("delta_pos1r_vtx_%s", h_name_postfix.c_str()), Form("delta_pos1r_vtx_%s", h_name_postfix.c_str()), 10, 0., 100.);     
+  res_h.g_tr_mom_cosalpha_2D = new TH2D("g_tr_mom_cosalpha", "g_tr_mom_cosalpha", 25, 0, 500, 10, -1, 1);
+  res_h.g_tr_mom_vtx_res_2D = new TH2D("g_tr_mom_vtx_res", "g_tr_mom_vtx_res_2D", 25, 0, 500, 10, 0, 100);
+
+}
+//============================================================================//
+void clear_result_hists(ana_results_hists& res_h){
+//============================================================================//  
+  delete res_h.nring_h;
+  delete res_h.g_tr_mom_nring_2D;
+
+  //gamma histograms
+  delete res_h.g_mom_all_h;
+  delete res_h.g_mom_1r_h;
+  delete res_h.g_mom_2r_h;
+  delete res_h.g_mom_3mr_h;
+  delete res_h.cos_mu_g_all_h;
+  delete res_h.cos_mu_g_1r_h;
+  delete res_h.cos_mu_g_2r_h;
+  delete res_h.cos_mu_g_3mr_h;
+
+  //muon histograms
+  delete res_h.mu_mom_all_h;
+  delete res_h.mu_mom_1r_h;
+  delete res_h.mu_mom_2r_h;
+  delete res_h.mu_mom_3mr_h;
+
+  //Selection cuts histograms
+  // EVIS
+  delete res_h.mu_mom_evis_pass_h;
+  delete res_h.mu_mom_evis_fail_h;
+  delete res_h.g_mom_evis_pass_h;
+  delete res_h.g_mom_evis_fail_h;
+  delete res_h.cos_mu_g_evis_pass_h;
+  delete res_h.cos_mu_g_evis_fail_h;
+  delete res_h.g_tr_mom_evis_pass_h;
+  delete res_h.g_tr_mom_evis_fail_h;
+  // FCFV
+  delete res_h.mu_mom_fcfv_pass_h;
+  delete res_h.mu_mom_fcfv_fail_h;
+  delete res_h.g_mom_fcfv_pass_h;
+  delete res_h.g_mom_fcfv_fail_h;
+  delete res_h.cos_mu_g_fcfv_pass_h;
+  delete res_h.cos_mu_g_fcfv_fail_h;
+  delete res_h.g_tr_mom_fcfv_pass_h;
+  delete res_h.g_tr_mom_fcfv_fail_h;
+  // 1 ring
+  delete res_h.mu_mom_1ring_pass_h;
+  delete res_h.mu_mom_1ring_fail_h;
+  delete res_h.g_mom_1ring_pass_h;
+  delete res_h.g_mom_1ring_fail_h;
+  delete res_h.cos_mu_g_1ring_pass_h;
+  delete res_h.cos_mu_g_1ring_fail_h;
+  delete res_h.g_tr_mom_1ring_pass_h;
+  delete res_h.g_tr_mom_1ring_fail_h;
+  // emu_pid
+  delete res_h.mu_mom_emu_pid_pass_h;
+  delete res_h.mu_mom_emu_pid_fail_h;
+  delete res_h.g_mom_emu_pid_pass_h;
+  delete res_h.g_mom_emu_pid_fail_h;
+  delete res_h.cos_mu_g_emu_pid_pass_h;
+  delete res_h.cos_mu_g_emu_pid_fail_h;
+  delete res_h.g_tr_mom_emu_pid_pass_h;
+  delete res_h.g_tr_mom_emu_pid_fail_h;
+  // mu mom
+  delete res_h.mu_mom_mu_mom_pass_h;
+  delete res_h.mu_mom_mu_mom_fail_h;
+  delete res_h.g_mom_mu_mom_pass_h;
+  delete res_h.g_mom_mu_mom_fail_h;
+  delete res_h.cos_mu_g_mu_mom_pass_h;
+  delete res_h.cos_mu_g_mu_mom_fail_h;
+  delete res_h.g_tr_mom_mu_mom_pass_h;
+  delete res_h.g_tr_mom_mu_mom_fail_h;
+  // nb e decay
+  delete res_h.mu_mom_e_decay_pass_h;
+  delete res_h.mu_mom_e_decay_fail_h;
+  delete res_h.g_mom_e_decay_pass_h;
+  delete res_h.g_mom_e_decay_fail_h;
+  delete res_h.cos_mu_g_e_decay_pass_h;
+  delete res_h.cos_mu_g_e_decay_fail_h;
+  delete res_h.g_tr_mom_e_decay_pass_h;
+  delete res_h.g_tr_mom_e_decay_fail_h;
+  // pi mu pid
+  delete res_h.mu_mom_pimu_pid_pass_h;
+  delete res_h.mu_mom_pimu_pid_fail_h;
+  delete res_h.g_mom_pimu_pid_pass_h;
+  delete res_h.g_mom_pimu_pid_fail_h;
+  delete res_h.cos_mu_g_pimu_pid_pass_h;
+  delete res_h.cos_mu_g_pimu_pid_fail_h;
+  delete res_h.g_tr_mom_pimu_pid_pass_h;
+  delete res_h.g_tr_mom_pimu_pid_fail_h;
+
+  //FV histograms
+  delete res_h.wall_h;
+  delete res_h.towall_h;
+  delete res_h.cos_dir1r_mu_h;
+  delete res_h.delta_pos1r_vtx_h;
+  delete res_h.g_tr_mom_cosalpha_2D;
+  delete res_h.g_tr_mom_vtx_res_2D;
 
 }
 //============================================================================//
