@@ -18,9 +18,14 @@ Main analysis function
   float gamma_mom;
   float gamma_dir[3];
   float mu_mom;
-  float mu_dir[3];      
+  float mu_dir[3]; 
+  //float vtx_pos[3];      
   float cos_theta;
   float gamma_tr_mom;
+  float cos_dir1r_mu;
+  float mu_fin_cos_dir1r_mu;
+  float mu_g_delta_pos1r_vtx;
+  float mu_fin_delta_pos1r_vtx;  
   
   bool is_1mu_ring_only = false;
   bool is_1ring = false;
@@ -114,6 +119,22 @@ Main analysis function
   TH1D * gamma_tr_mom_pimu_pid_pass = new TH1D("gamma_tr_mom_pimu_pid_pass", "gamma_tr_mom_pimu_pid_pass", 21,  mom_bining_arr);
   TH1D * gamma_tr_mom_pimu_pid_fail = new TH1D("gamma_tr_mom_pimu_pid_fail", "gamma_tr_mom_pimu_pid_fail", 21,  mom_bining_arr);
 
+  //FV histograms
+  TH1D * g_mu_wall_h = new TH1D("g_mu_wall_h", "g_mu_wall_h", 36, 0., 1800.);
+  TH1D * mu_fin_wall_h = new TH1D("mu_fin_wall_h", "mu_fin_wall_h", 36, 0., 1800.);
+
+  TH1D * g_mu_towall_h = new TH1D("g_mu_towall_h", "g_mu_towall_h", 36, 0., 1800.);
+  TH1D * mu_fin_towall_h = new TH1D("mu_fin_towall_h", "mu_fin_towall_h", 36, 0., 1800.);
+
+  TH1D * cos_dir1r_mu_h = new TH1D("cos_dir1r_mu_h", "cos_dir1r_mu_h", 10, -1, 1); 
+  TH1D * mu_fin_cos_dir1r_mu_h = new TH1D("mu_fin_cos_dir1r_mu_h", "mu_fin_cos_dir1r_mu_h", 10, -1, 1);   
+
+  TH2D * mu_g_tr_mom_cosalpha_2D = new TH2D("gamma_tr_mom_cosalpha", "gamma_tr_mom_cosalpha", 25, 0, 500, 10, -1, 1);
+
+  TH1D * mu_g_delta_pos1r_vtx_h = new TH1D("mu_g_delta_pos1r_vtx_h", "mu_g_delta_pos1r_vtx_h", 10, 0., 100.);
+  TH1D * mu_fin_delta_pos1r_vtx_h = new TH1D("mu_fin_delta_pos1r_vtx_h", "mu_fin_delta_pos1r_vtx_h", 10, 0., 100.);      
+
+  TH2D * mu_g_tr_mom_vtx_res_2D = new TH2D("mu_g_tr_mom_vtx_res", "mu_g_tr_mom_vtx_res_2D", 25, 0, 500, 10, 0, 100);
   /*
   //setting the error bins correctly
   gamma_mom_all_hist->Sumw2(1);
@@ -173,6 +194,20 @@ Main analysis function
     //if(!fill_ok) continue;
     gamma_mom_all_hist->Fill(gamma_mom);
     cos_theta_all_hist->Fill(cos_theta);
+    g_mu_towall_h->Fill(ComputeTowall(0, MUON, mu_gamma_struct));
+    g_mu_wall_h->Fill(ComputeWall(0, MUON, mu_gamma_struct));    
+    cos_dir1r_mu = mu_dir[0] * mu_gamma_struct.fq1rdir[0][MUON][0] + mu_dir[1] * mu_gamma_struct.fq1rdir[0][MUON][1] + 
+                   mu_dir[2] * mu_gamma_struct.fq1rdir[0][MUON][2];
+
+    cos_dir1r_mu_h->Fill(cos_dir1r_mu);
+    mu_g_tr_mom_cosalpha_2D->Fill(gamma_tr_mom, cos_dir1r_mu);
+    mu_g_delta_pos1r_vtx = sqrt(
+    (mu_gamma_struct.posv[0] - mu_gamma_struct.fq1rpos[0][MUON][0])* (mu_gamma_struct.posv[0] - mu_gamma_struct.fq1rpos[0][MUON][0]) +
+    (mu_gamma_struct.posv[1] - mu_gamma_struct.fq1rpos[0][MUON][1])* (mu_gamma_struct.posv[1] - mu_gamma_struct.fq1rpos[0][MUON][1]) +
+    (mu_gamma_struct.posv[2] - mu_gamma_struct.fq1rpos[0][MUON][2])* (mu_gamma_struct.posv[2] - mu_gamma_struct.fq1rpos[0][MUON][2])
+    );
+    mu_g_delta_pos1r_vtx_h->Fill(mu_g_delta_pos1r_vtx); 
+    mu_g_tr_mom_vtx_res_2D->Fill(gamma_tr_mom, mu_g_delta_pos1r_vtx);   
     is_1ring = (mu_gamma_struct.fqmrnring[0] == 1);
     is_2ring = (mu_gamma_struct.fqmrnring[0] == 2);
     is_3_more_ring = (mu_gamma_struct.fqmrnring[0] >= 3);
@@ -374,6 +409,19 @@ Main analysis function
     tr_mu_fin->GetEntry(i);
     nring_mu_fin_hist->Fill(mu_fin_struct.fqmrnring[0]);
     mu_fin_mom_all_hist->Fill(mu_fin_struct.pmomv[0]);
+    mu_fin_towall_h->Fill(ComputeTowall(0, MUON, mu_fin_struct));
+    mu_fin_wall_h->Fill(ComputeWall(0, MUON, mu_fin_struct));
+    mu_fin_cos_dir1r_mu = mu_fin_struct.dirv[0][0] * mu_fin_struct.fq1rdir[0][MUON][0] + mu_fin_struct.dirv[0][1] * mu_fin_struct.fq1rdir[0][MUON][1] + 
+                   mu_fin_struct.dirv[0][2] * mu_fin_struct.fq1rdir[0][MUON][2];
+
+    mu_fin_cos_dir1r_mu_h->Fill(mu_fin_cos_dir1r_mu);  
+    mu_fin_delta_pos1r_vtx = sqrt(
+    (mu_fin_struct.posv[0] - mu_fin_struct.fq1rpos[0][MUON][0])* (mu_fin_struct.posv[0] - mu_fin_struct.fq1rpos[0][MUON][0]) +
+    (mu_fin_struct.posv[1] - mu_fin_struct.fq1rpos[0][MUON][1])* (mu_fin_struct.posv[1] - mu_fin_struct.fq1rpos[0][MUON][1]) +
+    (mu_fin_struct.posv[2] - mu_fin_struct.fq1rpos[0][MUON][2])* (mu_fin_struct.posv[2] - mu_fin_struct.fq1rpos[0][MUON][2])
+    );
+    mu_fin_delta_pos1r_vtx_h->Fill(mu_fin_delta_pos1r_vtx);    
+
     //Applying the numu sample cuts
     // 0. EVIS
     if (pass_evis_cut(mu_fin_struct, float(30.0)) == true){
@@ -518,7 +566,25 @@ Main analysis function
   plot_efficency(mu_g_cut_step_eff, "mu_g_eff");
   plot_efficency(mu_fin_cut_step_eff, "mu_fin_eff");
   plot_efficency(mu_g_cut_step_eff, mu_fin_cut_step_eff, "mu_g_eff", "mu_fin_eff","mu_g_superimposed_eff");
+//FV histograms
+  plot_hist1D(g_mu_towall_h,"g_mu_towall", "g_mu_towall;distance[cm];count", kBlue , 2, 1);
+  plot_hist1D(mu_fin_towall_h,"mu_fin_towall", "mu_fin_towall;distance[cm];count", kBlue , 2, 1);
+  plot_ratio_hist1D(g_mu_towall_h, mu_fin_towall_h, "diffsig","towall_diff", "distance[MeV]", "entries", "diff/#sigma");
 
+  plot_hist1D(g_mu_wall_h,"g_mu_wall", "g_mu_wall;distance[cm];count", kBlue , 2, 1);
+  plot_hist1D(mu_fin_wall_h,"mu_fin_wall", "mu_fin_wall;distance[cm];count", kBlue , 2, 1);
+  plot_ratio_hist1D(g_mu_wall_h, mu_fin_wall_h, "diffsig","wall_diff", "distance[MeV]", "entries", "diff/#sigma");
+  
+  plot_hist1D(mu_fin_cos_dir1r_mu_h,"mu_fin_cos_dir1r_mu", "#mu_{fin} cos#alpha_{#mufq1r};cos#alpha_{#mufq1r};count", kBlue , 2, 1);
+  plot_hist1D(cos_dir1r_mu_h,"cos_dir1r_mu", "#mu+#gamma cos#alpha_{#mufq1r};cos#alpha_{#mufq1r};count", kBlue , 2, 1);
+
+  plot_hist2D(mu_g_tr_mom_cosalpha_2D, "cos#alpha_{#mufq1r} vs. p_{T}_{#gamma}; p_{T}_{#gamma} [MeV];cos#alpha_{#mufq1r}", "colz");
+  
+  plot_hist1D(mu_g_delta_pos1r_vtx_h,"mu_g_delta_pos1r_vtx", "mu_g_delta_pos1r_vtx;#Delta_{distance}[cm];count", kBlue , 2, 1);
+  plot_hist1D(mu_fin_delta_pos1r_vtx_h,"mu_fin_delta_pos1r_vtx", "mu_fin_delta_pos1r_vtx;#Delta{distance}[cm];count", kBlue , 2, 1);  
+  plot_ratio_hist1D(mu_g_delta_pos1r_vtx_h, mu_fin_delta_pos1r_vtx_h, "diffsig","vtx_pos_diff", "#Delta{distance}[MeV]", "entries", "diff/#sigma");
+
+  plot_hist2D(mu_g_tr_mom_vtx_res_2D, "#Delta_{#mufq1r} vs. p_{T}_{#gamma}; p_{T}_{#gamma} [MeV];#Delta_{#mufq1r}[cm]", "colz");
   
 }
 //============================================================================//
@@ -726,6 +792,8 @@ void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct){
   tr->SetBranchAddress("pmomv", rad_struct.pmomv);
   tr->SetBranchStatus("dirv", 1);
   tr->SetBranchAddress("dirv", rad_struct.dirv); 
+  tr->SetBranchStatus("posv", 1);
+  tr->SetBranchAddress("posv", rad_struct.posv); 
 
   // other variables
   tr->SetBranchStatus("nhitac", 1);
@@ -758,6 +826,7 @@ void format_hist1D(TH1* hist, std::string title, int col , int width, int sty){
   hist->SetLineWidth(width);
   hist->SetLineStyle(sty);
   hist->GetYaxis()->SetTitleOffset(1.2);
+  hist->SetMaximum(hist->GetMaximum()*1.2);
 }
 //============================================================================//
 void plot_hist1D(TH1* hist,  std::string filename, std::string title, int col , int width, int sty){
@@ -1045,3 +1114,45 @@ void plot_eff_ratio_2(TH1* pass_hist, TH1* fail_hist, std::string title){
   ratio_hist->Draw();
   
 }
+void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title){
+//============================================================================//
+  hist1->SetStats(0);
+  //hist1->Sumw2(1);
+  hist1->SetMarkerColor(kBlue);
+  hist1->SetLineColor(kBlue);
+  hist1->GetXaxis()->SetTitle(x_axis_title.c_str()); 
+
+  hist2->SetStats(0);
+  //hist2->Sumw2(1);
+  hist2->SetMarkerColor(kRed);
+  hist2->SetLineColor(kRed);
+  hist2->GetXaxis()->SetTitle(x_axis_title.c_str()); 
+
+  double max = hist1->GetMaximum() > hist2->GetMaximum()? hist1->GetMaximum():hist2->GetMaximum();
+  max*=1.1;
+  hist1->SetMaximum(max);
+  hist2->SetMaximum(max);
+
+  TCanvas *canv = new TCanvas("canv", "canv", 1200, 800);
+  TRatioPlot *rp = new TRatioPlot(hist1, hist2, option.c_str()); //  defaults is error is: TGraphAsymmErrors::Divide (binomial), but we can especify "pois", "divsym", ...
+
+  rp->Draw();
+  rp->GetUpperRefYaxis()->SetTitle(y_up_axis_title.c_str());
+  rp->GetLowerRefYaxis()->SetTitle(y_down_axis_title.c_str());
+  //rp->GetLowerRefYaxis()->SetMinimum();
+
+  gPad->Modified();
+  gPad->Update(); // make sure it’s really (re)drawn
+  TPad *pad = rp->GetUpperPad();
+  TLegend *legend = pad->BuildLegend(0.8,0.7,1.0,0.9);
+  pad->Modified();
+  pad->Update();
+
+  canv->Update();
+  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),filename.c_str()));
+  delete rp;
+  delete legend;
+  delete canv;
+
+}
+//============================================================================//

@@ -61,6 +61,7 @@ typedef struct t2k_sk_radiative{
   unsigned char ipv[100]; //numbering convension is 0 = neutrino, 1 = nucleon, 2 = lepton, 4 = output hadron, >= 5 others (not in case of 2p2h)
   float pmomv[100]; // particle mom
   float dirv[100][3]; // particle direction at vertex
+  float posv[3]; // vertex position
       
   // other variables	
   unsigned short int nhitac;
@@ -93,6 +94,7 @@ void format_hist1D(TH1* hist, std::string title, int col , int width, int sty);
 void plot_hist1D(TH1* hist, std::string filename, std::string title, int col , int width, int sty);
 void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, std::string title, std::string draw_opt1, std::string draw_opt2, TLatex* tex = NULL);
 void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title);
+void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option, std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title);
 void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt);
 void print_perc(size_t ientry, size_t total_entries, int perc_step);
 void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_opt1, std::string draw_opt2);
