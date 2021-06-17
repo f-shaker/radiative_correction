@@ -72,7 +72,7 @@ void plot_1_res_hists(ana_results_hists& res_h, bool is_radiative){
     plot_hist1D(res_h.towall_h,"mu_g_towall", "mu_g_towall;distance[cm];count", kBlue , 2, 1);
     plot_hist1D(res_h.cos_dir1r_mu_h,"mu_g_cos_dir1r_mu", "#mu+#gamma cos#alpha_{#mufq1r};cos#alpha_{#mufq1r};count", kBlue , 2, 1);
     plot_hist2D(res_h.g_tr_mom_cosalpha_2D, "cos#alpha_{#mufq1r} vs. p_{T}_{#gamma}; p_{T}_{#gamma} [MeV];cos#alpha_{#mufq1r}", "colz");
-    plot_hist1D(res_h.delta_pos1r_vtx_h, "mu_g_delta_pos1r_vtx", "#Delta pos1r-vtx;#Delta distance[cm];count", kBlue , 2, 1);
+    plot_hist1D(res_h.delta_pos1r_vtx_h, "mu_g_delta_pos1r_vtx", "#mu+#gamma #Delta pos1r-vtx;#Delta distance[cm];count", kBlue , 2, 1);
     
     plot_hist2D(res_h.g_tr_mom_vtx_res_2D, "#Delta_{#mufq1r} vs. p_{T}_{#gamma}; p_{T}_{#gamma} [MeV];#Delta_{#mufq1r}[cm]", "colz");     
 
@@ -87,7 +87,7 @@ void plot_1_res_hists(ana_results_hists& res_h, bool is_radiative){
     plot_hist1D(res_h.wall_h,"mu_only_wall", "mu_only_wall;distance[cm];count", kBlue , 2, 1);
     plot_hist1D(res_h.towall_h,"mu_only_towall", "mu_only_towall;distance[cm];count", kBlue , 2, 1);
     plot_hist1D(res_h.cos_dir1r_mu_h,"mu_only_cos_dir1r_mu", "#mu only cos#alpha_{#mufq1r};cos#alpha_{#mufq1r};count", kBlue , 2, 1);
-    plot_hist1D(res_h.delta_pos1r_vtx_h, "mu_only_delta_pos1r_vtx", "#Delta pos1r-vtx;#Delta distance[cm];count", kBlue , 2, 1);
+    plot_hist1D(res_h.delta_pos1r_vtx_h, "mu_only_delta_pos1r_vtx", "#mu only #Delta pos1r-vtx;#Delta distance[cm];count", kBlue , 2, 1);
              
   }
   plot_selection_cuts(res_h, is_radiative);  
@@ -100,7 +100,7 @@ void plot_2_res_comp_hists(ana_results_hists& res_h1, ana_results_hists& res_h2)
   plot_ratio_hist1D(res_h1.wall_h, res_h2.wall_h, "diffsig","wall_diff", "distance[MeV]", "entries", "diff/#sigma");
   plot_ratio_hist1D(res_h1.towall_h, res_h2.towall_h, "diffsig","towall_diff", "distance[MeV]", "entries", "diff/#sigma");  
   plot_efficency(res_h1.ana_cut_step_eff, res_h2.ana_cut_step_eff, "mu_g_eff", "mu_only_eff","mu_g_superimposed_eff");  
-  plot_ratio_hist1D(res_h1.delta_pos1r_vtx_h, res_h2.delta_pos1r_vtx_h, "diffsig","vtx_pos_diff", "#Delta{distance}[MeV]", "entries", "diff/#sigma");  
+  plot_ratio_hist1D(res_h1.delta_pos1r_vtx_h, res_h2.delta_pos1r_vtx_h, "diffsig","vtx_pos_diff", "#Delta_{distance}[MeV]", "entries", "diff/#sigma");  
 
 }
 //============================================================================//
@@ -123,20 +123,20 @@ void plot_selection_cuts(ana_results_hists& res_h, bool is_radiative){
   plot_cut(res_h.mu_mom_pimu_pid_pass_h, res_h.mu_mom_pimu_pid_fail_h, res_h.g_mom_pimu_pid_pass_h, res_h.g_mom_pimu_pid_fail_h,
            res_h.cos_mu_g_pimu_pid_pass_h, res_h.cos_mu_g_pimu_pid_fail_h,res_h.g_tr_mom_pimu_pid_pass_h, res_h.g_tr_mom_pimu_pid_fail_h, "cut_pimu_pid");
 
-  plot_cut_2(res_h.g_mom_fcfv_pass_h, res_h.g_mom_fcfv_fail_h, res_h.cos_mu_g_fcfv_pass_h, res_h.cos_mu_g_fcfv_fail_h,
-           res_h.g_tr_mom_fcfv_pass_h, res_h.g_tr_mom_fcfv_fail_h, "cut_FCFV_eff");
-  plot_cut_2(res_h.g_mom_evis_pass_h, res_h.g_mom_evis_fail_h, res_h.cos_mu_g_evis_pass_h, res_h.cos_mu_g_evis_fail_h,
-           res_h.g_tr_mom_evis_pass_h, res_h.g_tr_mom_evis_fail_h, "cut_EVIS_eff");
-  plot_cut_2(res_h.g_mom_1ring_pass_h, res_h.g_mom_1ring_fail_h, res_h.cos_mu_g_1ring_pass_h, res_h.cos_mu_g_1ring_fail_h,
-           res_h.g_tr_mom_1ring_pass_h, res_h.g_tr_mom_1ring_fail_h, "cut_1ring_eff");
-  plot_cut_2(res_h.g_mom_emu_pid_pass_h, res_h.g_mom_emu_pid_fail_h, res_h.cos_mu_g_emu_pid_pass_h, res_h.cos_mu_g_emu_pid_fail_h,
-           res_h.g_tr_mom_emu_pid_pass_h, res_h.g_tr_mom_emu_pid_fail_h, "cut_emu_pid_eff");
-  plot_cut_2(res_h.g_mom_mu_mom_pass_h, res_h.g_mom_mu_mom_fail_h, res_h.cos_mu_g_mu_mom_pass_h, res_h.cos_mu_g_mu_mom_fail_h,
-           res_h.g_tr_mom_mu_mom_pass_h, res_h.g_tr_mom_mu_mom_fail_h, "cut_mu_mom_eff");
-  plot_cut_2(res_h.g_mom_e_decay_pass_h, res_h.g_mom_e_decay_fail_h, res_h.cos_mu_g_e_decay_pass_h, res_h.cos_mu_g_e_decay_fail_h,
-           res_h.g_tr_mom_e_decay_pass_h, res_h.g_tr_mom_e_decay_fail_h, "cut_e_decay_eff");
-  plot_cut_2(res_h.g_mom_pimu_pid_pass_h, res_h.g_mom_pimu_pid_fail_h, res_h.cos_mu_g_pimu_pid_pass_h, res_h.cos_mu_g_pimu_pid_fail_h,
-           res_h.g_tr_mom_pimu_pid_pass_h, res_h.g_tr_mom_pimu_pid_fail_h, "cut_pimu_pid_eff");
+  plot_cut_2(res_h.mu_mom_fcfv_pass_h, res_h.mu_mom_fcfv_fail_h, res_h.g_mom_fcfv_pass_h, res_h.g_mom_fcfv_fail_h,
+             res_h.cos_mu_g_fcfv_pass_h, res_h.cos_mu_g_fcfv_fail_h, res_h.g_tr_mom_fcfv_pass_h, res_h.g_tr_mom_fcfv_fail_h, "cut_FCFV_eff");
+  plot_cut_2(res_h.mu_mom_evis_pass_h, res_h.mu_mom_evis_fail_h, res_h.g_mom_evis_pass_h, res_h.g_mom_evis_fail_h,
+             res_h.cos_mu_g_evis_pass_h, res_h.cos_mu_g_evis_fail_h, res_h.g_tr_mom_evis_pass_h, res_h.g_tr_mom_evis_fail_h, "cut_EVIS_eff");
+  plot_cut_2(res_h.mu_mom_1ring_pass_h, res_h.mu_mom_1ring_fail_h, res_h.g_mom_1ring_pass_h, res_h.g_mom_1ring_fail_h,
+             res_h.cos_mu_g_1ring_pass_h, res_h.cos_mu_g_1ring_fail_h, res_h.g_tr_mom_1ring_pass_h, res_h.g_tr_mom_1ring_fail_h, "cut_1ring_eff");
+  plot_cut_2(res_h.mu_mom_emu_pid_pass_h, res_h.mu_mom_emu_pid_fail_h, res_h.g_mom_emu_pid_pass_h, res_h.g_mom_emu_pid_fail_h,
+             res_h.cos_mu_g_emu_pid_pass_h, res_h.cos_mu_g_emu_pid_fail_h, res_h.g_tr_mom_emu_pid_pass_h, res_h.g_tr_mom_emu_pid_fail_h, "cut_emu_pid_eff");
+  plot_cut_2(res_h.mu_mom_mu_mom_pass_h, res_h.mu_mom_mu_mom_fail_h, res_h.g_mom_mu_mom_pass_h, res_h.g_mom_mu_mom_fail_h,
+             res_h.cos_mu_g_mu_mom_pass_h, res_h.cos_mu_g_mu_mom_fail_h, res_h.g_tr_mom_mu_mom_pass_h, res_h.g_tr_mom_mu_mom_fail_h, "cut_mu_mom_eff");
+  plot_cut_2(res_h.mu_mom_e_decay_pass_h, res_h.mu_mom_e_decay_fail_h, res_h.g_mom_e_decay_pass_h, res_h.g_mom_e_decay_fail_h,
+             res_h.cos_mu_g_e_decay_pass_h, res_h.cos_mu_g_e_decay_fail_h, res_h.g_tr_mom_e_decay_pass_h, res_h.g_tr_mom_e_decay_fail_h, "cut_e_decay_eff");
+  plot_cut_2(res_h.mu_mom_pimu_pid_pass_h, res_h.mu_mom_pimu_pid_fail_h, res_h.g_mom_pimu_pid_pass_h, res_h.g_mom_pimu_pid_fail_h,
+             res_h.cos_mu_g_pimu_pid_pass_h, res_h.cos_mu_g_pimu_pid_fail_h, res_h.g_tr_mom_pimu_pid_pass_h, res_h.g_tr_mom_pimu_pid_fail_h, "cut_pimu_pid_eff");
 
   plot_efficency(res_h.ana_cut_step_eff, "mu_g_eff");              
 
@@ -445,7 +445,8 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string
   hist2->SetMaximum(max);
 
   TCanvas *canv = new TCanvas("canv", "canv", 1200, 800);
-  TRatioPlot *rp = new TRatioPlot(hist1, hist2); //  defaults is error is: TGraphAsymmErrors::Divide (binomial), but we can especify "pois", "divsym", ...
+  //TRatioPlot *rp = new TRatioPlot(hist1, hist2; //fsamir: original  defaults is error is: TGraphAsymmErrors::Divide (binomial), but we can especify "pois", "divsym", ...
+  TRatioPlot *rp = new TRatioPlot(hist1, hist2, "errasym"); //  errfunc very good!defaults is error is: TGraphAsymmErrors::Divide (binomial), but we can especify "pois", "divsym", ...
 
   rp->Draw();
   rp->GetUpperRefYaxis()->SetTitle(y_up_axis_title.c_str());
@@ -486,8 +487,8 @@ void plot_cut(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* 
   format_hist1D(mu_mom_fail, "p_{#mu};mom[MeV];count" , kRed , 2, 1);
   format_hist1D(gamma_mom_pass, "p_{#gamma};mom[MeV];count" , kBlue , 2, 1);
   format_hist1D(gamma_mom_fail, "p_{#gamma};mom[MeV];count" , kRed , 2, 1);
-  format_hist1D(cos_theta_pass, "Cos#theta_{#mu#gamma};Cos#theta;count" , kBlue , 2, 1);
-  format_hist1D(cos_theta_fail, "Cos#theta;Cos#theta_{#mu#gamma};count" , kRed , 2, 1);
+  format_hist1D(cos_theta_pass, "Cos#theta_{#mu#gamma};Cos#theta_{#mu#gamma};count" , kBlue , 2, 1);
+  format_hist1D(cos_theta_fail, "Cos#theta_{#mu#gamma};Cos#theta_{#mu#gamma};count" , kRed , 2, 1);
   format_hist1D(gamma_tr_mom_pass, "p_{T}_{#gamma};mom[MeV];count" , kBlue , 2, 1);
   format_hist1D(gamma_tr_mom_fail, "p_{T}_{#gamma};mom[MeV];count" , kRed , 2, 1);
   
@@ -624,9 +625,11 @@ void plot_eff_ratio(TH1* pass_hist, TH1* fail_hist, std::string x_axis_title, st
   pad->Update();
 }
 //============================================================================//
-void plot_cut_2(TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
-              TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name){
+void plot_cut_2(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* gamma_mom_fail,
+                TH1D* cos_theta_pass, TH1D* cos_theta_fail, TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name){
 //============================================================================//
+  format_hist1D(mu_mom_pass, "p_{#mu};mom[MeV];count" , kBlue , 2, 1);
+  format_hist1D(mu_mom_fail, "p_{#mu};mom[MeV];count" , kRed , 2, 1);
   format_hist1D(gamma_mom_pass, "p_{#gamma};mom[MeV];count" , kBlue , 2, 1);
   format_hist1D(gamma_mom_fail, "p_{#gamma};mom[MeV];count" , kRed , 2, 1);
   format_hist1D(cos_theta_pass, "Cos#theta;Cos#theta;count" , kBlue , 2, 1);
@@ -640,15 +643,19 @@ void plot_cut_2(TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass
   canv->cd(1);
   //prep_draw_superimposed_hist1D(gamma_mom_pass, gamma_mom_fail, "", "SAME");
   //plot_eff_ratio(gamma_mom_pass, gamma_mom_fail,"mom[MeV]", "count", "efficiency");
-  plot_eff_ratio_2(gamma_mom_pass, gamma_mom_fail,";p_{#gamma}[MeV];efficiency");
+  plot_eff_ratio_2(mu_mom_pass, mu_mom_fail,"Eff(p_{#mu});p_{#mu}[MeV];efficiency");
   canv->cd(2);
+  //prep_draw_superimposed_hist1D(gamma_mom_pass, gamma_mom_fail, "", "SAME");
+  //plot_eff_ratio(gamma_mom_pass, gamma_mom_fail,"mom[MeV]", "count", "efficiency");
+  plot_eff_ratio_2(gamma_mom_pass, gamma_mom_fail,"Eff(p_{#gamma});p_{#gamma}[MeV];efficiency");
+  canv->cd(3);
   //prep_draw_superimposed_hist1D(cos_theta_pass, cos_theta_fail, "", "SAME"); 
   //plot_eff_ratio(cos_theta_pass, cos_theta_fail,"cos#theta", "count", "efficiency");
-  plot_eff_ratio_2(cos_theta_pass, cos_theta_fail,";cos#theta;efficiency");
-  canv->cd(3);
+  plot_eff_ratio_2(cos_theta_pass, cos_theta_fail,"Eff(cos#theta_{#mu#gamma});cos#theta_{#mu#gamma};efficiency");
+  canv->cd(4);
   //prep_draw_superimposed_hist1D(gamma_tr_mom_pass, gamma_tr_mom_fail, "", "SAME");   
   //plot_eff_ratio(gamma_tr_mom_pass, gamma_tr_mom_fail,"mom[MeV]", "count", "efficiency");
-  plot_eff_ratio_2(gamma_tr_mom_pass, gamma_tr_mom_fail,";p_{T_{#gamma}}[MeV];efficiency");
+  plot_eff_ratio_2(gamma_tr_mom_pass, gamma_tr_mom_fail,"Eff(p_{T_{#gamma}});p_{T_{#gamma}}[MeV];efficiency");
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),cut_name.c_str()));
   delete canv;
 }
@@ -664,7 +671,13 @@ void plot_eff_ratio_2(TH1* pass_hist, TH1* fail_hist, std::string title){
 // construct the ratio histogram 
   TH1D* ratio_hist = (TH1D*)pass_hist->Clone();
   ratio_hist->SetName("ratio_hist");
-  ratio_hist->Divide(sum_hist);
+  //ratio_hist->Divide(sum_hist);
+  //TH1::Divide(const TH1* h1, const TH1* h2, Double_t c1 = 1, Double_t c2 = 1, Option_t * option = "" )
+  // compute c1*h1/c2*h2 and use binomial error bars so if bin1/bin2 = 0 or 1 error =0!
+  // a better alternative is to use  TGraphAsymmErrors::BayesDivide
+  //ratio_hist->Divide(pass_hist, sum_hist, 1, 1, "B"); // try cl=0.683 b(1,1) mode
+  ratio_hist->Divide(pass_hist, sum_hist, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
+
   ratio_hist->SetStats(0);
   ratio_hist->SetMarkerColor(kBlue);
   ratio_hist->SetLineColor(kBlue);

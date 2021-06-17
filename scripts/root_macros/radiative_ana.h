@@ -211,8 +211,8 @@ void plot_efficency(cut_step_efficiency steps_eff_in1, cut_step_efficiency steps
                     std::string h1_name, std::string h2_name, std::string fname);     
 void plot_eff_ratio(TH1* pass_hist, TH1* fail_hist, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title);
 
-void plot_cut_2(TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
-              TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name);
+void plot_cut_2(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* gamma_mom_fail,
+                TH1D* cos_theta_pass, TH1D* cos_theta_fail, TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name);              
 void plot_eff_ratio_2(TH1* pass_hist, TH1* fail_hist, std::string title);   
 void fill_particle_kin(t2k_sk_radiative & ana_struct);  
 void init_result_hists(ana_results_hists& res_h, bool is_radiative);
