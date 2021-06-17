@@ -204,7 +204,7 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option, std::string f
 void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt);
 void print_perc(size_t ientry, size_t total_entries, int perc_step);
 void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_opt1, std::string draw_opt2);
-void plot_cut(TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
+void plot_cut(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
               TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name);
 void plot_efficency(cut_step_efficiency steps_eff, std::string fname);
 void plot_efficency(cut_step_efficiency steps_eff_in1, cut_step_efficiency steps_eff_in2,
@@ -217,6 +217,11 @@ void plot_eff_ratio_2(TH1* pass_hist, TH1* fail_hist, std::string title);
 void fill_particle_kin(t2k_sk_radiative & ana_struct);  
 void init_result_hists(ana_results_hists& res_h, bool is_radiative);
 void clear_result_hists(ana_results_hists& res_h);       
-ana_results_hists* analyze(TTree* ana_tree, bool is_radiative);                              
+ana_results_hists* analyze(TTree* ana_tree, bool is_radiative);
+
+void plot_results_hists(ana_results_hists& res_h1, ana_results_hists& res_h2); 
+void plot_1_res_hists(ana_results_hists& res_h,  bool is_radiative); 
+void plot_2_res_comp_hists(ana_results_hists& res_h1, ana_results_hists& res_h2); 
+void plot_selection_cuts(ana_results_hists& res_h, bool is_radiative);
 //============================================================================//
 #endif
