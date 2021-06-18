@@ -97,10 +97,11 @@ void plot_1_res_hists(ana_results_hists& res_h, bool is_radiative){
 void plot_2_res_comp_hists(ana_results_hists& res_h1, ana_results_hists& res_h2){
 //============================================================================//
   plot_ratio_hist1D(res_h1.nring_h, res_h2.nring_h, "nring", "nring", "entries", "ratio");
-  plot_ratio_hist1D(res_h1.wall_h, res_h2.wall_h, "diffsig","wall_diff", "distance[MeV]", "entries", "diff/#sigma");
-  plot_ratio_hist1D(res_h1.towall_h, res_h2.towall_h, "diffsig","towall_diff", "distance[MeV]", "entries", "diff/#sigma");  
+  plot_ratio_hist1D(res_h1.wall_h, res_h2.wall_h, "diffsig","wall_diff", "distance[cm]", "entries", "diff/#sigma");
+  plot_ratio_hist1D(res_h1.towall_h, res_h2.towall_h, "diffsig","towall_diff", "distance[cm]", "entries", "diff/#sigma");  
   plot_efficency(res_h1.ana_cut_step_eff, res_h2.ana_cut_step_eff, "mu_g_eff", "mu_only_eff","mu_g_superimposed_eff");  
-  plot_ratio_hist1D(res_h1.delta_pos1r_vtx_h, res_h2.delta_pos1r_vtx_h, "diffsig","vtx_pos_diff", "#Delta_{distance}[MeV]", "entries", "diff/#sigma");  
+  plot_ratio_hist1D(res_h1.delta_pos1r_vtx_h, res_h2.delta_pos1r_vtx_h, "diffsig","vtx_pos_diff", "#Delta_{distance}[cm]", "entries", "diff/#sigma");  
+  plot_ratio_hist1D(res_h1.cos_dir1r_mu_h, res_h2.cos_dir1r_mu_h, "diffsig","vtx_dir_diff", "cos#alpha_{#mufq1r}", "entries", "diff/#sigma");  
 
 }
 //============================================================================//
