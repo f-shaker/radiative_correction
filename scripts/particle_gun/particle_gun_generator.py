@@ -17,9 +17,12 @@ FV_Z_MAX = 1870 #cm was 1610 #cm
 # ---------------- 
 MU_REST_MASS = 105.66 #MeV rest mass of muon 
 ELEC_REST_MASS = 0.511 #MeV rest mass of the electron
+# Gamma Kiematics
+#-----------------
+MAX_GAMMA_EN = 200 #MeV limiting the phase space of the radiative gamma
 # MC Sampling
 #-------------
-NB_SAMPLES = 100000# was 10000
+NB_SAMPLES = 10000# was 10000
 np.random.seed(20140489) # a 8-digits prime number
 #----------Parameters Definition END----------
 plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/"
@@ -169,7 +172,7 @@ def mc_sample_pdf_hist(pfd_file=None, val_array=None, x_min=0, x_max=1.0, nb_bin
 #------------------------------------------------------------------------------ 
 def sample_kinematics_from_file(kin_file=None, num_samples=1):
     #read the file in an np array
-    # values are organized as total_en, dir_x, dir_y, dir_z    
+    # values are organized as total_en, dir_x, dir_y, dir_z, pos_x, pos_y, pos_z    
     vals = np.loadtxt(kin_file)
     idx = np.arange(0, vals.shape[0], dtype=np.int32) 
     np.random.shuffle(idx)
@@ -186,12 +189,18 @@ def sample_kinematics_from_file(kin_file=None, num_samples=1):
     lep_dir_x = vals[idx][0:sample_size,1]
     lep_dir_y = vals[idx][0:sample_size,2]
     lep_dir_z = vals[idx][0:sample_size,3]
-    return np.column_stack((lep_en, lep_dir_x, lep_dir_y, lep_dir_z))
+    vtx_pos_x = vals[idx][0:sample_size,4]
+    vtx_pos_y = vals[idx][0:sample_size,5]
+    vtx_pos_z = vals[idx][0:sample_size,6]
+
+    return np.column_stack((lep_en, lep_dir_x, lep_dir_y, lep_dir_z, vtx_pos_x, vtx_pos_y, vtx_pos_z))
 #------------------------------------------------------------------------------ 
 def generate_gamma_en(lep_mass, lep_total_en_init):
 #------------------------------------------------------------------------------     
     #maximum available energy for the gamma = total en - muon rest mass
-    return np.random.uniform(0, lep_total_en_init - lep_mass)
+    #We can limit the phase space of gamma
+    max_gamma_en_av = np.minimum(lep_total_en_init - lep_mass, MAX_GAMMA_EN)
+    return np.random.uniform(0, max_gamma_en_av)
 #------------------------------------------------------------------------------ 
 def generate_gamma_dir(nb_events):
 #------------------------------------------------------------------------------     
@@ -276,7 +285,8 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_ki
     lep_total_en, lep_dir, gamma_total_en, gamma_dir = conserve_En_radiative(lep_mass, lep_Kinematics_init[:,0], lep_Kinematics_init[:,1:4])
 
     #vertex
-    vertex_pos = random_point_from_cylinder(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, lep_total_en.size)
+    #vertex_pos = random_point_from_cylinder(FV_R_MAX, FV_PHI_MIN, FV_PHI_MAX, FV_Z_MIN, FV_Z_MAX, lep_total_en.size)
+    vertex_pos = lep_Kinematics_init[:, 4:7]#read from the NEUT FILE
     vertex_t = 0 
     #lepton
     #lep_dir_init = random_3d_unit_vector(nb_events)
@@ -312,7 +322,9 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_ki
         plot_1D_pdf_hist(lep_dir[:,1], nb_bins_or_edges=50, var_name='y', plot_name='lep_dir_y_dist')
         plot_1D_pdf_hist(lep_dir[:,2], nb_bins_or_edges=50, var_name='z', plot_name='lep_dir_z_dist')
 
-        plot_1D_pdf_hist(lep_total_en, nb_bins_or_edges=50, var_name='$En_{lep}$', plot_name='lep_total_en_after_em')
+        lep_en_bin_edges = np.arange(0, 2000, 20)
+        #plot_1D_pdf_hist(lep_total_en, nb_bins_or_edges=50, var_name='$En_{lep}$', plot_name='lep_total_en_after_em')
+        plot_1D_pdf_hist(lep_total_en, nb_bins_or_edges=lep_en_bin_edges, var_name='$En_{lep}$', plot_name='lep_total_en_after_em')
         cos_theta = lep_dir[:,2]
         phi = np.arctan2(lep_dir[:,1], lep_dir[:, 0])
         plot_2D_pdf_hist(phi, cos_theta, 50, 50, '$\phi$', 'cos'+'$\Theta$', 'lep_dir_dist' )
@@ -323,9 +335,12 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_ki
         plot_1D_pdf_hist(gamma_dir[:,0], nb_bins_or_edges=50, var_name='x', plot_name='gamma_dir_x_dist')
         plot_1D_pdf_hist(gamma_dir[:,1], nb_bins_or_edges=50, var_name='y', plot_name='gamma_dir_y_dist')
         plot_1D_pdf_hist(gamma_dir[:,2], nb_bins_or_edges=50, var_name='z', plot_name='gamma_dir_z_dist')
-
+        #gamma_en_bin_edges = np.arange(0, 2000, 20)
+        #plot_1D_pdf_hist(gamma_total_en, nb_bins_or_edges=gamma_en_bin_edges, var_name='$En_\gamma$', plot_name='gamma_total_en')        
         plot_1D_pdf_hist(gamma_total_en, nb_bins_or_edges=50, var_name='$En_\gamma$', plot_name='gamma_total_en')
+        
 #------------------------------------------------------------------------------ 
 # Test generate_radiative_corr_particle_gun
 #generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'mu_mom.txt' ,file_name=temp_output_dir+'pg_mu_ID_10e4.txt', plot_dist=True)
-generate_radiative_corr_particle_gun(particle='mu-', nb_events=10, ip_lep_kinematics_file=temp_output_dir+'particle_kinematics.txt' ,file_name=temp_output_dir+'pg_mu_ID_10e1.txt', plot_dist=True)
+generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'particle_kinematics_vtx.txt' ,\
+                                     file_name=temp_output_dir+'pg_mu_ID_vtx_10e4.txt', plot_dist=True)

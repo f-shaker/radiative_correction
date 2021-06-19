@@ -1,7 +1,7 @@
 #----------Parameters Definition---------------
-input_pg = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/pg_mu_ID_10e3.txt'
-output_pg_fin = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/pg_mu_ID_10e3_no_g_fin.txt'
-output_pg_init = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/pg_mu_ID_10e3_no_g_init.txt'
+input_pg = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/pg_mu_ID_vtx_10e4.txt'
+output_pg_fin = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/pg_mu_ID_10e4_no_g_fin.txt'
+output_pg_init = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/pg_mu_ID_10e4_no_g_init.txt'
 #------------------------------------------------------------------------------
 def remove_gamma_fin():
 #------------------------------------------------------------------------------
