@@ -5,6 +5,7 @@
 #include <fstream>
 #include <map>
 #include <utility> //pair
+#include <math.h> //round
 // Root headers
 #include "TFile.h"
 #include "TTree.h"
@@ -223,5 +224,6 @@ void plot_results_hists(ana_results_hists& res_h1, ana_results_hists& res_h2);
 void plot_1_res_hists(ana_results_hists& res_h,  bool is_radiative); 
 void plot_2_res_comp_hists(ana_results_hists& res_h1, ana_results_hists& res_h2); 
 void plot_selection_cuts(ana_results_hists& res_h, bool is_radiative);
+double * calculate_bin_arr(double max_val, double max_roi_val, double fine_step_val, int& ret_nb_bins);
 //============================================================================//
 #endif

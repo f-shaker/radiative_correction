@@ -996,105 +996,107 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   }
   // number of rings histograms
   res_h.nring_h = new TH1I(Form("nring_%s", h_name_postfix.c_str()), Form("nring_%s", h_name_postfix.c_str()), 6, 0, 6);
-  res_h.g_tr_mom_nring_2D = new TH2D("g_tr_mom_nring", "g_tr_mom_nring", 3, 1, 4, 25, 0, 500);
+  res_h.g_tr_mom_nring_2D = new TH2D("g_tr_mom_nring", "g_tr_mom_nring", 3, 1, 4, 25, 0, GAMMA_ROI_MAX_MOM_BIN);
 
-  //momentum binning
-  double mom_bining_arr[22];//22 entries for bin edges
-  for(int i = 0 ; i < 21; i++){
-    double eq_step = 50;
-    mom_bining_arr[i] = i*eq_step;    
-  }
-  mom_bining_arr[21] = 2000;
+  //gamma momentum binning
+  int g_mom_nb_bins = 0;
+  double * g_mom_bining_arr = calculate_bin_arr(GAMMA_MAX_MOM_BIN, GAMMA_ROI_MAX_MOM_BIN, GAMMA_MOM_STEP, g_mom_nb_bins);
+  //mu momentum binning
+  int mu_mom_nb_bins = 0;
+  double * mu_mom_bining_arr = calculate_bin_arr(MU_MAX_MOM_BIN, MU_ROI_MAX_MOM_BIN, MU_MOM_STEP, mu_mom_nb_bins);
 
   //gamma histograms
-  res_h.g_mom_all_h = new TH1D("g_mom_all", "g_mom_all", 21,  mom_bining_arr);
-  res_h.g_mom_1r_h = new TH1D("g_mom_1r", "g_mom_1r", 21,  mom_bining_arr);
-  res_h.g_mom_2r_h = new TH1D("g_mom_2r", "g_mom_2r", 21,  mom_bining_arr);
-  res_h.g_mom_3mr_h = new TH1D("g_mom_3mr", "g_mom_3mr", 21,  mom_bining_arr);    
+  res_h.g_mom_all_h = new TH1D("g_mom_all", "g_mom_all", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_mom_1r_h = new TH1D("g_mom_1r", "g_mom_1r", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_mom_2r_h = new TH1D("g_mom_2r", "g_mom_2r", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_mom_3mr_h = new TH1D("g_mom_3mr", "g_mom_3mr", g_mom_nb_bins,  g_mom_bining_arr);    
   res_h.cos_mu_g_all_h = new TH1D("cos_mu_g_all", "cos_mu_g_all", 20, -1, 1);  
   res_h.cos_mu_g_1r_h = new TH1D("cos_mu_g_1r", "cos_mu_g_1r", 20, -1, 1);  
   res_h.cos_mu_g_2r_h = new TH1D("cos_mu_g_2r", "cos_mu_g_2r", 20, -1, 1);  
   res_h.cos_mu_g_3mr_h = new TH1D("cos_mu_g_3mr", "cos_mu_g_3mr", 20, -1, 1);  
   
   //muon histograms
-  res_h.mu_mom_all_h = new TH1D(Form("mu_mom_all_%s", h_name_postfix.c_str()), Form("mu_mom_all_%s", h_name_postfix.c_str()), 21,  mom_bining_arr);
-  res_h.mu_mom_1r_h = new TH1D(Form("mu_mom_1r_%s", h_name_postfix.c_str()), Form("mu_mom_1r_%s", h_name_postfix.c_str()), 21,  mom_bining_arr);
-  res_h.mu_mom_2r_h = new TH1D(Form("mu_mom_2r_%s", h_name_postfix.c_str()), Form("mu_mom_2r_%s", h_name_postfix.c_str()), 21,  mom_bining_arr);
-  res_h.mu_mom_3mr_h = new TH1D(Form("mu_mom_3mr_%s", h_name_postfix.c_str()), Form("mu_mom_3mr_%s", h_name_postfix.c_str()), 21,  mom_bining_arr);
+  res_h.mu_mom_all_h = new TH1D(Form("mu_mom_all_%s", h_name_postfix.c_str()), Form("mu_mom_all_%s", h_name_postfix.c_str()), mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.mu_mom_1r_h = new TH1D(Form("mu_mom_1r_%s", h_name_postfix.c_str()), Form("mu_mom_1r_%s", h_name_postfix.c_str()), mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.mu_mom_2r_h = new TH1D(Form("mu_mom_2r_%s", h_name_postfix.c_str()), Form("mu_mom_2r_%s", h_name_postfix.c_str()), mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.mu_mom_3mr_h = new TH1D(Form("mu_mom_3mr_%s", h_name_postfix.c_str()), Form("mu_mom_3mr_%s", h_name_postfix.c_str()), mu_mom_nb_bins,  mu_mom_bining_arr);
 
   //Selection cuts histograms
   // EVIS
-  res_h.mu_mom_evis_pass_h = new TH1D("mu_mom_evis_pass", "mu_mom_evis_pass", 21,  mom_bining_arr);
-  res_h.mu_mom_evis_fail_h = new TH1D("mu_mom_evis_fail", "mu_mom_evis_fail", 21,  mom_bining_arr);
-  res_h.g_mom_evis_pass_h = new TH1D("g_mom_evis_pass", "g_mom_evis_pass", 21,  mom_bining_arr);
-  res_h.g_mom_evis_fail_h = new TH1D("g_mom_evis_fail", "g_mom_evis_fail", 21,  mom_bining_arr);
+  res_h.mu_mom_evis_pass_h = new TH1D("mu_mom_evis_pass", "mu_mom_evis_pass", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.mu_mom_evis_fail_h = new TH1D("mu_mom_evis_fail", "mu_mom_evis_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.g_mom_evis_pass_h = new TH1D("g_mom_evis_pass", "g_mom_evis_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_mom_evis_fail_h = new TH1D("g_mom_evis_fail", "g_mom_evis_fail", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.cos_mu_g_evis_pass_h = new TH1D("cos_mu_g_evis_pass", "cos_mu_g_evis_pass", 10, -1, 1);  
   res_h.cos_mu_g_evis_fail_h = new TH1D("cos_mu_g_evis_fail", "cos_mu_g_evis_fail", 10, -1, 1);  
-  res_h.g_tr_mom_evis_pass_h = new TH1D("g_tr_mom_evis_pass", "g_tr_mom_evis_pass", 21,  mom_bining_arr);
-  res_h.g_tr_mom_evis_fail_h = new TH1D("g_tr_mom_evis_fail", "g_tr_mom_evis_fail", 21,  mom_bining_arr);
+  res_h.g_tr_mom_evis_pass_h = new TH1D("g_tr_mom_evis_pass", "g_tr_mom_evis_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_tr_mom_evis_fail_h = new TH1D("g_tr_mom_evis_fail", "g_tr_mom_evis_fail", g_mom_nb_bins,  g_mom_bining_arr);
   // FCFV
-  res_h.mu_mom_fcfv_pass_h = new TH1D("mu_mom_fcfv_pass", "mu_mom_fcfv_pass", 21,  mom_bining_arr);
-  res_h.mu_mom_fcfv_fail_h = new TH1D("mu_mom_fcfv_fail", "mu_mom_fcfv_fail", 21,  mom_bining_arr);
-  res_h.g_mom_fcfv_pass_h = new TH1D("g_mom_fcfv_pass", "g_mom_fcfv_pass", 21,  mom_bining_arr);
-  res_h.g_mom_fcfv_fail_h = new TH1D("g_mom_fcfv_fail", "g_mom_fcfv_fail", 21,  mom_bining_arr);
+  res_h.mu_mom_fcfv_pass_h = new TH1D("mu_mom_fcfv_pass", "mu_mom_fcfv_pass", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.mu_mom_fcfv_fail_h = new TH1D("mu_mom_fcfv_fail", "mu_mom_fcfv_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.g_mom_fcfv_pass_h = new TH1D("g_mom_fcfv_pass", "g_mom_fcfv_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_mom_fcfv_fail_h = new TH1D("g_mom_fcfv_fail", "g_mom_fcfv_fail", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.cos_mu_g_fcfv_pass_h = new TH1D("cos_mu_g_fcfv_pass", "cos_mu_g_fcfv_pass", 10, -1, 1);  
   res_h.cos_mu_g_fcfv_fail_h = new TH1D("cos_mu_g_fcfv_fail", "cos_mu_g_fcfv_fail", 10, -1, 1);  
-  res_h.g_tr_mom_fcfv_pass_h = new TH1D("g_tr_mom_fcfv_pass", "g_tr_mom_fcfv_pass", 21,  mom_bining_arr);
-  res_h.g_tr_mom_fcfv_fail_h = new TH1D("g_tr_mom_fcfv_fail", "g_tr_mom_fcfv_fail", 21,  mom_bining_arr);
+  res_h.g_tr_mom_fcfv_pass_h = new TH1D("g_tr_mom_fcfv_pass", "g_tr_mom_fcfv_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_tr_mom_fcfv_fail_h = new TH1D("g_tr_mom_fcfv_fail", "g_tr_mom_fcfv_fail", g_mom_nb_bins,  g_mom_bining_arr);
   // 1 ring
-  res_h.mu_mom_1ring_pass_h = new TH1D("mu_mom_1ring_pass", "mu_mom_1ring_pass", 21,  mom_bining_arr);
-  res_h.mu_mom_1ring_fail_h = new TH1D("mu_mom_1ring_fail", "mu_mom_1ring_fail", 21,  mom_bining_arr);
-  res_h.g_mom_1ring_pass_h = new TH1D("g_mom_1ring_pass", "g_mom_1ring_pass", 21,  mom_bining_arr);
-  res_h.g_mom_1ring_fail_h = new TH1D("g_mom_1ring_fail", "g_mom_1ring_fail", 21,  mom_bining_arr);
+  res_h.mu_mom_1ring_pass_h = new TH1D("mu_mom_1ring_pass", "mu_mom_1ring_pass", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.mu_mom_1ring_fail_h = new TH1D("mu_mom_1ring_fail", "mu_mom_1ring_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.g_mom_1ring_pass_h = new TH1D("g_mom_1ring_pass", "g_mom_1ring_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_mom_1ring_fail_h = new TH1D("g_mom_1ring_fail", "g_mom_1ring_fail", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.cos_mu_g_1ring_pass_h = new TH1D("cos_mu_g_1ring_pass", "cos_mu_g_1ring_pass", 10, -1, 1);  
   res_h.cos_mu_g_1ring_fail_h = new TH1D("cos_mu_g_1ring_fail", "cos_mu_g_1ring_fail", 10, -1, 1);  
-  res_h.g_tr_mom_1ring_pass_h = new TH1D("g_tr_mom_1ring_pass", "g_tr_mom_1ring_pass", 21,  mom_bining_arr);
-  res_h.g_tr_mom_1ring_fail_h = new TH1D("g_tr_mom_1ring_fail", "g_tr_mom_1ring_fail", 21,  mom_bining_arr);
+  res_h.g_tr_mom_1ring_pass_h = new TH1D("g_tr_mom_1ring_pass", "g_tr_mom_1ring_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_tr_mom_1ring_fail_h = new TH1D("g_tr_mom_1ring_fail", "g_tr_mom_1ring_fail", g_mom_nb_bins,  g_mom_bining_arr);
   // emu_pid
-  res_h.mu_mom_emu_pid_pass_h = new TH1D("mu_mom_emu_pid_pass", "mu_mom_emu_pid_pass", 21,  mom_bining_arr);
-  res_h.mu_mom_emu_pid_fail_h = new TH1D("mu_mom_emu_pid_fail", "mu_mom_emu_pid_fail", 21,  mom_bining_arr);
-  res_h.g_mom_emu_pid_pass_h = new TH1D("g_mom_emu_pid_pass", "g_mom_emu_pid_pass", 21,  mom_bining_arr);
-  res_h.g_mom_emu_pid_fail_h = new TH1D("g_mom_emu_pid_fail", "g_mom_emu_pid_fail", 21,  mom_bining_arr);
+  res_h.mu_mom_emu_pid_pass_h = new TH1D("mu_mom_emu_pid_pass", "mu_mom_emu_pid_pass", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.mu_mom_emu_pid_fail_h = new TH1D("mu_mom_emu_pid_fail", "mu_mom_emu_pid_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.g_mom_emu_pid_pass_h = new TH1D("g_mom_emu_pid_pass", "g_mom_emu_pid_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_mom_emu_pid_fail_h = new TH1D("g_mom_emu_pid_fail", "g_mom_emu_pid_fail", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.cos_mu_g_emu_pid_pass_h = new TH1D("cos_mu_g_emu_pid_pass", "cos_mu_g_emu_pid_pass", 10, -1, 1);  
   res_h.cos_mu_g_emu_pid_fail_h = new TH1D("cos_mu_g_emu_pid_fail", "cos_mu_g_emu_pid_fail", 10, -1, 1);  
-  res_h.g_tr_mom_emu_pid_pass_h = new TH1D("g_tr_mom_emu_pid_pass", "g_tr_mom_emu_pid_pass", 21,  mom_bining_arr);
-  res_h.g_tr_mom_emu_pid_fail_h = new TH1D("g_tr_mom_emu_pid_fail", "g_tr_mom_emu_pid_fail", 21,  mom_bining_arr);
+  res_h.g_tr_mom_emu_pid_pass_h = new TH1D("g_tr_mom_emu_pid_pass", "g_tr_mom_emu_pid_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_tr_mom_emu_pid_fail_h = new TH1D("g_tr_mom_emu_pid_fail", "g_tr_mom_emu_pid_fail", g_mom_nb_bins,  g_mom_bining_arr);
   // mu mom
-  res_h.mu_mom_mu_mom_pass_h = new TH1D("mu_mom_mu_mom_pass", "mu_mom_mu_mom_pass", 21,  mom_bining_arr);
-  res_h.mu_mom_mu_mom_fail_h = new TH1D("mu_mom_mu_mom_fail", "mu_mom_mu_mom_fail", 21,  mom_bining_arr);
-  res_h.g_mom_mu_mom_pass_h = new TH1D("g_mom_mu_mom_pass", "g_mom_mu_mom_pass", 21,  mom_bining_arr);
-  res_h.g_mom_mu_mom_fail_h = new TH1D("g_mom_mu_mom_fail", "g_mom_mu_mom_fail", 21,  mom_bining_arr);
+  res_h.mu_mom_mu_mom_pass_h = new TH1D("mu_mom_mu_mom_pass", "mu_mom_mu_mom_pass", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.mu_mom_mu_mom_fail_h = new TH1D("mu_mom_mu_mom_fail", "mu_mom_mu_mom_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.g_mom_mu_mom_pass_h = new TH1D("g_mom_mu_mom_pass", "g_mom_mu_mom_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_mom_mu_mom_fail_h = new TH1D("g_mom_mu_mom_fail", "g_mom_mu_mom_fail", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.cos_mu_g_mu_mom_pass_h = new TH1D("cos_mu_g_mu_mom_pass", "cos_mu_g_mu_mom_pass", 10, -1, 1);  
   res_h.cos_mu_g_mu_mom_fail_h = new TH1D("cos_mu_g_mu_mom_fail", "cos_mu_g_mu_mom_fail", 10, -1, 1);  
-  res_h.g_tr_mom_mu_mom_pass_h = new TH1D("g_tr_mom_mu_mom_pass", "g_tr_mom_mu_mom_pass", 21,  mom_bining_arr);
-  res_h.g_tr_mom_mu_mom_fail_h = new TH1D("g_tr_mom_mu_mom_fail", "g_tr_mom_mu_mom_fail", 21,  mom_bining_arr);
+  res_h.g_tr_mom_mu_mom_pass_h = new TH1D("g_tr_mom_mu_mom_pass", "g_tr_mom_mu_mom_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_tr_mom_mu_mom_fail_h = new TH1D("g_tr_mom_mu_mom_fail", "g_tr_mom_mu_mom_fail", g_mom_nb_bins,  g_mom_bining_arr);
   // nb e decay
-  res_h.mu_mom_e_decay_pass_h = new TH1D("mu_mom_e_decay_pass", "mu_mom_e_decay_pass", 21,  mom_bining_arr);
-  res_h.mu_mom_e_decay_fail_h = new TH1D("mu_mom_e_decay_fail", "mu_mom_e_decay_fail", 21,  mom_bining_arr);
-  res_h.g_mom_e_decay_pass_h = new TH1D("g_mom_e_decay_pass", "g_mom_e_decay_pass", 21,  mom_bining_arr);
-  res_h.g_mom_e_decay_fail_h = new TH1D("g_mom_e_decay_fail", "g_mom_e_decay_fail", 21,  mom_bining_arr);
+  res_h.mu_mom_e_decay_pass_h = new TH1D("mu_mom_e_decay_pass", "mu_mom_e_decay_pass", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.mu_mom_e_decay_fail_h = new TH1D("mu_mom_e_decay_fail", "mu_mom_e_decay_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.g_mom_e_decay_pass_h = new TH1D("g_mom_e_decay_pass", "g_mom_e_decay_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_mom_e_decay_fail_h = new TH1D("g_mom_e_decay_fail", "g_mom_e_decay_fail", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.cos_mu_g_e_decay_pass_h = new TH1D("cos_mu_g_e_decay_pass", "cos_mu_g_e_decay_pass", 10, -1, 1);  
   res_h.cos_mu_g_e_decay_fail_h = new TH1D("cos_mu_g_e_decay_fail", "cos_mu_g_e_decay_fail", 10, -1, 1);  
-  res_h.g_tr_mom_e_decay_pass_h = new TH1D("g_tr_mom_e_decay_pass", "g_tr_mom_e_decay_pass", 21,  mom_bining_arr);
-  res_h.g_tr_mom_e_decay_fail_h = new TH1D("g_tr_mom_e_decay_fail", "g_tr_mom_e_decay_fail", 21,  mom_bining_arr);
+  res_h.g_tr_mom_e_decay_pass_h = new TH1D("g_tr_mom_e_decay_pass", "g_tr_mom_e_decay_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_tr_mom_e_decay_fail_h = new TH1D("g_tr_mom_e_decay_fail", "g_tr_mom_e_decay_fail", g_mom_nb_bins,  g_mom_bining_arr);
   // pi mu pid
-  res_h.mu_mom_pimu_pid_pass_h = new TH1D("mu_mom_pimu_pid_pass", "mu_mom_pimu_pid_pass", 21,  mom_bining_arr);
-  res_h.mu_mom_pimu_pid_fail_h = new TH1D("mu_mom_pimu_pid_fail", "mu_mom_pimu_pid_fail", 21,  mom_bining_arr);
-  res_h.g_mom_pimu_pid_pass_h = new TH1D("g_mom_pimu_pid_pass", "g_mom_pimu_pid_pass", 21,  mom_bining_arr);
-  res_h.g_mom_pimu_pid_fail_h = new TH1D("g_mom_pimu_pid_fail", "g_mom_pimu_pid_fail", 21,  mom_bining_arr);
+  res_h.mu_mom_pimu_pid_pass_h = new TH1D("mu_mom_pimu_pid_pass", "mu_mom_pimu_pid_pass", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.mu_mom_pimu_pid_fail_h = new TH1D("mu_mom_pimu_pid_fail", "mu_mom_pimu_pid_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.g_mom_pimu_pid_pass_h = new TH1D("g_mom_pimu_pid_pass", "g_mom_pimu_pid_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_mom_pimu_pid_fail_h = new TH1D("g_mom_pimu_pid_fail", "g_mom_pimu_pid_fail", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.cos_mu_g_pimu_pid_pass_h = new TH1D("cos_mu_g_pimu_pid_pass", "cos_mu_g_pimu_pid_pass", 10, -1, 1);  
   res_h.cos_mu_g_pimu_pid_fail_h = new TH1D("cos_mu_g_pimu_pid_fail", "cos_mu_g_pimu_pid_fail", 10, -1, 1);  
-  res_h.g_tr_mom_pimu_pid_pass_h = new TH1D("g_tr_mom_pimu_pid_pass", "g_tr_mom_pimu_pid_pass", 21,  mom_bining_arr);
-  res_h.g_tr_mom_pimu_pid_fail_h = new TH1D("g_tr_mom_pimu_pid_fail", "g_tr_mom_pimu_pid_fail", 21,  mom_bining_arr);
+  res_h.g_tr_mom_pimu_pid_pass_h = new TH1D("g_tr_mom_pimu_pid_pass", "g_tr_mom_pimu_pid_pass", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_tr_mom_pimu_pid_fail_h = new TH1D("g_tr_mom_pimu_pid_fail", "g_tr_mom_pimu_pid_fail", g_mom_nb_bins,  g_mom_bining_arr);
 
   //FV histograms
   res_h.wall_h = new TH1D(Form("wall_%s", h_name_postfix.c_str()), Form("wall_%s", h_name_postfix.c_str()), 36, 0., 1800.);
   res_h.towall_h = new TH1D(Form("towall_%s", h_name_postfix.c_str()), Form("towall_%s", h_name_postfix.c_str()), 36, 0., 1800.);
   res_h.cos_dir1r_mu_h = new TH1D(Form("cos_dir1r_mu_%s", h_name_postfix.c_str()), Form("cos_dir1r_mu_%s", h_name_postfix.c_str()), 10, -1, 1); 
   res_h.delta_pos1r_vtx_h = new TH1D(Form("delta_pos1r_vtx_%s", h_name_postfix.c_str()), Form("delta_pos1r_vtx_%s", h_name_postfix.c_str()), 10, 0., 100.);     
-  res_h.g_tr_mom_cosalpha_2D = new TH2D("g_tr_mom_cosalpha", "g_tr_mom_cosalpha", 25, 0, 500, 10, -1, 1);
-  res_h.g_tr_mom_vtx_res_2D = new TH2D("g_tr_mom_vtx_res", "g_tr_mom_vtx_res_2D", 25, 0, 500, 10, 0, 100);
+  res_h.g_tr_mom_cosalpha_2D = new TH2D("g_tr_mom_cosalpha", "g_tr_mom_cosalpha", g_mom_nb_bins, g_mom_bining_arr, 10, -1, 1);
+  res_h.g_tr_mom_vtx_res_2D = new TH2D("g_tr_mom_vtx_res", "g_tr_mom_vtx_res_2D", g_mom_nb_bins, g_mom_bining_arr, 10, 0, 100);
 
+  //free dynemically allocated arrays
+  delete [] g_mom_bining_arr;
+  delete [] mu_mom_bining_arr; 
 }
 //============================================================================//
 void clear_result_hists(ana_results_hists& res_h){
@@ -1191,5 +1193,27 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.g_tr_mom_cosalpha_2D;
   delete res_h.g_tr_mom_vtx_res_2D;
 
+}
+//============================================================================//
+double * calculate_bin_arr(double max_val, double max_roi_val, double fine_step_val, int& ret_nb_bins){
+//============================================================================//  
+  // calculate the total number of bins  
+  int nb_bins = static_cast<int>(round(max_roi_val/fine_step_val));
+  // check if a last bin with a larger bin size is needed
+  int total_nb_bins = nb_bins;
+  if( max_val > nb_bins * fine_step_val){
+    // a last bin is required
+    total_nb_bins+=1;
+  }
+  double * bin_edges_arr = new double[total_nb_bins+1];
+  for(int i = 0 ; i < nb_bins+1; i++){
+    bin_edges_arr[i] = i* fine_step_val; 
+  }
+  //last bin
+  if(total_nb_bins > nb_bins){
+    bin_edges_arr[nb_bins+1] = max_val;
+  }
+  ret_nb_bins =  total_nb_bins;
+  return bin_edges_arr;
 }
 //============================================================================//
