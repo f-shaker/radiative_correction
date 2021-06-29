@@ -41,7 +41,7 @@ void plot_results_hists(ana_results_hists& rad_res_h, ana_results_hists& mu_res_
 void plot_1_res_hists(ana_results_hists& res_h, bool is_radiative){
 //============================================================================//
   if(is_radiative == true){
-    // radiative: mu+gamma
+    // radiative: mu+gamma 
     plot_hist1D(res_h.g_mom_all_h,"gamma_all", "p_{#gamma}(all);mom[MeV];count", kBlue , 2, 1);
     plot_hist1D(res_h.g_mom_1r_h,"gamma_1r", "p_{#gamma} (1 ring);mom[MeV];count", kBlue , 2, 1);
     plot_hist1D(res_h.g_mom_2r_h,"gamma_2r", "p_{#gamma} (2 rings);mom[MeV];count", kBlue , 2, 1);
@@ -66,6 +66,9 @@ void plot_1_res_hists(ana_results_hists& res_h, bool is_radiative){
     plot_ratio_hist1D(res_h.cos_mu_g_3mr_h, res_h.cos_mu_g_all_h, "costheta_3mr_all", "cos#theta_{#mu#gamma}", "entries", "ratio");
 
     plot_hist1D(res_h.nring_h,"nring_mu_gamma", "nring_mu_gamma;nring;count", kBlue , 2, 1);
+    plot_hist1D(res_h.g_tr_mom_1r_h,"g_tr_mom_1r", "p_{T}_{#gamma} (1 ring);p_{T}_{#gamma} [MeV];count", kBlue , 2, 1);
+    plot_hist1D(res_h.g_tr_mom_2r_h,"g_tr_mom_2r", "p_{T}_{#gamma} (2 rings);p_{T}_{#gamma} [MeV];count", kBlue , 2, 1);
+    plot_hist1D(res_h.g_tr_mom_3mr_h,"g_tr_mom_3mr", "p_{T}_{#gamma} (>= 3 rings);p_{T}_{#gamma} [MeV];count", kBlue , 2, 1);        
     plot_hist2D(res_h.g_tr_mom_nring_2D, "p_{T}_{#gamma} vs nring;nring;p_{T}_{#gamma} [MeV]", "colz");  
 
     plot_hist1D(res_h.wall_h,"mu_g_wall", "mu_g_wall;distance[cm];count", kBlue , 2, 1);
@@ -771,26 +774,30 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
              + ( ana_struct.g_dir[2] * ana_struct.mu_dir[2] );
     if(is_radiative) res_h->cos_mu_g_all_h->Fill(cos_mu_g);
 
+    // transverse momentum, i.e perpondicular to the mu direction = gamma_mom * sin_theta
+    g_tr_mom = ana_struct.g_mom * sqrt(1- (cos_mu_g * cos_mu_g) ); 
+
     if(ana_struct.fqmrnring[0] == 1){
       res_h->mu_mom_1r_h->Fill(ana_struct.mu_mom);      
       if(is_radiative) res_h->g_mom_1r_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->cos_mu_g_1r_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->g_tr_mom_1r_h->Fill(g_tr_mom);      
     }
 
     if(ana_struct.fqmrnring[0] == 2){
       res_h->mu_mom_2r_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_2r_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->cos_mu_g_2r_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->g_tr_mom_2r_h->Fill(g_tr_mom);      
     }
 
     if(ana_struct.fqmrnring[0] >= 3){
       res_h->mu_mom_3mr_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_3mr_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->cos_mu_g_3mr_h->Fill(cos_mu_g);      
+      if(is_radiative) res_h->cos_mu_g_3mr_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->g_tr_mom_3mr_h->Fill(g_tr_mom);            
     }
 
-    // transverse momentum, i.e perpondicular to the mu direction = gamma_mom * sin_theta
-    g_tr_mom = ana_struct.g_mom * sqrt(1- (cos_mu_g * cos_mu_g) ); 
     if(is_radiative) res_h->g_tr_mom_nring_2D->Fill(ana_struct.fqmrnring[0], g_tr_mom);
 
     res_h->wall_h->Fill(ComputeWall(0, MUON, ana_struct));    
@@ -994,16 +1001,20 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   }else{
     h_name_postfix = "mu_only";
   }
-  // number of rings histograms
-  res_h.nring_h = new TH1I(Form("nring_%s", h_name_postfix.c_str()), Form("nring_%s", h_name_postfix.c_str()), 6, 0, 6);
-  res_h.g_tr_mom_nring_2D = new TH2D("g_tr_mom_nring", "g_tr_mom_nring", 3, 1, 4, 25, 0, GAMMA_ROI_MAX_MOM_BIN);
-
   //gamma momentum binning
   int g_mom_nb_bins = 0;
   double * g_mom_bining_arr = calculate_bin_arr(GAMMA_MAX_MOM_BIN, GAMMA_ROI_MAX_MOM_BIN, GAMMA_MOM_STEP, g_mom_nb_bins);
   //mu momentum binning
   int mu_mom_nb_bins = 0;
   double * mu_mom_bining_arr = calculate_bin_arr(MU_MAX_MOM_BIN, MU_ROI_MAX_MOM_BIN, MU_MOM_STEP, mu_mom_nb_bins);
+
+  // number of rings histograms
+  res_h.nring_h = new TH1I(Form("nring_%s", h_name_postfix.c_str()), Form("nring_%s", h_name_postfix.c_str()), 6, 0, 6);
+  res_h.g_tr_mom_1r_h = new TH1D("g_tr_mom_1r", "g_tr_mom_1r", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_tr_mom_2r_h = new TH1D("g_tr_mom_2r", "g_tr_mom_2r", g_mom_nb_bins,  g_mom_bining_arr);
+  res_h.g_tr_mom_3mr_h = new TH1D("g_tr_mom_3mr", "g_tr_mom_3mr", g_mom_nb_bins,  g_mom_bining_arr);    
+
+  res_h.g_tr_mom_nring_2D = new TH2D("g_tr_mom_nring", "g_tr_mom_nring", 3, 1, 4, 25, 0, GAMMA_ROI_MAX_MOM_BIN);
 
   //gamma histograms
   res_h.g_mom_all_h = new TH1D("g_mom_all", "g_mom_all", g_mom_nb_bins,  g_mom_bining_arr);
@@ -1102,6 +1113,9 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
 void clear_result_hists(ana_results_hists& res_h){
 //============================================================================//  
   delete res_h.nring_h;
+  delete res_h.g_tr_mom_1r_h;
+  delete res_h.g_tr_mom_2r_h;
+  delete res_h.g_tr_mom_3mr_h;    
   delete res_h.g_tr_mom_nring_2D;
 
   //gamma histograms

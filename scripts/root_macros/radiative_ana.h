@@ -86,6 +86,9 @@ typedef struct ana_results_hists{
   // Histograms
   // number of rings histograms
   TH1I* nring_h;
+  TH1D * g_tr_mom_1r_h;
+  TH1D * g_tr_mom_2r_h;
+  TH1D * g_tr_mom_3mr_h;
   TH2D * g_tr_mom_nring_2D;
 
   //gamma histograms

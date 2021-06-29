@@ -19,7 +19,7 @@ MU_REST_MASS = 105.66 #MeV rest mass of muon
 ELEC_REST_MASS = 0.511 #MeV rest mass of the electron
 # Gamma Kiematics
 #-----------------
-MAX_GAMMA_EN = 200 #MeV limiting the phase space of the radiative gamma
+MAX_GAMMA_EN = 80 #MeV limiting the phase space of the radiative gamma
 # MC Sampling
 #-------------
 NB_SAMPLES = 10000# was 10000
@@ -343,4 +343,4 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_ki
 # Test generate_radiative_corr_particle_gun
 #generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'mu_mom.txt' ,file_name=temp_output_dir+'pg_mu_ID_10e4.txt', plot_dist=True)
 generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'particle_kinematics_vtx.txt' ,\
-                                     file_name=temp_output_dir+'pg_mu_ID_vtx_10e4.txt', plot_dist=True)
+                                     file_name=temp_output_dir+'pg_mu_ID_g80_10e4.txt', plot_dist=True)
