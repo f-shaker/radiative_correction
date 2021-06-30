@@ -117,6 +117,8 @@ typedef struct ana_results_hists{
   TH1D * theta_mu_g_evis_fail_h;  
   TH1D * g_tr_mom_evis_pass_h;
   TH1D * g_tr_mom_evis_fail_h;
+  TH1D * g_frac_en_evis_pass_h;
+  TH1D * g_frac_en_evis_fail_h;  
   // FCFV
   TH1D * mu_mom_fcfv_pass_h;
   TH1D * mu_mom_fcfv_fail_h;
@@ -126,6 +128,9 @@ typedef struct ana_results_hists{
   TH1D * theta_mu_g_fcfv_fail_h;  
   TH1D * g_tr_mom_fcfv_pass_h;
   TH1D * g_tr_mom_fcfv_fail_h;
+  TH1D * g_frac_en_fcfv_pass_h;
+  TH1D * g_frac_en_fcfv_fail_h;  
+
   // 1 ring
   TH1D * mu_mom_1ring_pass_h;
   TH1D * mu_mom_1ring_fail_h;
@@ -135,6 +140,9 @@ typedef struct ana_results_hists{
   TH1D * theta_mu_g_1ring_fail_h;  
   TH1D * g_tr_mom_1ring_pass_h;
   TH1D * g_tr_mom_1ring_fail_h;
+  TH1D * g_frac_en_1ring_pass_h;
+  TH1D * g_frac_en_1ring_fail_h;  
+
   // emu_pid
   TH1D * mu_mom_emu_pid_pass_h;
   TH1D * mu_mom_emu_pid_fail_h;
@@ -144,6 +152,9 @@ typedef struct ana_results_hists{
   TH1D * theta_mu_g_emu_pid_fail_h;  
   TH1D * g_tr_mom_emu_pid_pass_h;
   TH1D * g_tr_mom_emu_pid_fail_h;
+  TH1D * g_frac_en_emu_pid_pass_h;
+  TH1D * g_frac_en_emu_pid_fail_h;  
+
   // mu mom
   TH1D * mu_mom_mu_mom_pass_h;
   TH1D * mu_mom_mu_mom_fail_h;
@@ -153,6 +164,9 @@ typedef struct ana_results_hists{
   TH1D * theta_mu_g_mu_mom_fail_h;  
   TH1D * g_tr_mom_mu_mom_pass_h;
   TH1D * g_tr_mom_mu_mom_fail_h;
+  TH1D * g_frac_en_mu_mom_pass_h;
+  TH1D * g_frac_en_mu_mom_fail_h;  
+
   // nb e decay
   TH1D * mu_mom_e_decay_pass_h;
   TH1D * mu_mom_e_decay_fail_h;
@@ -162,6 +176,9 @@ typedef struct ana_results_hists{
   TH1D * theta_mu_g_e_decay_fail_h;  
   TH1D * g_tr_mom_e_decay_pass_h;
   TH1D * g_tr_mom_e_decay_fail_h;
+  TH1D * g_frac_en_e_decay_pass_h;
+  TH1D * g_frac_en_e_decay_fail_h;  
+
   // pi mu pid
   TH1D * mu_mom_pimu_pid_pass_h;
   TH1D * mu_mom_pimu_pid_fail_h;
@@ -171,7 +188,8 @@ typedef struct ana_results_hists{
   TH1D * theta_mu_g_pimu_pid_fail_h;  
   TH1D * g_tr_mom_pimu_pid_pass_h;
   TH1D * g_tr_mom_pimu_pid_fail_h;
-
+  TH1D * g_frac_en_pimu_pid_pass_h;
+  TH1D * g_frac_en_pimu_pid_fail_h; 
   //FV histograms
   TH1D* wall_h;
   TH1D* towall_h;
@@ -209,14 +227,15 @@ void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt);
 void print_perc(size_t ientry, size_t total_entries, int perc_step);
 void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_opt1, std::string draw_opt2);
 void plot_cut(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
-              TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name);
+              TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, TH1D* gamma_frac_en_pass, TH1D* gamma_frac_en_fail, std::string cut_name);
 void plot_efficency(cut_step_efficiency steps_eff, std::string fname);
 void plot_efficency(cut_step_efficiency steps_eff_in1, cut_step_efficiency steps_eff_in2,
                     std::string h1_name, std::string h2_name, std::string fname);     
 void plot_eff_ratio(TH1* pass_hist, TH1* fail_hist, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title);
 
 void plot_cut_2(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* gamma_mom_fail,
-                TH1D* cos_theta_pass, TH1D* cos_theta_fail, TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name);              
+                TH1D* cos_theta_pass, TH1D* cos_theta_fail, TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail,
+                TH1D* gamma_frac_en_pass, TH1D* gamma_frac_en_fail, std::string cut_name);              
 void plot_eff_ratio_2(TH1* pass_hist, TH1* fail_hist, std::string title);   
 void fill_particle_kin(t2k_sk_radiative & ana_struct);  
 void init_result_hists(ana_results_hists& res_h, bool is_radiative);

@@ -11,6 +11,8 @@ const std::string mu_gamma_file = "/home/fshaker/t2k/radiative-correction/analys
 const std::string mu_file_fin = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_only_fin.root";// high stats (10e4 ev)
 const std::string plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/root_files/plots/";
 
+// Physcial Constants
+const float MU_MASS = 105.6583755; //MeV
 //BINING
 // maximum physically possible gamma momentum
 const float GAMMA_MAX_MOM_BIN = 80.0; //MeV (used to calculate last bin size)
