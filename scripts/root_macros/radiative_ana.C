@@ -52,18 +52,18 @@ void plot_1_res_hists(ana_results_hists& res_h, bool is_radiative){
     plot_hist1D(res_h.mu_mom_2r_h,"mu_g_mom_2r", "p_{#mu} (2 rings);mom[MeV];count", kBlue , 2, 1);
     plot_hist1D(res_h.mu_mom_3mr_h,"mu_g_mom_3mr", "p_{#mu} (>= 3 rings);mom[MeV];count", kBlue , 2, 1);            
 
-    plot_hist1D(res_h.cos_mu_g_all_h,"theta_all", "cos#theta_{#mu#gamma} (all);cos#theta_{#mu#gamma};count", kBlue , 2, 1);
-    plot_hist1D(res_h.cos_mu_g_1r_h,"theta_1r", "cos#theta_{#mu#gamma} (1 ring);cos#theta_{#mu#gamma};count", kBlue , 2, 1);
-    plot_hist1D(res_h.cos_mu_g_2r_h,"theta_2r", "cos#theta_{#mu#gamma} (2 rings);cos#theta_{#mu#gamma};count", kBlue , 2, 1);
-    plot_hist1D(res_h.cos_mu_g_3mr_h,"theta_3mr", "cos#theta_{#mu#gamma} (>=3 rings);cos#theta_{#mu#gamma};count", kBlue , 2, 1);
+    plot_hist1D(res_h.theta_mu_g_all_h,"theta_all", "#theta_{#mu#gamma}^{#circ} (all);#theta_{#mu#gamma}^{#circ};count", kBlue , 2, 1);
+    plot_hist1D(res_h.theta_mu_g_1r_h,"theta_1r", "#theta_{#mu#gamma}^{#circ} (1 ring);#theta_{#mu#gamma}^{#circ};count", kBlue , 2, 1);
+    plot_hist1D(res_h.theta_mu_g_2r_h,"theta_2r", "#theta_{#mu#gamma}^{#circ} (2 rings);#theta_{#mu#gamma}^{#circ};count", kBlue , 2, 1);
+    plot_hist1D(res_h.theta_mu_g_3mr_h,"theta_3mr", "#theta_{#mu#gamma}^{#circ} (>=3 rings);#theta_{#mu#gamma}^{#circ};count", kBlue , 2, 1);
 
     plot_ratio_hist1D(res_h.g_mom_1r_h, res_h.g_mom_all_h, "mom_1r_all", "mom [MeV]", "entries", "ratio");
     plot_ratio_hist1D(res_h.g_mom_2r_h, res_h.g_mom_all_h, "mom_2r_all", "mom [MeV]", "entries", "ratio");
     plot_ratio_hist1D(res_h.g_mom_3mr_h, res_h.g_mom_all_h, "mom_3mr_all", "mom [MeV]", "entries", "ratio");
 
-    plot_ratio_hist1D(res_h.cos_mu_g_1r_h, res_h.cos_mu_g_all_h, "costheta_1r_all", "cos#theta_{#mu#gamma}", "entries", "ratio");
-    plot_ratio_hist1D(res_h.cos_mu_g_2r_h, res_h.cos_mu_g_all_h, "costheta_2r_all", "cos#theta_{#mu#gamma}", "entries", "ratio");
-    plot_ratio_hist1D(res_h.cos_mu_g_3mr_h, res_h.cos_mu_g_all_h, "costheta_3mr_all", "cos#theta_{#mu#gamma}", "entries", "ratio");
+    plot_ratio_hist1D(res_h.theta_mu_g_1r_h, res_h.theta_mu_g_all_h, "theta_1r_all", "#theta_{#mu#gamma}", "entries", "ratio");
+    plot_ratio_hist1D(res_h.theta_mu_g_2r_h, res_h.theta_mu_g_all_h, "theta_2r_all", "#theta_{#mu#gamma}", "entries", "ratio");
+    plot_ratio_hist1D(res_h.theta_mu_g_3mr_h, res_h.theta_mu_g_all_h, "theta_3mr_all", "#theta_{#mu#gamma}", "entries", "ratio");
 
     plot_hist1D(res_h.nring_h,"nring_mu_gamma", "nring_mu_gamma;nring;count", kBlue , 2, 1);
     plot_hist1D(res_h.g_tr_mom_1r_h,"g_tr_mom_1r", "p_{T}_{#gamma} (1 ring);p_{T}_{#gamma} [MeV];count", kBlue , 2, 1);
@@ -113,34 +113,34 @@ void plot_selection_cuts(ana_results_hists& res_h, bool is_radiative){
 //TODO NEEDS OPTIMIZATION, just grouping funcationality for now fsamir
   if(is_radiative){
   plot_cut(res_h.mu_mom_fcfv_pass_h, res_h.mu_mom_fcfv_fail_h, res_h.g_mom_fcfv_pass_h, res_h.g_mom_fcfv_fail_h,
-           res_h.cos_mu_g_fcfv_pass_h, res_h.cos_mu_g_fcfv_fail_h, res_h.g_tr_mom_fcfv_pass_h, res_h.g_tr_mom_fcfv_fail_h, "cut_FCFV");
+           res_h.theta_mu_g_fcfv_pass_h, res_h.theta_mu_g_fcfv_fail_h, res_h.g_tr_mom_fcfv_pass_h, res_h.g_tr_mom_fcfv_fail_h, "cut_FCFV");
   plot_cut(res_h.mu_mom_evis_pass_h, res_h.mu_mom_evis_fail_h, res_h.g_mom_evis_pass_h, res_h.g_mom_evis_fail_h,
-           res_h.cos_mu_g_evis_pass_h, res_h.cos_mu_g_evis_fail_h, res_h.g_tr_mom_evis_pass_h, res_h.g_tr_mom_evis_fail_h, "cut_EVIS");
+           res_h.theta_mu_g_evis_pass_h, res_h.theta_mu_g_evis_fail_h, res_h.g_tr_mom_evis_pass_h, res_h.g_tr_mom_evis_fail_h, "cut_EVIS");
   plot_cut(res_h.mu_mom_1ring_pass_h, res_h.mu_mom_1ring_fail_h, res_h.g_mom_1ring_pass_h, res_h.g_mom_1ring_fail_h,
-           res_h.cos_mu_g_1ring_pass_h, res_h.cos_mu_g_1ring_fail_h, res_h.g_tr_mom_1ring_pass_h, res_h.g_tr_mom_1ring_fail_h, "cut_1ring");
+           res_h.theta_mu_g_1ring_pass_h, res_h.theta_mu_g_1ring_fail_h, res_h.g_tr_mom_1ring_pass_h, res_h.g_tr_mom_1ring_fail_h, "cut_1ring");
   plot_cut(res_h.mu_mom_emu_pid_pass_h, res_h.mu_mom_emu_pid_fail_h, res_h.g_mom_emu_pid_pass_h, res_h.g_mom_emu_pid_fail_h,
-           res_h.cos_mu_g_emu_pid_pass_h, res_h.cos_mu_g_emu_pid_fail_h, res_h.g_tr_mom_emu_pid_pass_h, res_h.g_tr_mom_emu_pid_fail_h, "cut_emu_pid");
+           res_h.theta_mu_g_emu_pid_pass_h, res_h.theta_mu_g_emu_pid_fail_h, res_h.g_tr_mom_emu_pid_pass_h, res_h.g_tr_mom_emu_pid_fail_h, "cut_emu_pid");
   plot_cut(res_h.mu_mom_mu_mom_pass_h, res_h.mu_mom_mu_mom_fail_h, res_h.g_mom_mu_mom_pass_h, res_h.g_mom_mu_mom_fail_h,
-           res_h.cos_mu_g_mu_mom_pass_h, res_h.cos_mu_g_mu_mom_fail_h, res_h.g_tr_mom_mu_mom_pass_h, res_h.g_tr_mom_mu_mom_fail_h, "cut_mu_mom");
+           res_h.theta_mu_g_mu_mom_pass_h, res_h.theta_mu_g_mu_mom_fail_h, res_h.g_tr_mom_mu_mom_pass_h, res_h.g_tr_mom_mu_mom_fail_h, "cut_mu_mom");
   plot_cut(res_h.mu_mom_e_decay_pass_h, res_h.mu_mom_e_decay_fail_h, res_h.g_mom_e_decay_pass_h, res_h.g_mom_e_decay_fail_h,
-           res_h.cos_mu_g_e_decay_pass_h, res_h.cos_mu_g_e_decay_fail_h, res_h.g_tr_mom_e_decay_pass_h, res_h.g_tr_mom_e_decay_fail_h, "cut_e_decay");
+           res_h.theta_mu_g_e_decay_pass_h, res_h.theta_mu_g_e_decay_fail_h, res_h.g_tr_mom_e_decay_pass_h, res_h.g_tr_mom_e_decay_fail_h, "cut_e_decay");
   plot_cut(res_h.mu_mom_pimu_pid_pass_h, res_h.mu_mom_pimu_pid_fail_h, res_h.g_mom_pimu_pid_pass_h, res_h.g_mom_pimu_pid_fail_h,
-           res_h.cos_mu_g_pimu_pid_pass_h, res_h.cos_mu_g_pimu_pid_fail_h,res_h.g_tr_mom_pimu_pid_pass_h, res_h.g_tr_mom_pimu_pid_fail_h, "cut_pimu_pid");
+           res_h.theta_mu_g_pimu_pid_pass_h, res_h.theta_mu_g_pimu_pid_fail_h,res_h.g_tr_mom_pimu_pid_pass_h, res_h.g_tr_mom_pimu_pid_fail_h, "cut_pimu_pid");
 
   plot_cut_2(res_h.mu_mom_fcfv_pass_h, res_h.mu_mom_fcfv_fail_h, res_h.g_mom_fcfv_pass_h, res_h.g_mom_fcfv_fail_h,
-             res_h.cos_mu_g_fcfv_pass_h, res_h.cos_mu_g_fcfv_fail_h, res_h.g_tr_mom_fcfv_pass_h, res_h.g_tr_mom_fcfv_fail_h, "cut_FCFV_eff");
+             res_h.theta_mu_g_fcfv_pass_h, res_h.theta_mu_g_fcfv_fail_h, res_h.g_tr_mom_fcfv_pass_h, res_h.g_tr_mom_fcfv_fail_h, "cut_FCFV_eff");
   plot_cut_2(res_h.mu_mom_evis_pass_h, res_h.mu_mom_evis_fail_h, res_h.g_mom_evis_pass_h, res_h.g_mom_evis_fail_h,
-             res_h.cos_mu_g_evis_pass_h, res_h.cos_mu_g_evis_fail_h, res_h.g_tr_mom_evis_pass_h, res_h.g_tr_mom_evis_fail_h, "cut_EVIS_eff");
+             res_h.theta_mu_g_evis_pass_h, res_h.theta_mu_g_evis_fail_h, res_h.g_tr_mom_evis_pass_h, res_h.g_tr_mom_evis_fail_h, "cut_EVIS_eff");
   plot_cut_2(res_h.mu_mom_1ring_pass_h, res_h.mu_mom_1ring_fail_h, res_h.g_mom_1ring_pass_h, res_h.g_mom_1ring_fail_h,
-             res_h.cos_mu_g_1ring_pass_h, res_h.cos_mu_g_1ring_fail_h, res_h.g_tr_mom_1ring_pass_h, res_h.g_tr_mom_1ring_fail_h, "cut_1ring_eff");
+             res_h.theta_mu_g_1ring_pass_h, res_h.theta_mu_g_1ring_fail_h, res_h.g_tr_mom_1ring_pass_h, res_h.g_tr_mom_1ring_fail_h, "cut_1ring_eff");
   plot_cut_2(res_h.mu_mom_emu_pid_pass_h, res_h.mu_mom_emu_pid_fail_h, res_h.g_mom_emu_pid_pass_h, res_h.g_mom_emu_pid_fail_h,
-             res_h.cos_mu_g_emu_pid_pass_h, res_h.cos_mu_g_emu_pid_fail_h, res_h.g_tr_mom_emu_pid_pass_h, res_h.g_tr_mom_emu_pid_fail_h, "cut_emu_pid_eff");
+             res_h.theta_mu_g_emu_pid_pass_h, res_h.theta_mu_g_emu_pid_fail_h, res_h.g_tr_mom_emu_pid_pass_h, res_h.g_tr_mom_emu_pid_fail_h, "cut_emu_pid_eff");
   plot_cut_2(res_h.mu_mom_mu_mom_pass_h, res_h.mu_mom_mu_mom_fail_h, res_h.g_mom_mu_mom_pass_h, res_h.g_mom_mu_mom_fail_h,
-             res_h.cos_mu_g_mu_mom_pass_h, res_h.cos_mu_g_mu_mom_fail_h, res_h.g_tr_mom_mu_mom_pass_h, res_h.g_tr_mom_mu_mom_fail_h, "cut_mu_mom_eff");
+             res_h.theta_mu_g_mu_mom_pass_h, res_h.theta_mu_g_mu_mom_fail_h, res_h.g_tr_mom_mu_mom_pass_h, res_h.g_tr_mom_mu_mom_fail_h, "cut_mu_mom_eff");
   plot_cut_2(res_h.mu_mom_e_decay_pass_h, res_h.mu_mom_e_decay_fail_h, res_h.g_mom_e_decay_pass_h, res_h.g_mom_e_decay_fail_h,
-             res_h.cos_mu_g_e_decay_pass_h, res_h.cos_mu_g_e_decay_fail_h, res_h.g_tr_mom_e_decay_pass_h, res_h.g_tr_mom_e_decay_fail_h, "cut_e_decay_eff");
+             res_h.theta_mu_g_e_decay_pass_h, res_h.theta_mu_g_e_decay_fail_h, res_h.g_tr_mom_e_decay_pass_h, res_h.g_tr_mom_e_decay_fail_h, "cut_e_decay_eff");
   plot_cut_2(res_h.mu_mom_pimu_pid_pass_h, res_h.mu_mom_pimu_pid_fail_h, res_h.g_mom_pimu_pid_pass_h, res_h.g_mom_pimu_pid_fail_h,
-             res_h.cos_mu_g_pimu_pid_pass_h, res_h.cos_mu_g_pimu_pid_fail_h, res_h.g_tr_mom_pimu_pid_pass_h, res_h.g_tr_mom_pimu_pid_fail_h, "cut_pimu_pid_eff");
+             res_h.theta_mu_g_pimu_pid_pass_h, res_h.theta_mu_g_pimu_pid_fail_h, res_h.g_tr_mom_pimu_pid_pass_h, res_h.g_tr_mom_pimu_pid_fail_h, "cut_pimu_pid_eff");
 
   plot_efficency(res_h.ana_cut_step_eff, "mu_g_eff");              
 
@@ -484,15 +484,15 @@ void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt){
   delete canv;
 }
 //============================================================================//
-void plot_cut(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
+void plot_cut(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* theta_pass, TH1D* theta_fail,
               TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name){
 
   format_hist1D(mu_mom_pass, "p_{#mu};mom[MeV];count" , kBlue , 2, 1);
   format_hist1D(mu_mom_fail, "p_{#mu};mom[MeV];count" , kRed , 2, 1);
   format_hist1D(gamma_mom_pass, "p_{#gamma};mom[MeV];count" , kBlue , 2, 1);
   format_hist1D(gamma_mom_fail, "p_{#gamma};mom[MeV];count" , kRed , 2, 1);
-  format_hist1D(cos_theta_pass, "Cos#theta_{#mu#gamma};Cos#theta_{#mu#gamma};count" , kBlue , 2, 1);
-  format_hist1D(cos_theta_fail, "Cos#theta_{#mu#gamma};Cos#theta_{#mu#gamma};count" , kRed , 2, 1);
+  format_hist1D(theta_pass, "#theta_{#mu#gamma}^{#circ};#theta_{#mu#gamma}^{#circ};count" , kBlue , 2, 1);
+  format_hist1D(theta_fail, "#theta_{#mu#gamma}^{#circ};#theta_{#mu#gamma}^{#circ};count" , kRed , 2, 1);
   format_hist1D(gamma_tr_mom_pass, "p_{T}_{#gamma};mom[MeV];count" , kBlue , 2, 1);
   format_hist1D(gamma_tr_mom_fail, "p_{T}_{#gamma};mom[MeV];count" , kRed , 2, 1);
   
@@ -504,7 +504,7 @@ void plot_cut(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* 
   canv->cd(2);
   prep_draw_superimposed_hist1D(gamma_mom_pass, gamma_mom_fail, "", "SAME");
   canv->cd(3);
-  prep_draw_superimposed_hist1D(cos_theta_pass, cos_theta_fail, "", "SAME"); 
+  prep_draw_superimposed_hist1D(theta_pass, theta_fail, "", "SAME"); 
   canv->cd(4);
   prep_draw_superimposed_hist1D(gamma_tr_mom_pass, gamma_tr_mom_fail, "", "SAME");   
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),cut_name.c_str()));
@@ -630,14 +630,14 @@ void plot_eff_ratio(TH1* pass_hist, TH1* fail_hist, std::string x_axis_title, st
 }
 //============================================================================//
 void plot_cut_2(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* gamma_mom_fail,
-                TH1D* cos_theta_pass, TH1D* cos_theta_fail, TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name){
+                TH1D* theta_pass, TH1D* theta_fail, TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, std::string cut_name){
 //============================================================================//
   format_hist1D(mu_mom_pass, "p_{#mu};mom[MeV];count" , kBlue , 2, 1);
   format_hist1D(mu_mom_fail, "p_{#mu};mom[MeV];count" , kRed , 2, 1);
   format_hist1D(gamma_mom_pass, "p_{#gamma};mom[MeV];count" , kBlue , 2, 1);
   format_hist1D(gamma_mom_fail, "p_{#gamma};mom[MeV];count" , kRed , 2, 1);
-  format_hist1D(cos_theta_pass, "Cos#theta;Cos#theta;count" , kBlue , 2, 1);
-  format_hist1D(cos_theta_fail, "Cos#theta;Cos#theta;count" , kRed , 2, 1);
+  format_hist1D(theta_pass, "#theta;#theta^{#circ};count" , kBlue , 2, 1);
+  format_hist1D(theta_fail, "#theta;#theta^{#circ};count" , kRed , 2, 1);
   format_hist1D(gamma_tr_mom_pass, "p_{T}_{#gamma};mom[MeV];count" , kBlue , 2, 1);
   format_hist1D(gamma_tr_mom_fail, "p_{T}_{#gamma};mom[MeV];count" , kRed , 2, 1);
   
@@ -653,9 +653,9 @@ void plot_cut_2(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D
   //plot_eff_ratio(gamma_mom_pass, gamma_mom_fail,"mom[MeV]", "count", "efficiency");
   plot_eff_ratio_2(gamma_mom_pass, gamma_mom_fail,"Eff(p_{#gamma});p_{#gamma}[MeV];efficiency");
   canv->cd(3);
-  //prep_draw_superimposed_hist1D(cos_theta_pass, cos_theta_fail, "", "SAME"); 
-  //plot_eff_ratio(cos_theta_pass, cos_theta_fail,"cos#theta", "count", "efficiency");
-  plot_eff_ratio_2(cos_theta_pass, cos_theta_fail,"Eff(cos#theta_{#mu#gamma});cos#theta_{#mu#gamma};efficiency");
+  //prep_draw_superimposed_hist1D(theta_pass, theta_fail, "", "SAME"); 
+  //plot_eff_ratio(theta_pass, theta_fail,"#theta", "count", "efficiency");
+  plot_eff_ratio_2(theta_pass, theta_fail,"Eff(#theta_{#mu#gamma});#theta_{#mu#gamma};efficiency");
   canv->cd(4);
   //prep_draw_superimposed_hist1D(gamma_tr_mom_pass, gamma_tr_mom_fail, "", "SAME");   
   //plot_eff_ratio(gamma_tr_mom_pass, gamma_tr_mom_fail,"mom[MeV]", "count", "efficiency");
@@ -744,6 +744,7 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
   init_result_hists(*res_h, is_radiative);
 
   float cos_mu_g;
+  float theta_mu_g;
   float g_tr_mom;
   float cos_dir1r_mu;
   float delta_pos1r_vtx;
@@ -772,7 +773,8 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
 
     cos_mu_g = ( ana_struct.g_dir[0] * ana_struct.mu_dir[0] ) + ( ana_struct.g_dir[1] * ana_struct.mu_dir[1] )
              + ( ana_struct.g_dir[2] * ana_struct.mu_dir[2] );
-    if(is_radiative) res_h->cos_mu_g_all_h->Fill(cos_mu_g);
+    theta_mu_g = TMath::ACos(cos_mu_g) * 180.0 / TMath::Pi();         
+    if(is_radiative) res_h->theta_mu_g_all_h->Fill(theta_mu_g);
 
     // transverse momentum, i.e perpondicular to the mu direction = gamma_mom * sin_theta
     g_tr_mom = ana_struct.g_mom * sqrt(1- (cos_mu_g * cos_mu_g) ); 
@@ -780,21 +782,21 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
     if(ana_struct.fqmrnring[0] == 1){
       res_h->mu_mom_1r_h->Fill(ana_struct.mu_mom);      
       if(is_radiative) res_h->g_mom_1r_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->cos_mu_g_1r_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_1r_h->Fill(theta_mu_g);
       if(is_radiative) res_h->g_tr_mom_1r_h->Fill(g_tr_mom);      
     }
 
     if(ana_struct.fqmrnring[0] == 2){
       res_h->mu_mom_2r_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_2r_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->cos_mu_g_2r_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_2r_h->Fill(theta_mu_g);
       if(is_radiative) res_h->g_tr_mom_2r_h->Fill(g_tr_mom);      
     }
 
     if(ana_struct.fqmrnring[0] >= 3){
       res_h->mu_mom_3mr_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_3mr_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->cos_mu_g_3mr_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_3mr_h->Fill(theta_mu_g);
       if(is_radiative) res_h->g_tr_mom_3mr_h->Fill(g_tr_mom);            
     }
 
@@ -824,14 +826,14 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
       res_h->mu_mom_evis_pass_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_evis_pass_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_evis_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_evis_pass_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_evis_pass_h->Fill(theta_mu_g);
       nb_evis_passed++;
     }else{
       //fail
       res_h->mu_mom_evis_fail_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_evis_fail_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_evis_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_evis_fail_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_evis_fail_h->Fill(theta_mu_g);
     }
     //apply the cut
     if (pass_evis_cut(ana_struct, float(30.0)) == false) continue;
@@ -842,14 +844,14 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
       res_h->mu_mom_fcfv_pass_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_fcfv_pass_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_fcfv_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_fcfv_pass_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_fcfv_pass_h->Fill(theta_mu_g);
       nb_fcfv_passed++;
     }else{
       //fail
       res_h->mu_mom_fcfv_fail_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_fcfv_fail_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_fcfv_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_fcfv_fail_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_fcfv_fail_h->Fill(theta_mu_g);
     }
     //apply the cut
     if (pass_FCFV(0, MUON, ana_struct) == false) continue;
@@ -860,14 +862,14 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
       res_h->mu_mom_1ring_pass_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_1ring_pass_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_1ring_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_1ring_pass_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_1ring_pass_h->Fill(theta_mu_g);
       nb_1ring_passed++;
     }else{
       //fail
       res_h->mu_mom_1ring_fail_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_1ring_fail_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_1ring_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_1ring_fail_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_1ring_fail_h->Fill(theta_mu_g);
     }
     //apply the cut
     if (pass_1ring(ana_struct) == false) continue;
@@ -878,14 +880,14 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
       res_h->mu_mom_emu_pid_pass_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_emu_pid_pass_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_emu_pid_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_emu_pid_pass_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_emu_pid_pass_h->Fill(theta_mu_g);
       nb_emu_pid_passed++;
     }else{
       //fail
       res_h->mu_mom_emu_pid_fail_h->Fill(ana_struct.mu_mom);      
       if(is_radiative) res_h->g_mom_emu_pid_fail_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_emu_pid_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_emu_pid_fail_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_emu_pid_fail_h->Fill(theta_mu_g);
     }
     //apply the cut
     if (pass_e_mu_nll_cut(ana_struct) == false) continue;
@@ -896,14 +898,14 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
       res_h->mu_mom_mu_mom_pass_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_mu_mom_pass_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_mu_mom_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_mu_mom_pass_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_mu_mom_pass_h->Fill(theta_mu_g);
       nb_mu_mom_passed++;
     }else{
       //fail
       res_h->mu_mom_mu_mom_fail_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_mu_mom_fail_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_mu_mom_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_mu_mom_fail_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_mu_mom_fail_h->Fill(theta_mu_g);
     }
     //apply the cut
     if (pass_mu_mom_cut(ana_struct, float(200.0)) == false) continue;
@@ -914,14 +916,14 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
       res_h->mu_mom_e_decay_pass_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_e_decay_pass_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_e_decay_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_e_decay_pass_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_e_decay_pass_h->Fill(theta_mu_g);
       nb_e_decay_passed++;
     }else{
       //fail
       res_h->mu_mom_e_decay_pass_h->Fill(ana_struct.mu_mom);      
       if(is_radiative) res_h->g_mom_e_decay_fail_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_e_decay_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_e_decay_fail_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_e_decay_fail_h->Fill(theta_mu_g);
     }
     //apply the cut
     if (pass_nb_decay_e_cut(ana_struct) == false) continue;
@@ -932,14 +934,14 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
       res_h->mu_mom_pimu_pid_pass_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_pimu_pid_pass_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_pimu_pid_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_pimu_pid_pass_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_pimu_pid_pass_h->Fill(theta_mu_g);
       nb_pimu_pid_passed++;
     }else{
       //fail
       res_h->mu_mom_pimu_pid_fail_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_pimu_pid_fail_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_pimu_pid_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->cos_mu_g_pimu_pid_fail_h->Fill(cos_mu_g);
+      if(is_radiative) res_h->theta_mu_g_pimu_pid_fail_h->Fill(theta_mu_g);
     }
     //apply the cut
     if (pass_pi_mu_nll_cut(ana_struct) == false) continue;
@@ -1007,6 +1009,9 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   //mu momentum binning
   int mu_mom_nb_bins = 0;
   double * mu_mom_bining_arr = calculate_bin_arr(MU_MAX_MOM_BIN, MU_ROI_MAX_MOM_BIN, MU_MOM_STEP, mu_mom_nb_bins);
+  //theta momentum binning
+  int theta_nb_bins = 0;
+  double * theta_bining_arr = calculate_bin_arr(THETA_MAX_BIN, THETA_ROI_MAX_BIN, THETA_STEP, theta_nb_bins);
 
   // number of rings histograms
   res_h.nring_h = new TH1I(Form("nring_%s", h_name_postfix.c_str()), Form("nring_%s", h_name_postfix.c_str()), 6, 0, 6);
@@ -1021,10 +1026,10 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   res_h.g_mom_1r_h = new TH1D("g_mom_1r", "g_mom_1r", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_mom_2r_h = new TH1D("g_mom_2r", "g_mom_2r", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_mom_3mr_h = new TH1D("g_mom_3mr", "g_mom_3mr", g_mom_nb_bins,  g_mom_bining_arr);    
-  res_h.cos_mu_g_all_h = new TH1D("cos_mu_g_all", "cos_mu_g_all", 20, -1, 1);  
-  res_h.cos_mu_g_1r_h = new TH1D("cos_mu_g_1r", "cos_mu_g_1r", 20, -1, 1);  
-  res_h.cos_mu_g_2r_h = new TH1D("cos_mu_g_2r", "cos_mu_g_2r", 20, -1, 1);  
-  res_h.cos_mu_g_3mr_h = new TH1D("cos_mu_g_3mr", "cos_mu_g_3mr", 20, -1, 1);  
+  res_h.theta_mu_g_all_h = new TH1D("theta_mu_g_all", "theta_mu_g_all", theta_nb_bins, theta_bining_arr);  
+  res_h.theta_mu_g_1r_h = new TH1D("theta_mu_g_1r", "theta_mu_g_1r", theta_nb_bins, theta_bining_arr);  
+  res_h.theta_mu_g_2r_h = new TH1D("theta_mu_g_2r", "theta_mu_g_2r", theta_nb_bins, theta_bining_arr);  
+  res_h.theta_mu_g_3mr_h = new TH1D("theta_mu_g_3mr", "theta_mu_g_3mr", theta_nb_bins, theta_bining_arr);  
   
   //muon histograms
   res_h.mu_mom_all_h = new TH1D(Form("mu_mom_all_%s", h_name_postfix.c_str()), Form("mu_mom_all_%s", h_name_postfix.c_str()), mu_mom_nb_bins,  mu_mom_bining_arr);
@@ -1038,8 +1043,8 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   res_h.mu_mom_evis_fail_h = new TH1D("mu_mom_evis_fail", "mu_mom_evis_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
   res_h.g_mom_evis_pass_h = new TH1D("g_mom_evis_pass", "g_mom_evis_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_mom_evis_fail_h = new TH1D("g_mom_evis_fail", "g_mom_evis_fail", g_mom_nb_bins,  g_mom_bining_arr);
-  res_h.cos_mu_g_evis_pass_h = new TH1D("cos_mu_g_evis_pass", "cos_mu_g_evis_pass", 10, -1, 1);  
-  res_h.cos_mu_g_evis_fail_h = new TH1D("cos_mu_g_evis_fail", "cos_mu_g_evis_fail", 10, -1, 1);  
+  res_h.theta_mu_g_evis_pass_h = new TH1D("theta_mu_g_evis_pass", "theta_mu_g_evis_pass", theta_nb_bins, theta_bining_arr);  
+  res_h.theta_mu_g_evis_fail_h = new TH1D("theta_mu_g_evis_fail", "theta_mu_g_evis_fail", theta_nb_bins, theta_bining_arr);  
   res_h.g_tr_mom_evis_pass_h = new TH1D("g_tr_mom_evis_pass", "g_tr_mom_evis_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_tr_mom_evis_fail_h = new TH1D("g_tr_mom_evis_fail", "g_tr_mom_evis_fail", g_mom_nb_bins,  g_mom_bining_arr);
   // FCFV
@@ -1047,8 +1052,8 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   res_h.mu_mom_fcfv_fail_h = new TH1D("mu_mom_fcfv_fail", "mu_mom_fcfv_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
   res_h.g_mom_fcfv_pass_h = new TH1D("g_mom_fcfv_pass", "g_mom_fcfv_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_mom_fcfv_fail_h = new TH1D("g_mom_fcfv_fail", "g_mom_fcfv_fail", g_mom_nb_bins,  g_mom_bining_arr);
-  res_h.cos_mu_g_fcfv_pass_h = new TH1D("cos_mu_g_fcfv_pass", "cos_mu_g_fcfv_pass", 10, -1, 1);  
-  res_h.cos_mu_g_fcfv_fail_h = new TH1D("cos_mu_g_fcfv_fail", "cos_mu_g_fcfv_fail", 10, -1, 1);  
+  res_h.theta_mu_g_fcfv_pass_h = new TH1D("theta_mu_g_fcfv_pass", "theta_mu_g_fcfv_pass", theta_nb_bins, theta_bining_arr);  
+  res_h.theta_mu_g_fcfv_fail_h = new TH1D("theta_mu_g_fcfv_fail", "theta_mu_g_fcfv_fail", theta_nb_bins, theta_bining_arr);  
   res_h.g_tr_mom_fcfv_pass_h = new TH1D("g_tr_mom_fcfv_pass", "g_tr_mom_fcfv_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_tr_mom_fcfv_fail_h = new TH1D("g_tr_mom_fcfv_fail", "g_tr_mom_fcfv_fail", g_mom_nb_bins,  g_mom_bining_arr);
   // 1 ring
@@ -1056,8 +1061,8 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   res_h.mu_mom_1ring_fail_h = new TH1D("mu_mom_1ring_fail", "mu_mom_1ring_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
   res_h.g_mom_1ring_pass_h = new TH1D("g_mom_1ring_pass", "g_mom_1ring_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_mom_1ring_fail_h = new TH1D("g_mom_1ring_fail", "g_mom_1ring_fail", g_mom_nb_bins,  g_mom_bining_arr);
-  res_h.cos_mu_g_1ring_pass_h = new TH1D("cos_mu_g_1ring_pass", "cos_mu_g_1ring_pass", 10, -1, 1);  
-  res_h.cos_mu_g_1ring_fail_h = new TH1D("cos_mu_g_1ring_fail", "cos_mu_g_1ring_fail", 10, -1, 1);  
+  res_h.theta_mu_g_1ring_pass_h = new TH1D("theta_mu_g_1ring_pass", "theta_mu_g_1ring_pass", theta_nb_bins, theta_bining_arr);  
+  res_h.theta_mu_g_1ring_fail_h = new TH1D("theta_mu_g_1ring_fail", "theta_mu_g_1ring_fail", theta_nb_bins, theta_bining_arr);  
   res_h.g_tr_mom_1ring_pass_h = new TH1D("g_tr_mom_1ring_pass", "g_tr_mom_1ring_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_tr_mom_1ring_fail_h = new TH1D("g_tr_mom_1ring_fail", "g_tr_mom_1ring_fail", g_mom_nb_bins,  g_mom_bining_arr);
   // emu_pid
@@ -1065,8 +1070,8 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   res_h.mu_mom_emu_pid_fail_h = new TH1D("mu_mom_emu_pid_fail", "mu_mom_emu_pid_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
   res_h.g_mom_emu_pid_pass_h = new TH1D("g_mom_emu_pid_pass", "g_mom_emu_pid_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_mom_emu_pid_fail_h = new TH1D("g_mom_emu_pid_fail", "g_mom_emu_pid_fail", g_mom_nb_bins,  g_mom_bining_arr);
-  res_h.cos_mu_g_emu_pid_pass_h = new TH1D("cos_mu_g_emu_pid_pass", "cos_mu_g_emu_pid_pass", 10, -1, 1);  
-  res_h.cos_mu_g_emu_pid_fail_h = new TH1D("cos_mu_g_emu_pid_fail", "cos_mu_g_emu_pid_fail", 10, -1, 1);  
+  res_h.theta_mu_g_emu_pid_pass_h = new TH1D("theta_mu_g_emu_pid_pass", "theta_mu_g_emu_pid_pass", theta_nb_bins, theta_bining_arr);  
+  res_h.theta_mu_g_emu_pid_fail_h = new TH1D("theta_mu_g_emu_pid_fail", "theta_mu_g_emu_pid_fail", theta_nb_bins, theta_bining_arr);  
   res_h.g_tr_mom_emu_pid_pass_h = new TH1D("g_tr_mom_emu_pid_pass", "g_tr_mom_emu_pid_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_tr_mom_emu_pid_fail_h = new TH1D("g_tr_mom_emu_pid_fail", "g_tr_mom_emu_pid_fail", g_mom_nb_bins,  g_mom_bining_arr);
   // mu mom
@@ -1074,8 +1079,8 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   res_h.mu_mom_mu_mom_fail_h = new TH1D("mu_mom_mu_mom_fail", "mu_mom_mu_mom_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
   res_h.g_mom_mu_mom_pass_h = new TH1D("g_mom_mu_mom_pass", "g_mom_mu_mom_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_mom_mu_mom_fail_h = new TH1D("g_mom_mu_mom_fail", "g_mom_mu_mom_fail", g_mom_nb_bins,  g_mom_bining_arr);
-  res_h.cos_mu_g_mu_mom_pass_h = new TH1D("cos_mu_g_mu_mom_pass", "cos_mu_g_mu_mom_pass", 10, -1, 1);  
-  res_h.cos_mu_g_mu_mom_fail_h = new TH1D("cos_mu_g_mu_mom_fail", "cos_mu_g_mu_mom_fail", 10, -1, 1);  
+  res_h.theta_mu_g_mu_mom_pass_h = new TH1D("theta_mu_g_mu_mom_pass", "theta_mu_g_mu_mom_pass", theta_nb_bins, theta_bining_arr);  
+  res_h.theta_mu_g_mu_mom_fail_h = new TH1D("theta_mu_g_mu_mom_fail", "theta_mu_g_mu_mom_fail", theta_nb_bins, theta_bining_arr);  
   res_h.g_tr_mom_mu_mom_pass_h = new TH1D("g_tr_mom_mu_mom_pass", "g_tr_mom_mu_mom_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_tr_mom_mu_mom_fail_h = new TH1D("g_tr_mom_mu_mom_fail", "g_tr_mom_mu_mom_fail", g_mom_nb_bins,  g_mom_bining_arr);
   // nb e decay
@@ -1083,8 +1088,8 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   res_h.mu_mom_e_decay_fail_h = new TH1D("mu_mom_e_decay_fail", "mu_mom_e_decay_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
   res_h.g_mom_e_decay_pass_h = new TH1D("g_mom_e_decay_pass", "g_mom_e_decay_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_mom_e_decay_fail_h = new TH1D("g_mom_e_decay_fail", "g_mom_e_decay_fail", g_mom_nb_bins,  g_mom_bining_arr);
-  res_h.cos_mu_g_e_decay_pass_h = new TH1D("cos_mu_g_e_decay_pass", "cos_mu_g_e_decay_pass", 10, -1, 1);  
-  res_h.cos_mu_g_e_decay_fail_h = new TH1D("cos_mu_g_e_decay_fail", "cos_mu_g_e_decay_fail", 10, -1, 1);  
+  res_h.theta_mu_g_e_decay_pass_h = new TH1D("theta_mu_g_e_decay_pass", "theta_mu_g_e_decay_pass", theta_nb_bins, theta_bining_arr);  
+  res_h.theta_mu_g_e_decay_fail_h = new TH1D("theta_mu_g_e_decay_fail", "theta_mu_g_e_decay_fail", theta_nb_bins, theta_bining_arr);  
   res_h.g_tr_mom_e_decay_pass_h = new TH1D("g_tr_mom_e_decay_pass", "g_tr_mom_e_decay_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_tr_mom_e_decay_fail_h = new TH1D("g_tr_mom_e_decay_fail", "g_tr_mom_e_decay_fail", g_mom_nb_bins,  g_mom_bining_arr);
   // pi mu pid
@@ -1092,8 +1097,8 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   res_h.mu_mom_pimu_pid_fail_h = new TH1D("mu_mom_pimu_pid_fail", "mu_mom_pimu_pid_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
   res_h.g_mom_pimu_pid_pass_h = new TH1D("g_mom_pimu_pid_pass", "g_mom_pimu_pid_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_mom_pimu_pid_fail_h = new TH1D("g_mom_pimu_pid_fail", "g_mom_pimu_pid_fail", g_mom_nb_bins,  g_mom_bining_arr);
-  res_h.cos_mu_g_pimu_pid_pass_h = new TH1D("cos_mu_g_pimu_pid_pass", "cos_mu_g_pimu_pid_pass", 10, -1, 1);  
-  res_h.cos_mu_g_pimu_pid_fail_h = new TH1D("cos_mu_g_pimu_pid_fail", "cos_mu_g_pimu_pid_fail", 10, -1, 1);  
+  res_h.theta_mu_g_pimu_pid_pass_h = new TH1D("theta_mu_g_pimu_pid_pass", "theta_mu_g_pimu_pid_pass", theta_nb_bins, theta_bining_arr);  
+  res_h.theta_mu_g_pimu_pid_fail_h = new TH1D("theta_mu_g_pimu_pid_fail", "theta_mu_g_pimu_pid_fail", theta_nb_bins, theta_bining_arr);  
   res_h.g_tr_mom_pimu_pid_pass_h = new TH1D("g_tr_mom_pimu_pid_pass", "g_tr_mom_pimu_pid_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_tr_mom_pimu_pid_fail_h = new TH1D("g_tr_mom_pimu_pid_fail", "g_tr_mom_pimu_pid_fail", g_mom_nb_bins,  g_mom_bining_arr);
 
@@ -1107,7 +1112,8 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
 
   //free dynemically allocated arrays
   delete [] g_mom_bining_arr;
-  delete [] mu_mom_bining_arr; 
+  delete [] mu_mom_bining_arr;
+  delete [] theta_bining_arr; 
 }
 //============================================================================//
 void clear_result_hists(ana_results_hists& res_h){
@@ -1123,10 +1129,10 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.g_mom_1r_h;
   delete res_h.g_mom_2r_h;
   delete res_h.g_mom_3mr_h;
-  delete res_h.cos_mu_g_all_h;
-  delete res_h.cos_mu_g_1r_h;
-  delete res_h.cos_mu_g_2r_h;
-  delete res_h.cos_mu_g_3mr_h;
+  delete res_h.theta_mu_g_all_h;
+  delete res_h.theta_mu_g_1r_h;
+  delete res_h.theta_mu_g_2r_h;
+  delete res_h.theta_mu_g_3mr_h;
 
   //muon histograms
   delete res_h.mu_mom_all_h;
@@ -1140,8 +1146,8 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.mu_mom_evis_fail_h;
   delete res_h.g_mom_evis_pass_h;
   delete res_h.g_mom_evis_fail_h;
-  delete res_h.cos_mu_g_evis_pass_h;
-  delete res_h.cos_mu_g_evis_fail_h;
+  delete res_h.theta_mu_g_evis_pass_h;
+  delete res_h.theta_mu_g_evis_fail_h;
   delete res_h.g_tr_mom_evis_pass_h;
   delete res_h.g_tr_mom_evis_fail_h;
   // FCFV
@@ -1149,8 +1155,8 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.mu_mom_fcfv_fail_h;
   delete res_h.g_mom_fcfv_pass_h;
   delete res_h.g_mom_fcfv_fail_h;
-  delete res_h.cos_mu_g_fcfv_pass_h;
-  delete res_h.cos_mu_g_fcfv_fail_h;
+  delete res_h.theta_mu_g_fcfv_pass_h;
+  delete res_h.theta_mu_g_fcfv_fail_h;
   delete res_h.g_tr_mom_fcfv_pass_h;
   delete res_h.g_tr_mom_fcfv_fail_h;
   // 1 ring
@@ -1158,8 +1164,8 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.mu_mom_1ring_fail_h;
   delete res_h.g_mom_1ring_pass_h;
   delete res_h.g_mom_1ring_fail_h;
-  delete res_h.cos_mu_g_1ring_pass_h;
-  delete res_h.cos_mu_g_1ring_fail_h;
+  delete res_h.theta_mu_g_1ring_pass_h;
+  delete res_h.theta_mu_g_1ring_fail_h;
   delete res_h.g_tr_mom_1ring_pass_h;
   delete res_h.g_tr_mom_1ring_fail_h;
   // emu_pid
@@ -1167,8 +1173,8 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.mu_mom_emu_pid_fail_h;
   delete res_h.g_mom_emu_pid_pass_h;
   delete res_h.g_mom_emu_pid_fail_h;
-  delete res_h.cos_mu_g_emu_pid_pass_h;
-  delete res_h.cos_mu_g_emu_pid_fail_h;
+  delete res_h.theta_mu_g_emu_pid_pass_h;
+  delete res_h.theta_mu_g_emu_pid_fail_h;
   delete res_h.g_tr_mom_emu_pid_pass_h;
   delete res_h.g_tr_mom_emu_pid_fail_h;
   // mu mom
@@ -1176,8 +1182,8 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.mu_mom_mu_mom_fail_h;
   delete res_h.g_mom_mu_mom_pass_h;
   delete res_h.g_mom_mu_mom_fail_h;
-  delete res_h.cos_mu_g_mu_mom_pass_h;
-  delete res_h.cos_mu_g_mu_mom_fail_h;
+  delete res_h.theta_mu_g_mu_mom_pass_h;
+  delete res_h.theta_mu_g_mu_mom_fail_h;
   delete res_h.g_tr_mom_mu_mom_pass_h;
   delete res_h.g_tr_mom_mu_mom_fail_h;
   // nb e decay
@@ -1185,8 +1191,8 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.mu_mom_e_decay_fail_h;
   delete res_h.g_mom_e_decay_pass_h;
   delete res_h.g_mom_e_decay_fail_h;
-  delete res_h.cos_mu_g_e_decay_pass_h;
-  delete res_h.cos_mu_g_e_decay_fail_h;
+  delete res_h.theta_mu_g_e_decay_pass_h;
+  delete res_h.theta_mu_g_e_decay_fail_h;
   delete res_h.g_tr_mom_e_decay_pass_h;
   delete res_h.g_tr_mom_e_decay_fail_h;
   // pi mu pid
@@ -1194,8 +1200,8 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.mu_mom_pimu_pid_fail_h;
   delete res_h.g_mom_pimu_pid_pass_h;
   delete res_h.g_mom_pimu_pid_fail_h;
-  delete res_h.cos_mu_g_pimu_pid_pass_h;
-  delete res_h.cos_mu_g_pimu_pid_fail_h;
+  delete res_h.theta_mu_g_pimu_pid_pass_h;
+  delete res_h.theta_mu_g_pimu_pid_fail_h;
   delete res_h.g_tr_mom_pimu_pid_pass_h;
   delete res_h.g_tr_mom_pimu_pid_fail_h;
 

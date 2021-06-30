@@ -19,7 +19,7 @@
 #include "TRatioPlot.h"
 #include "TStyle.h"
 #include "TGraph.h"
-
+#include "TMath.h"
 using namespace std;
 //============================================================================//
 // Types Declaration
@@ -96,10 +96,10 @@ typedef struct ana_results_hists{
   TH1D * g_mom_1r_h;
   TH1D * g_mom_2r_h;
   TH1D * g_mom_3mr_h;    
-  TH1D * cos_mu_g_all_h;  
-  TH1D * cos_mu_g_1r_h;  
-  TH1D * cos_mu_g_2r_h;  
-  TH1D * cos_mu_g_3mr_h;  
+  TH1D * theta_mu_g_all_h;  
+  TH1D * theta_mu_g_1r_h;  
+  TH1D * theta_mu_g_2r_h;  
+  TH1D * theta_mu_g_3mr_h;  
 
   //muon histograms
   TH1D * mu_mom_all_h;
@@ -113,8 +113,8 @@ typedef struct ana_results_hists{
   TH1D * mu_mom_evis_fail_h;
   TH1D * g_mom_evis_pass_h;
   TH1D * g_mom_evis_fail_h;
-  TH1D * cos_mu_g_evis_pass_h;  
-  TH1D * cos_mu_g_evis_fail_h;  
+  TH1D * theta_mu_g_evis_pass_h;  
+  TH1D * theta_mu_g_evis_fail_h;  
   TH1D * g_tr_mom_evis_pass_h;
   TH1D * g_tr_mom_evis_fail_h;
   // FCFV
@@ -122,8 +122,8 @@ typedef struct ana_results_hists{
   TH1D * mu_mom_fcfv_fail_h;
   TH1D * g_mom_fcfv_pass_h;
   TH1D * g_mom_fcfv_fail_h;
-  TH1D * cos_mu_g_fcfv_pass_h;  
-  TH1D * cos_mu_g_fcfv_fail_h;  
+  TH1D * theta_mu_g_fcfv_pass_h;  
+  TH1D * theta_mu_g_fcfv_fail_h;  
   TH1D * g_tr_mom_fcfv_pass_h;
   TH1D * g_tr_mom_fcfv_fail_h;
   // 1 ring
@@ -131,8 +131,8 @@ typedef struct ana_results_hists{
   TH1D * mu_mom_1ring_fail_h;
   TH1D * g_mom_1ring_pass_h;
   TH1D * g_mom_1ring_fail_h;
-  TH1D * cos_mu_g_1ring_pass_h;  
-  TH1D * cos_mu_g_1ring_fail_h;  
+  TH1D * theta_mu_g_1ring_pass_h;  
+  TH1D * theta_mu_g_1ring_fail_h;  
   TH1D * g_tr_mom_1ring_pass_h;
   TH1D * g_tr_mom_1ring_fail_h;
   // emu_pid
@@ -140,8 +140,8 @@ typedef struct ana_results_hists{
   TH1D * mu_mom_emu_pid_fail_h;
   TH1D * g_mom_emu_pid_pass_h;
   TH1D * g_mom_emu_pid_fail_h;
-  TH1D * cos_mu_g_emu_pid_pass_h;  
-  TH1D * cos_mu_g_emu_pid_fail_h;  
+  TH1D * theta_mu_g_emu_pid_pass_h;  
+  TH1D * theta_mu_g_emu_pid_fail_h;  
   TH1D * g_tr_mom_emu_pid_pass_h;
   TH1D * g_tr_mom_emu_pid_fail_h;
   // mu mom
@@ -149,8 +149,8 @@ typedef struct ana_results_hists{
   TH1D * mu_mom_mu_mom_fail_h;
   TH1D * g_mom_mu_mom_pass_h;
   TH1D * g_mom_mu_mom_fail_h;
-  TH1D * cos_mu_g_mu_mom_pass_h;  
-  TH1D * cos_mu_g_mu_mom_fail_h;  
+  TH1D * theta_mu_g_mu_mom_pass_h;  
+  TH1D * theta_mu_g_mu_mom_fail_h;  
   TH1D * g_tr_mom_mu_mom_pass_h;
   TH1D * g_tr_mom_mu_mom_fail_h;
   // nb e decay
@@ -158,8 +158,8 @@ typedef struct ana_results_hists{
   TH1D * mu_mom_e_decay_fail_h;
   TH1D * g_mom_e_decay_pass_h;
   TH1D * g_mom_e_decay_fail_h;
-  TH1D * cos_mu_g_e_decay_pass_h;  
-  TH1D * cos_mu_g_e_decay_fail_h;  
+  TH1D * theta_mu_g_e_decay_pass_h;  
+  TH1D * theta_mu_g_e_decay_fail_h;  
   TH1D * g_tr_mom_e_decay_pass_h;
   TH1D * g_tr_mom_e_decay_fail_h;
   // pi mu pid
@@ -167,8 +167,8 @@ typedef struct ana_results_hists{
   TH1D * mu_mom_pimu_pid_fail_h;
   TH1D * g_mom_pimu_pid_pass_h;
   TH1D * g_mom_pimu_pid_fail_h;
-  TH1D * cos_mu_g_pimu_pid_pass_h;  
-  TH1D * cos_mu_g_pimu_pid_fail_h;  
+  TH1D * theta_mu_g_pimu_pid_pass_h;  
+  TH1D * theta_mu_g_pimu_pid_fail_h;  
   TH1D * g_tr_mom_pimu_pid_pass_h;
   TH1D * g_tr_mom_pimu_pid_fail_h;
 

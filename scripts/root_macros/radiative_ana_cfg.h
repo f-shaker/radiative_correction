@@ -20,8 +20,15 @@ const float GAMMA_ROI_MAX_MOM_BIN = 80.0; //MeV (used in fine binning)
 const float GAMMA_MOM_STEP = 5.0; // MeV
 // maximum physically possible mu momentum
 const float MU_MAX_MOM_BIN = 2000; //MeV (used to calculate last bin size)
-//maximum mu momentum of interest
+// maximum mu momentum of interest
 const float MU_ROI_MAX_MOM_BIN = 1200; //MeV (used in fine binning)
 // mu mom step size (for fine bining)
 const float MU_MOM_STEP = 20.0; // MeV
+// maximum physically possible opening angle in degree
+const float THETA_MAX_BIN = 180; //MeV (used to calculate last bin size)
+// maximum opening angle of interest
+const float THETA_ROI_MAX_BIN = 180; //MeV (used in fine binning)
+// opening angle step size (for fine bining)
+const float THETA_STEP = 2.0; // MeV
+
 #endif
