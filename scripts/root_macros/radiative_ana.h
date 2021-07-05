@@ -199,11 +199,12 @@ typedef struct ana_results_hists{
   TH1D * g_frac_en_pimu_pid_fail_h;
   TH2D * g_mom_theta_2D_pimu_pid_pass_h;
   TH2D * g_mom_theta_2D_pimu_pid_fail_h;  
-  //FV histograms
+  //FV and reconstruction residuals histograms 
   TH1D* wall_h;
   TH1D* towall_h;
   TH1D* cos_dir1r_mu_h;
-  TH1D* delta_pos1r_vtx_h; 
+  TH1D* delta_pos1r_vtx_h;
+  TH1D* mu_mom_res_h; 
   TH2D * g_tr_mom_cosalpha_2D;
   TH2D * g_tr_mom_vtx_res_2D;
  
@@ -224,14 +225,14 @@ bool pass_pi_mu_nll_cut(t2k_sk_radiative& rad_struct);
 bool pass_nb_decay_e_cut(t2k_sk_radiative& rad_struct);
 bool pass_mu_mom_cut(t2k_sk_radiative& rad_struct, float min_mu_mom =200.0);
 bool pass_evis_cut(t2k_sk_radiative& rad_struct, float min_e_mom = 30.0);
-bool pass_1muring(t2k_sk_radiative& rad_struct);
+bool pass_ccqe_numu_sample(t2k_sk_radiative& rad_struct);
 
 //supoorting functions
 void format_hist1D(TH1* hist, std::string title, int col , int width, int sty);
 void plot_hist1D(TH1* hist, std::string filename, std::string title, int col , int width, int sty);
 void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, std::string title, std::string draw_opt1, std::string draw_opt2, TLatex* tex = NULL);
 void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title);
-void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option, std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title);
+void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option, std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title, bool is_pdf=false);
 void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt);
 void print_perc(size_t ientry, size_t total_entries, int perc_step);
 void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_opt1, std::string draw_opt2);

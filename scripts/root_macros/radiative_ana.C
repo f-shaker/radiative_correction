@@ -76,7 +76,7 @@ void plot_1_res_hists(ana_results_hists& res_h, bool is_radiative){
     plot_hist1D(res_h.cos_dir1r_mu_h,"mu_g_cos_dir1r_mu", "#mu+#gamma cos#alpha_{#mufq1r};cos#alpha_{#mufq1r};count", kBlue , 2, 1);
     plot_hist2D(res_h.g_tr_mom_cosalpha_2D, "cos#alpha_{#mufq1r} vs. p_{T}_{#gamma}; p_{T}_{#gamma} [MeV];cos#alpha_{#mufq1r}", "colz");
     plot_hist1D(res_h.delta_pos1r_vtx_h, "mu_g_delta_pos1r_vtx", "#mu+#gamma #Delta pos1r-vtx;#Delta distance[cm];count", kBlue , 2, 1);
-    
+    plot_hist1D(res_h.mu_mom_res_h, "mu_g_mu_mom_res", "#mu#gamma #Delta p_{#mu};#Delta p_{#mu}[MeV];count", kBlue , 2, 1);
     plot_hist2D(res_h.g_tr_mom_vtx_res_2D, "#Delta_{#mufq1r} vs. p_{T}_{#gamma}; p_{T}_{#gamma} [MeV];#Delta_{#mufq1r}[cm]", "colz");     
 
   }else{
@@ -91,6 +91,7 @@ void plot_1_res_hists(ana_results_hists& res_h, bool is_radiative){
     plot_hist1D(res_h.towall_h,"mu_only_towall", "mu_only_towall;distance[cm];count", kBlue , 2, 1);
     plot_hist1D(res_h.cos_dir1r_mu_h,"mu_only_cos_dir1r_mu", "#mu only cos#alpha_{#mufq1r};cos#alpha_{#mufq1r};count", kBlue , 2, 1);
     plot_hist1D(res_h.delta_pos1r_vtx_h, "mu_only_delta_pos1r_vtx", "#mu only #Delta pos1r-vtx;#Delta distance[cm];count", kBlue , 2, 1);
+    plot_hist1D(res_h.mu_mom_res_h, "mu_only_mu_mom_res", "#mu only #Delta p_{#mu};#Delta p_{#mu}[MeV];count", kBlue , 2, 1);
              
   }
   plot_selection_cuts(res_h, is_radiative);  
@@ -103,7 +104,8 @@ void plot_2_res_comp_hists(ana_results_hists& res_h1, ana_results_hists& res_h2)
   plot_ratio_hist1D(res_h1.wall_h, res_h2.wall_h, "diffsig","wall_diff", "distance[cm]", "entries", "diff/#sigma");
   plot_ratio_hist1D(res_h1.towall_h, res_h2.towall_h, "diffsig","towall_diff", "distance[cm]", "entries", "diff/#sigma");  
   plot_efficency(res_h1.ana_cut_step_eff, res_h2.ana_cut_step_eff, "mu_g_eff", "mu_only_eff","mu_g_superimposed_eff");  
-  plot_ratio_hist1D(res_h1.delta_pos1r_vtx_h, res_h2.delta_pos1r_vtx_h, "diffsig","vtx_pos_diff", "#Delta_{distance}[cm]", "entries", "diff/#sigma");  
+  plot_ratio_hist1D(res_h1.delta_pos1r_vtx_h, res_h2.delta_pos1r_vtx_h, "diffsig","vtx_pos_diff", "#Delta_{distance}[cm]", "PDF", "diff/#sigma", true); 
+  plot_ratio_hist1D(res_h1.mu_mom_res_h, res_h2.mu_mom_res_h, "diffsig","mu_mom_residual", "#Delta p_{#mu}[MeV]", "PDF", "diff/#sigma", true);    
   plot_ratio_hist1D(res_h1.cos_dir1r_mu_h, res_h2.cos_dir1r_mu_h, "diffsig","vtx_dir_diff", "cos#alpha_{#mufq1r}", "entries", "diff/#sigma");  
 
 }
@@ -329,7 +331,7 @@ fiTQun single-ring pi+ hypothesis
   return is_mu;  
 }
 //============================================================================//
-bool pass_1muring(t2k_sk_radiative& rad_struct){
+bool pass_ccqe_numu_sample(t2k_sk_radiative& rad_struct){
 //============================================================================//  
 /*
 Combined selectection cuts for nu_mu CC0pi selection (CCQE + 2p2h)
@@ -612,7 +614,6 @@ void plot_efficency(cut_step_efficiency steps_eff_in1, cut_step_efficiency steps
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),fname.c_str()));
   delete canv;
 }
-//fsamir start
 //============================================================================//
 void plot_eff_ratio(TH1* pass_hist, TH1* fail_hist, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title){
 //============================================================================//
@@ -724,29 +725,40 @@ void plot_eff_ratio_2(TH1* pass_hist, TH1* fail_hist, std::string title){
   
 }
 //============================================================================//
-void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title){
+void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string filename, std::string x_axis_title,
+                       std::string y_up_axis_title, std::string y_down_axis_title,  bool is_pdf){
 //============================================================================//
-  hist1->SetStats(0);
+  TH1D * h1 = (TH1D*) hist1->Clone();
+  TH1D * h2 = (TH1D*) hist2->Clone();
+  if(is_pdf == true){
+    h1->Scale(1.0/h1->Integral("width"));
+    h2->Scale(1.0/h2->Integral("width"));
+  }
+  h1->SetTitle("");
+  h2->SetTitle(""); 
+gStyle->SetOptStat(1);
+  //h1->SetStats(0);
   //hist1->Sumw2(1);
-  hist1->SetMarkerColor(kBlue);
-  hist1->SetLineColor(kBlue);
-  hist1->GetXaxis()->SetTitle(x_axis_title.c_str()); 
+  h1->SetMarkerColor(kBlue);
+  h1->SetLineColor(kBlue);
+  h1->GetXaxis()->SetTitle(x_axis_title.c_str()); 
 
-  hist2->SetStats(0);
-  //hist2->Sumw2(1);
-  hist2->SetMarkerColor(kRed);
-  hist2->SetLineColor(kRed);
-  hist2->GetXaxis()->SetTitle(x_axis_title.c_str()); 
+  //h2->SetStats(0);
+  //h2->Sumw2(1);
+  h2->SetMarkerColor(kRed);
+  h2->SetLineColor(kRed);
+  h2->GetXaxis()->SetTitle(x_axis_title.c_str()); 
 
-  double max = hist1->GetMaximum() > hist2->GetMaximum()? hist1->GetMaximum():hist2->GetMaximum();
+  double max = h1->GetMaximum() > h2->GetMaximum()? h1->GetMaximum():h2->GetMaximum();
   max*=1.1;
-  hist1->SetMaximum(max);
-  hist2->SetMaximum(max);
+  h1->SetMaximum(max);
+  h2->SetMaximum(max);
 
   TCanvas *canv = new TCanvas("canv", "canv", 1200, 800);
-  TRatioPlot *rp = new TRatioPlot(hist1, hist2, option.c_str()); //  defaults is error is: TGraphAsymmErrors::Divide (binomial), but we can especify "pois", "divsym", ...
+  TRatioPlot *rp = new TRatioPlot(h1, h2, option.c_str()); //  defaults is error is: TGraphAsymmErrors::Divide (binomial), but we can especify "pois", "divsym", ...
 
   rp->Draw();
+  rp->GetUpperPad()->SetTitle("");//overwrite the histograms titles
   rp->GetUpperRefYaxis()->SetTitle(y_up_axis_title.c_str());
   rp->GetLowerRefYaxis()->SetTitle(y_down_axis_title.c_str());
   //rp->GetLowerRefYaxis()->SetMinimum();
@@ -763,6 +775,8 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string fi
   delete rp;
   delete legend;
   delete canv;
+  delete h1;
+  delete h2;
 
 }
 //============================================================================//
@@ -780,6 +794,7 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
   float delta_pos1r_vtx;
   float g_frac_en; // fraction energy carried by the photon = E_g/ (E_g + E_mu)
   float mu_en;
+  float mu_mom_res;
  //Main event loop
   long int nb_ev = ana_tree->GetEntries(); 
   unsigned int nb_evis_passed = 0;
@@ -848,9 +863,12 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
     ( (ana_struct.posv[1] - ana_struct.fq1rpos[0][MUON][1]) * (ana_struct.posv[1] - ana_struct.fq1rpos[0][MUON][1]) )+
     ( (ana_struct.posv[2] - ana_struct.fq1rpos[0][MUON][2]) * (ana_struct.posv[2] - ana_struct.fq1rpos[0][MUON][2]) )
     );
-    res_h->delta_pos1r_vtx_h->Fill(delta_pos1r_vtx); 
+    if(pass_ccqe_numu_sample(ana_struct)) res_h->delta_pos1r_vtx_h->Fill(delta_pos1r_vtx); 
     if(is_radiative) res_h->g_tr_mom_vtx_res_2D->Fill(g_tr_mom, delta_pos1r_vtx);
-   
+
+    mu_mom_res = ana_struct.fq1rmom[0][MUON] - ana_struct.mu_mom;
+    //fill the residual histogram for events that will pass all the selection cuts
+    if(pass_ccqe_numu_sample(ana_struct)) res_h->mu_mom_res_h->Fill(mu_mom_res);
     //Applying the numu sample cuts
     // 0. EVIS
     if (pass_evis_cut(ana_struct, float(30.0)) == true){
@@ -1198,6 +1216,7 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   res_h.g_tr_mom_cosalpha_2D = new TH2D("g_tr_mom_cosalpha", "g_tr_mom_cosalpha", g_mom_nb_bins, g_mom_bining_arr, 10, -1, 1);
   res_h.g_tr_mom_vtx_res_2D = new TH2D("g_tr_mom_vtx_res", "g_tr_mom_vtx_res_2D", g_mom_nb_bins, g_mom_bining_arr, 10, 0, 100);
 
+  res_h.mu_mom_res_h = new TH1D(Form("mu_mom_res_%s", h_name_postfix.c_str()), Form("mu_mom_res_%s", h_name_postfix.c_str()), 100, -500., 500.);
   //free dynemically allocated arrays
   delete [] g_mom_bining_arr;
   delete [] mu_mom_bining_arr;
@@ -1319,14 +1338,14 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.g_frac_en_pimu_pid_pass_h;
   delete res_h.g_frac_en_pimu_pid_fail_h;
 
-  //FV histograms
+  //FV and resconstruction residuals histograms
   delete res_h.wall_h;
   delete res_h.towall_h;
   delete res_h.cos_dir1r_mu_h;
   delete res_h.delta_pos1r_vtx_h;
   delete res_h.g_tr_mom_cosalpha_2D;
   delete res_h.g_tr_mom_vtx_res_2D;
-
+  delete res_h.mu_mom_res_h;
 }
 //============================================================================//
 double * calculate_bin_arr(double max_val, double max_roi_val, double fine_step_val, int& ret_nb_bins){
