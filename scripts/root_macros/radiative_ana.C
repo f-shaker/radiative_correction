@@ -106,7 +106,7 @@ void plot_2_res_comp_hists(ana_results_hists& res_h1, ana_results_hists& res_h2)
   plot_efficency(res_h1.ana_cut_step_eff, res_h2.ana_cut_step_eff, "mu_g_eff", "mu_only_eff","mu_g_superimposed_eff");  
   plot_ratio_hist1D(res_h1.delta_pos1r_vtx_h, res_h2.delta_pos1r_vtx_h, "diffsig","vtx_pos_diff", "#Delta_{distance}[cm]", "PDF", "diff/#sigma", true); 
   plot_ratio_hist1D(res_h1.mu_mom_res_h, res_h2.mu_mom_res_h, "diffsig","mu_mom_residual", "#Delta p_{#mu}[MeV]", "PDF", "diff/#sigma", true);    
-  plot_ratio_hist1D(res_h1.cos_dir1r_mu_h, res_h2.cos_dir1r_mu_h, "diffsig","vtx_dir_diff", "cos#alpha_{#mufq1r}", "entries", "diff/#sigma");  
+  plot_ratio_hist1D(res_h1.cos_dir1r_mu_h, res_h2.cos_dir1r_mu_h, "diffsig","vtx_dir_diff", "cos#alpha_{#mufq1r}", "PDF", "diff/#sigma", true);  
 
 }
 //============================================================================//
@@ -736,14 +736,13 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string fi
   }
   h1->SetTitle("");
   h2->SetTitle(""); 
-gStyle->SetOptStat(1);
-  //h1->SetStats(0);
+  h1->SetStats(0);
   //hist1->Sumw2(1);
   h1->SetMarkerColor(kBlue);
   h1->SetLineColor(kBlue);
   h1->GetXaxis()->SetTitle(x_axis_title.c_str()); 
 
-  //h2->SetStats(0);
+  h2->SetStats(0);
   //h2->Sumw2(1);
   h2->SetMarkerColor(kRed);
   h2->SetLineColor(kRed);
@@ -855,8 +854,8 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
     cos_dir1r_mu = (ana_struct.mu_dir[0] * ana_struct.fq1rdir[0][MUON][0])
                   +(ana_struct.mu_dir[1] * ana_struct.fq1rdir[0][MUON][1])
                   +(ana_struct.mu_dir[2] * ana_struct.fq1rdir[0][MUON][2]);
-    res_h->cos_dir1r_mu_h->Fill(cos_dir1r_mu);
-    if(is_radiative) res_h->g_tr_mom_cosalpha_2D->Fill(g_tr_mom, cos_dir1r_mu);
+    if(pass_1ring(ana_struct)) res_h->cos_dir1r_mu_h->Fill(cos_dir1r_mu);
+    if( is_radiative && pass_1ring(ana_struct) ) res_h->g_tr_mom_cosalpha_2D->Fill(g_tr_mom, cos_dir1r_mu);
     
     delta_pos1r_vtx = sqrt(
     ( (ana_struct.posv[0] - ana_struct.fq1rpos[0][MUON][0]) * (ana_struct.posv[0] - ana_struct.fq1rpos[0][MUON][0]) )+
@@ -864,7 +863,7 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
     ( (ana_struct.posv[2] - ana_struct.fq1rpos[0][MUON][2]) * (ana_struct.posv[2] - ana_struct.fq1rpos[0][MUON][2]) )
     );
     if(pass_ccqe_numu_sample(ana_struct)) res_h->delta_pos1r_vtx_h->Fill(delta_pos1r_vtx); 
-    if(is_radiative) res_h->g_tr_mom_vtx_res_2D->Fill(g_tr_mom, delta_pos1r_vtx);
+    if( is_radiative && pass_ccqe_numu_sample(ana_struct) ) res_h->g_tr_mom_vtx_res_2D->Fill(g_tr_mom, delta_pos1r_vtx);
 
     mu_mom_res = ana_struct.fq1rmom[0][MUON] - ana_struct.mu_mom;
     //fill the residual histogram for events that will pass all the selection cuts
@@ -1211,7 +1210,7 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   //FV histograms
   res_h.wall_h = new TH1D(Form("wall_%s", h_name_postfix.c_str()), Form("wall_%s", h_name_postfix.c_str()), 36, 0., 1800.);
   res_h.towall_h = new TH1D(Form("towall_%s", h_name_postfix.c_str()), Form("towall_%s", h_name_postfix.c_str()), 36, 0., 1800.);
-  res_h.cos_dir1r_mu_h = new TH1D(Form("cos_dir1r_mu_%s", h_name_postfix.c_str()), Form("cos_dir1r_mu_%s", h_name_postfix.c_str()), 10, -1, 1); 
+  res_h.cos_dir1r_mu_h = new TH1D(Form("cos_dir1r_mu_%s", h_name_postfix.c_str()), Form("cos_dir1r_mu_%s", h_name_postfix.c_str()), 50, -1, 1); 
   res_h.delta_pos1r_vtx_h = new TH1D(Form("delta_pos1r_vtx_%s", h_name_postfix.c_str()), Form("delta_pos1r_vtx_%s", h_name_postfix.c_str()), 10, 0., 100.);     
   res_h.g_tr_mom_cosalpha_2D = new TH2D("g_tr_mom_cosalpha", "g_tr_mom_cosalpha", g_mom_nb_bins, g_mom_bining_arr, 10, -1, 1);
   res_h.g_tr_mom_vtx_res_2D = new TH2D("g_tr_mom_vtx_res", "g_tr_mom_vtx_res_2D", g_mom_nb_bins, g_mom_bining_arr, 10, 0, 100);

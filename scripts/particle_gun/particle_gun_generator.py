@@ -1,7 +1,11 @@
 import numpy as np
-from math import pi 
+from math import pi
+
+from numpy.core.fromnumeric import shape 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from scipy.spatial.transform import Rotation as R
 import sys
 from termcolor import colored
 #----------Parameters Definition Start----------
@@ -171,6 +175,7 @@ def mc_sample_pdf_hist(pfd_file=None, val_array=None, x_min=0, x_max=1.0, nb_bin
     return mc_val
 #------------------------------------------------------------------------------ 
 def sample_kinematics_from_file(kin_file=None, num_samples=1):
+#------------------------------------------------------------------------------     
     #read the file in an np array
     # values are organized as total_en, dir_x, dir_y, dir_z, pos_x, pos_y, pos_z    
     vals = np.loadtxt(kin_file)
@@ -206,6 +211,149 @@ def generate_gamma_dir(nb_events):
 #------------------------------------------------------------------------------     
     return random_3d_unit_vector(nb_events)
 #------------------------------------------------------------------------------ 
+def generate_gamma_dir_from_lep_dir_tst(lep_dir, opening_angle_max_rad, nb_samples):
+#------------------------------------------------------------------------------ 
+    # step 1 generate a random uniform distribution on a batch of the sphere surface,
+    # i.e uniform in cos(theta) from 0 to cos(opening_angle_max) and uniform in phi
+    cos_theta = np.random.uniform(np.cos(opening_angle_max_rad), 1., nb_samples) 
+    phi = np.random.uniform(0, 2*pi, nb_samples)
+    #x = np.sin(theta) * np.cos(phi)
+    x = np.sqrt(np.ones(shape=cos_theta.shape) - np.square(cos_theta)) * np.cos(phi) #sin_theta = sqrt(1-cos_theta^2)
+    #y = np.sin(theta) * np.sin(phi)
+    y = np.sqrt(np.ones(shape=cos_theta.shape) - np.square(cos_theta)) * np.sin(phi) 
+    #z = np.cos(theta)
+    z = cos_theta
+    rand_g_dir_before_rot = np.column_stack((x, y, z)) 
+    rand_g_dir_after_rot = np.array([], dtype=np.float32)
+    # step 2 rotate coordinate such that the z-axis of the above direction overlap the lep_dir
+    # detector coordiantes
+    x_d = np.array([1, 0, 0])
+    y_d = np.array([0, 1, 0])
+    z_d = np.array([0, 0, 1])
+
+    for i in range(lep_dir.shape[0]):
+        # lep coordinates
+        z_l = lep_dir[i, :]
+        # build a right hand coordinate system for the lepton, the x and y direction are not important due to symmetry
+        # before using cross product check f the vectors are parallel
+        dot_tol = 1e-6
+        if np.abs(np.dot(z_l, x_d) ) < (1- dot_tol):
+            # z_l is not parallel to x_d 
+            y_l = np.cross(z_l, x_d)
+            x_l = np.cross(y_l, z_l)
+        else:
+            # z_l is almost parallel to x_d
+            x_l = np.cross(y_d, z_l)
+            y_l = np.cross(z_l, x_l)
+
+        # step 3 find rotation transformation that map detector coordinates to lepton coordinates, s.t.
+        # lep_dir = Rot_mat . z_detector 
+        # a rotation matrix for each lep direction entry
+        #find axis or ratation (perpondicular on both the z_l and z_d)
+        rot_axis = np.cross(z_d, z_l)
+        rot_axis_mag = np.sqrt(rot_axis[0]*rot_axis[0] + rot_axis[1]*rot_axis[1] + rot_axis[2]*rot_axis[2])
+        if  rot_axis_mag < dot_tol:
+            rot_axis = np.array([1, 0, 0]) #mu is // to z use x as rotation axis
+            rot_axis_mag = 1.0
+        #nprmalize the rotation axis
+        rot_axis = rot_axis/rot_axis_mag
+        #find angle of ration
+        rot_angle = np.arccos(np.dot(z_l, z_d))
+        quat_angle = rot_angle/2.0
+        print("rot angle = {}", rot_angle)
+        #This is a scalar last format
+        rot_mat = R.from_quat([np.sin(quat_angle)*rot_axis[0], np.sin(quat_angle)*rot_axis[1], np.sin(quat_angle)*rot_axis[2], np.cos(quat_angle)])
+        g_dir_after_rot = rot_mat.apply(rand_g_dir_before_rot)                                        
+        rand_g_dir_after_rot = np.append(rand_g_dir_after_rot, g_dir_after_rot)
+    
+    rand_g_dir_after_rot = rand_g_dir_after_rot.reshape(int(rand_g_dir_after_rot.size/3), 3)
+    print (rand_g_dir_after_rot.shape)
+    return  rand_g_dir_before_rot, rand_g_dir_after_rot  
+#------------------------------------------------------------------------------ 
+def test_gamma_dir():
+    #mu_dir = np.array([[-1/np.sqrt(3), -1./np.sqrt(3), -1./np.sqrt(3)]])
+    #mu_dir = np.array([[0, 1/np.sqrt(2), 1./np.sqrt(2)]])
+    #mu_dir = np.array([[0, 0, 1.]])
+    mu_dir = np.full((100000, 3), [-1/np.sqrt(3), -1./np.sqrt(3), -1./np.sqrt(3)])
+    opening_angle = 60.0* pi / 180.0
+    
+    g_before, g_after, cos_op = generate_gamma_dir_from_lep_dir(lep_dir=mu_dir, opening_angle_max_rad=opening_angle)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(g_before[:,0], g_before[:,1], g_before[:,2], alpha=0.3, color='blue')
+    ax.scatter(g_after[:,0], g_after[:,1], g_after[:,2], alpha=0.3, color='red')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+
+    ax.set_xlim([-1.0, 1.0])
+    ax.set_ylim([-1.0, 1.0])
+    ax.set_zlim([-1.0, 1.0])
+    #plot the axis at origin as vectors
+    x_o = np.zeros(3)
+    y_o = np.zeros(3)
+    z_o = np.zeros(3)
+    w_o = np.zeros(3)
+
+    x_v = np.array([1, 0, 0])
+    y_v = np.array([0, 1, 0])
+    z_v = np.array([0, 0, 1])
+
+    #q = ax.quiver(x_o,y_o, z_o, w_o, x_v, y_v, z_v, mu_dir, color='black')
+    q = ax.quiver(x_o,y_o, z_o, x_v, y_v, z_v, color='black')
+    q2 = ax.quiver([0], [0], [0], mu_dir[:,0], mu_dir[:,1], mu_dir[:,2], color='green')
+    plt.savefig(plot_dir+"tst_g_rot"+plot_extension)
+    plt.show() 
+    plot_1D_pdf_hist(cos_op, nb_bins_or_edges=50, var_name='cos', plot_name='cos_opening_angle_dist')
+#------------------------------------------------------------------------------ 
+def generate_gamma_dir_from_lep_dir(lep_dir, opening_angle_max_rad):
+#------------------------------------------------------------------------------ 
+    # step 1 generate a random uniform distribution on a batch of the sphere surface,
+    # i.e uniform in cos(theta) from 0 to cos(opening_angle_max) and uniform in phi
+    cos_theta = np.random.uniform(np.cos(opening_angle_max_rad), 1., lep_dir.shape[0]) 
+    phi = np.random.uniform(0, 2*pi, lep_dir.shape[0])
+    #x = np.sin(theta) * np.cos(phi)
+    x = np.sqrt(np.ones(shape=cos_theta.shape) - np.square(cos_theta)) * np.cos(phi) #sin_theta = sqrt(1-cos_theta^2)
+    #y = np.sin(theta) * np.sin(phi)
+    y = np.sqrt(np.ones(shape=cos_theta.shape) - np.square(cos_theta)) * np.sin(phi) 
+    #z = np.cos(theta)
+    z = cos_theta
+    g_dir_before_rot = np.column_stack((x, y, z)) 
+    g_dir_after_rot = np.array([], dtype=np.float32) 
+    # step 2 rotate coordinate such that the z-axis of the above direction overlap the lep_dir
+    # detector coordiantes
+    x_d = np.array([1, 0, 0])
+    y_d = np.array([0, 1, 0])
+    z_d = np.array([0, 0, 1])
+
+    # step 3 find rotation transformation that map detector coordinates to lepton coordinates, s.t.
+    # lep_dir = Rot_mat . z_detector 
+    # a rotation matrix for each lep direction entry
+    #find axis or ratation (perpondicular on both the z_l and z_d)
+    for i in range(lep_dir.shape[0]):
+        rot_axis = np.cross(z_d, lep_dir[i,:])
+        rot_axis_mag = np.sqrt(rot_axis[0]*rot_axis[0] + rot_axis[1]*rot_axis[1] + rot_axis[2]*rot_axis[2])
+        if  rot_axis_mag < 1e-4:
+            rot_axis = np.array([1, 0, 0]) #mu is // to z use x as rotation axis
+            rot_axis_mag = 1.0
+            #nprmalize the rotation axis
+        rot_axis = rot_axis/rot_axis_mag
+        #find angle of ration
+        rot_angle = np.arccos(np.dot(z_d, lep_dir[i,:]))
+        quat_angle = rot_angle/2.0
+        #scipy has quaternion in a scalar last format [vector, real],i.e. q = [sin(theta) * vec, cos(theta)]
+        rot_mat = R.from_quat([np.sin(quat_angle)*rot_axis[0], np.sin(quat_angle)*rot_axis[1], np.sin(quat_angle)*rot_axis[2], np.cos(quat_angle)])
+        g_dir_after_rot_i = rot_mat.apply(g_dir_before_rot[i,:]) 
+        if g_dir_after_rot.size == 0:
+            #an empty array at the begining
+            g_dir_after_rot =  np.array([g_dir_after_rot_i])
+        else:                               
+            g_dir_after_rot = np.vstack((g_dir_after_rot, g_dir_after_rot_i))
+    
+            
+    return  g_dir_before_rot, g_dir_after_rot  
+
 def conserve_En_momentum_radiative(lep_mass, lep_total_en_init, lep_dir_init):
 #------------------------------------------------------------------------------     
     # magnitude of the lepton momentun np.array of shape = (nb_entries,1)
@@ -242,13 +390,14 @@ def conserve_En_radiative(lep_mass, lep_total_en_init, lep_dir_init):
     """     
     #generate gamma kinematics
     gamma_en = generate_gamma_en(lep_mass, lep_total_en_init)
-    gamma_dir = generate_gamma_dir(gamma_en.size)    
+    #gamma_dir = generate_gamma_dir(gamma_en.size)    #old uniform in 3d
+    g_dir_before_rot, g_dir_after_rot = generate_gamma_dir_from_lep_dir(lep_dir=lep_dir_init, opening_angle_max_rad=50.0*pi/180.0)   
     
     #calculate lepton final kinematics
     lep_en = lep_total_en_init - gamma_en
     
     #remove unncessary extra dim in the returned energy arrays
-    return lep_en, lep_dir_init, gamma_en, gamma_dir   
+    return lep_en, lep_dir_init, gamma_en, g_dir_after_rot   
 
 #------------------------------------------------------------------------------
 # Particle Gun generator
@@ -338,9 +487,13 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_ki
         #gamma_en_bin_edges = np.arange(0, 2000, 20)
         #plot_1D_pdf_hist(gamma_total_en, nb_bins_or_edges=gamma_en_bin_edges, var_name='$En_\gamma$', plot_name='gamma_total_en')        
         plot_1D_pdf_hist(gamma_total_en, nb_bins_or_edges=50, var_name='$En_\gamma$', plot_name='gamma_total_en')
+        cos_op_angle = np.array([])
+        for row in range(lep_dir.shape[0]):
+            cos_op_angle = np.append(cos_op_angle, np.dot(lep_dir[row,:], gamma_dir[row, :]))
+        plot_1D_pdf_hist(cos_op_angle, nb_bins_or_edges=50, var_name='$cos \\theta_{\mu\gamma}$', plot_name='cos_opening_angle')
         
 #------------------------------------------------------------------------------ 
 # Test generate_radiative_corr_particle_gun
-#generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'mu_mom.txt' ,file_name=temp_output_dir+'pg_mu_ID_10e4.txt', plot_dist=True)
 generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'particle_kinematics_vtx.txt' ,\
-                                     file_name=temp_output_dir+'pg_mu_ID_g80_10e4.txt', plot_dist=True)
+                                     file_name=temp_output_dir+'pg_mu_ID_g80_th50_10e4.txt', plot_dist=True)
+#test_gamma_dir()
