@@ -160,6 +160,10 @@ typedef struct ana_results_hists{
   TH1D * g_frac_en_emu_pid_fail_h;  
   TH2D * g_mom_theta_2D_emu_pid_pass_h;
   TH2D * g_mom_theta_2D_emu_pid_fail_h;  
+  TH1D * theta_mu1r_emu_pid_pass_h;
+  TH1D * theta_mu1r_emu_pid_fail_h;
+  TH1D * theta_g1r_emu_pid_pass_h;
+  TH1D * theta_g1r_emu_pid_fail_h;
   // mu mom
   TH1D * mu_mom_mu_mom_pass_h;
   TH1D * mu_mom_mu_mom_fail_h;
