@@ -206,7 +206,7 @@ typedef struct ana_results_hists{
   //FV and reconstruction residuals histograms 
   TH1D* wall_h;
   TH1D* towall_h;
-  TH1D* cos_dir1r_mu_h;
+  TH1D* alpha_dir1r_mu_h;
   TH1D* delta_pos1r_vtx_h;
   TH1D* mu_mom_res_h; 
   TH2D * g_tr_mom_cosalpha_2D;
