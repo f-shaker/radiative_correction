@@ -21,6 +21,8 @@
 #include "TGraph.h"
 #include "TMath.h"
 using namespace std;
+  // J-PARC beam direction in SK coordinates
+  static const double beamdir[3] = { 0.669764, -0.742179, 0.024223 };
 //============================================================================//
 // Types Declaration
 //============================================================================//
@@ -56,7 +58,9 @@ typedef struct t2k_sk_radiative{
   Currently, only the electron, muon, and pion (the upstream pion segement) hypotheses are implemented.
   */
   int fqmrpid[100][6]; 
-   
+  // Pi0 fit variables
+  float fqpi0nll[2];
+  float fqpi0mass[2]; 
   // NEUT (truth) variables
   int  npar; // number of particles  
   unsigned char ipv[100]; //numbering convension is 0 = neutrino, 1 = nucleon, 2 = lepton, 4 = output hadron, >= 5 others (not in case of 2p2h)
@@ -222,14 +226,28 @@ void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct);
 // CCQE (CC0pi) nu_mu sample selection 
 float ComputeWall(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
 float ComputeTowall(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
-bool pass_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
+float ComputeCosBeam( int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
+float compute_nu_en_rec_CCQE(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
+float compute_nu_en_rec_RES(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
+
+bool pass_mu_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
 bool pass_1ring(t2k_sk_radiative& rad_struct);
-bool pass_e_mu_nll_cut(t2k_sk_radiative& rad_struct);
-bool pass_pi_mu_nll_cut(t2k_sk_radiative& rad_struct);
-bool pass_nb_decay_e_cut(t2k_sk_radiative& rad_struct);
+bool pass_mu_e_nll_cut(t2k_sk_radiative& rad_struct);
+bool pass_mu_pi_nll_cut(t2k_sk_radiative& rad_struct);
+bool pass_mu_nb_decay_e_cut(t2k_sk_radiative& rad_struct);
 bool pass_mu_mom_cut(t2k_sk_radiative& rad_struct, float min_mu_mom =200.0);
 bool pass_evis_cut(t2k_sk_radiative& rad_struct, float min_e_mom = 30.0);
 bool pass_ccqe_numu_sample(t2k_sk_radiative& rad_struct);
+// CCQE nu_e sample
+bool pass_e_pi0_nll_cut(t2k_sk_radiative& rad_struct);
+bool pass_e_mu_nll_cut(t2k_sk_radiative& rad_struct);
+bool pass_e_mom_cut(t2k_sk_radiative& rad_struct, float min_e_mom);
+bool pass_1e_nb_decay_e_cut(t2k_sk_radiative& rad_struct);
+bool pass_1e1de_nb_decay_e_cut(t2k_sk_radiative& rad_struct);
+bool pass_1e_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
+bool pass_1e1de_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
+bool pass_nu_en_rec_CCQE_cut(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct, float max_nu_en);
+bool pass_nu_en_rec_RES_cut(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct, float max_nu_en);
 
 //supoorting functions
 void format_hist1D(TH1* hist, std::string title, int col , int width, int sty);
@@ -254,7 +272,8 @@ void plot_eff_ratio_2(TH1* pass_hist, TH1* fail_hist, std::string title);
 void fill_particle_kin(t2k_sk_radiative & ana_struct);  
 void init_result_hists(ana_results_hists& res_h, bool is_radiative);
 void clear_result_hists(ana_results_hists& res_h);       
-ana_results_hists* analyze(TTree* ana_tree, bool is_radiative);
+ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative);
+ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de);
 
 void plot_results_hists(ana_results_hists& res_h1, ana_results_hists& res_h2); 
 void plot_1_res_hists(ana_results_hists& res_h,  bool is_radiative); 

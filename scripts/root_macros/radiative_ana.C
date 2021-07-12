@@ -15,17 +15,32 @@ void radiative_ana(){
   TFile *f_mu_g=new TFile(mu_gamma_file.c_str());
   TTree *tr_mu_g=(TTree*)f_mu_g->Get("h1");
   //analyze radiative particle gun (is_radiative = true)
-  ana_results_hists* mu_g_results = analyze(tr_mu_g, true);
+  ana_results_hists* mu_g_results = analyze_1mu(tr_mu_g, true);
 
   // non radiative (mu only) particle gun file
   TFile *f_mu_only=new TFile(mu_file_fin.c_str());
   TTree *tr_mu_only=(TTree*)f_mu_only->Get("h1");
-  ana_results_hists* mu_only_results = analyze(tr_mu_only, false);
-
+  ana_results_hists* mu_only_results = analyze_1mu(tr_mu_only, false);
+  
   plot_results_hists(*mu_g_results, *mu_only_results);
+  
+  // nue Analysis
+  ana_results_hists* e_res_mu_g = analyze_1e(tr_mu_g, true, 0);
+  ana_results_hists* e1de_res_mu_g = analyze_1e(tr_mu_g, true, 1);
+  ana_results_hists* e_res_mu_only = analyze_1e(tr_mu_only, false, 0);
+  ana_results_hists* e1de_res_mu_only = analyze_1e(tr_mu_only, false, 1);
+  plot_efficency(e_res_mu_g->ana_cut_step_eff, "e_step_eff_mu_g");
+  plot_efficency(e1de_res_mu_g->ana_cut_step_eff, "e1de_step_eff_mu_g");
+  plot_efficency(e_res_mu_only->ana_cut_step_eff, "e_step_eff_mu_only");
+  plot_efficency(e1de_res_mu_only->ana_cut_step_eff, "e1de_step_eff_mu_only");
+  plot_efficency(e_res_mu_g->ana_cut_step_eff, e_res_mu_only->ana_cut_step_eff, "1e #mu#gamma", "1e #mu only","e_sup_eff");
+  plot_efficency(e1de_res_mu_g->ana_cut_step_eff, e1de_res_mu_only->ana_cut_step_eff, "1e1de #mu#gamma", "1e1de #mu only","e1de_sup_eff"); 
+
   // free allocated dynamic memory
   clear_result_hists(*mu_g_results);
   clear_result_hists(*mu_only_results);
+  clear_result_hists(*e_res_mu_g);
+  clear_result_hists(*e1de_res_mu_g);
 }
 //============================================================================//
 void plot_results_hists(ana_results_hists& rad_res_h, ana_results_hists& mu_res_h){
@@ -263,6 +278,17 @@ Lifted from Minituple code
   return  (l_t > l_b ? l_b:l_t);
 }
 //============================================================================//
+float ComputeCosBeam( int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
+//============================================================================//
+/*
+  Cos angle between the nu beam and the particle, necessary for nu energy reconstruction
+*/   
+    float cosb = rad_struct.fq1rdir[nsubevent][i_particle][0] * beamdir[0] +
+                 rad_struct.fq1rdir[nsubevent][i_particle][1] * beamdir[1] +
+                 rad_struct.fq1rdir[nsubevent][i_particle][2] * beamdir[2] ;
+    return cosb;
+}
+//============================================================================//
 //Selection Cuts
 //============================================================================//
 bool pass_evis_cut(t2k_sk_radiative& rad_struct, float min_e_mom){
@@ -273,7 +299,7 @@ bool pass_evis_cut(t2k_sk_radiative& rad_struct, float min_e_mom){
   return (rad_struct.fq1rmom[0][ELECTRON] > min_e_mom);
 }
 //============================================================================//
-bool pass_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
+bool pass_mu_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
 //============================================================================//  
 /*
 1.Fully-contained in SK fiducial volume: classified by OD activity and total PMT hits as
@@ -298,7 +324,7 @@ bool pass_1ring(t2k_sk_radiative& rad_struct){
   return (rad_struct.fqmrnring[0] == 1);
 }
 //============================================================================//
-bool pass_e_mu_nll_cut(t2k_sk_radiative& rad_struct){
+bool pass_mu_e_nll_cut(t2k_sk_radiative& rad_struct){
 //============================================================================//  
 /*
 3.The ring is identified as muon-like by the single-ring fitter: ln (L_e /L_mu ) < 0.2 × p_e , where
@@ -322,7 +348,7 @@ MeV/c
   return (rad_struct.fq1rmom[0][MUON] > min_mu_mom);
 }
 //============================================================================//
-bool pass_nb_decay_e_cut(t2k_sk_radiative& rad_struct){
+bool pass_mu_nb_decay_e_cut(t2k_sk_radiative& rad_struct){
 //============================================================================//  
 /*
 5. Number of sub-events (identified by hits timing clusters) is 1 or 2 (i.e. number of decay
@@ -331,7 +357,7 @@ electrons is 0 or 1).
   return ( (rad_struct.fqnse == 1) || (rad_struct.fqnse ==2) );
 }
 //============================================================================//
-bool pass_pi_mu_nll_cut(t2k_sk_radiative& rad_struct){
+bool pass_mu_pi_nll_cut(t2k_sk_radiative& rad_struct){
 //============================================================================//
 /*
 6.fiTQun pi+ rejection cut: ln (L_pi+ /L_mu ) < 0.15 × p_mu , where ln L_pi+ is the log likelihood of
@@ -353,12 +379,186 @@ Combined selectection cuts for nu_mu CC0pi selection (CCQE + 2p2h)
   float min_e_mom = 30.0;//MeV
   float min_mu_mom = 200;//MeV
   return  pass_evis_cut(rad_struct, min_e_mom)&&
-          pass_FCFV(0, MUON, rad_struct) &&
+          pass_mu_FCFV(0, MUON, rad_struct) &&
           pass_1ring(rad_struct) &&
-          pass_e_mu_nll_cut(rad_struct)&&
+          pass_mu_e_nll_cut(rad_struct)&&
           pass_mu_mom_cut(rad_struct, min_mu_mom) &&
-          pass_nb_decay_e_cut(rad_struct)&&
-          pass_pi_mu_nll_cut(rad_struct);
+          pass_mu_nb_decay_e_cut(rad_struct)&&
+          pass_mu_pi_nll_cut(rad_struct);
+}
+//============================================================================// 
+// nu-e related cuts
+//============================================================================// 
+bool pass_e_pi0_nll_cut(t2k_sk_radiative& rad_struct){
+//============================================================================//   
+/*
+fiTQun pi0 rejection, ln( L_pi0 / L_e) < 175 - 0.875*m_pi0
+*/
+  bool is_e = false;
+  float discr = rad_struct.fq1rnll[0][ELECTRON] - rad_struct.fqpi0nll[0] -175 + 0.875*rad_struct.fqpi0mass[0];
+  if(discr < 0){
+    is_e = true;
+  }
+  return is_e;
+}
+//============================================================================//
+bool pass_e_mu_nll_cut(t2k_sk_radiative& rad_struct){
+//============================================================================//   
+/*
+fiTQun mu rejection, ln (L_e /L_mu ) > 0.2 × p_e
+*/
+  bool is_e = false;
+  float discr = rad_struct.fq1rnll[0][MUON]-rad_struct.fq1rnll[0][ELECTRON]-0.2*rad_struct.fq1rmom[0][ELECTRON];
+  if(discr >= 0){
+    is_e = true;
+  }
+  return is_e;
+}
+//============================================================================//
+bool pass_e_mom_cut(t2k_sk_radiative& rad_struct, float min_e_mom){
+//============================================================================//  
+/*
+Reconstructed electron momentum of the single-ring e-like hypothesis p_e is larger than 100
+MeV/c
+*/  
+  return (rad_struct.fq1rmom[0][ELECTRON] > min_e_mom);
+}
+//============================================================================//
+bool pass_1e_nb_decay_e_cut(t2k_sk_radiative& rad_struct){
+//============================================================================//  
+/*
+Number of sub-events (identified by hits timing clusters) is 1 (i.e. number of decay
+electrons is 0).
+*/  
+  return (rad_struct.fqnse == 1) ;
+}
+//============================================================================//
+bool pass_1e1de_nb_decay_e_cut(t2k_sk_radiative& rad_struct){
+//============================================================================//  
+/*
+Number of sub-events (identified by hits timing clusters) is 2 (i.e. number of decay
+electrons is 1).
+*/  
+  return (rad_struct.fqnse == 2) ;
+}
+//============================================================================//
+bool pass_1e_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
+//============================================================================//  
+/*
+Fully-contained in SK fiducial volume: classified by OD activity and total PMT hits as
+fully contained events; wall > 80cm, towall > 170cm. 
+*/  
+  if(rad_struct.nhitac >= 16) return false;
+  float wall_dist = ComputeWall(nsubevent, i_particle, rad_struct);
+  if(wall_dist <= 80 ) return false;
+  float to_wall_dist = ComputeTowall(nsubevent, i_particle, rad_struct);
+  if(to_wall_dist <= 170) return false;
+  return true;
+}
+//============================================================================//
+bool pass_1e1de_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
+//============================================================================//  
+/*
+Fully-contained in SK fiducial volume: classified by OD activity and total PMT hits as
+fully contained events; wall > 50cm, towall > 270cm. 
+*/  
+  if(rad_struct.nhitac >= 16) return false;
+  float wall_dist = ComputeWall(nsubevent, i_particle, rad_struct);
+  if(wall_dist <= 50 ) return false;
+  float to_wall_dist = ComputeTowall(nsubevent, i_particle, rad_struct);
+  if(to_wall_dist <= 270) return false;
+  return true;
+}
+//============================================================================//  
+bool pass_nu_en_rec_CCQE_cut(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct, float max_nu_en){
+//============================================================================//  
+/*
+Reconstructed neutrino energy E_rec is less than 1250 MeV under CCQE formula
+*/
+  float nu_en = compute_nu_en_rec_CCQE(nsubevent, i_particle, rad_struct);
+  return (nu_en < max_nu_en);
+
+}
+//============================================================================//  
+float compute_nu_en_rec_CCQE(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
+//============================================================================//  
+// phisics constants
+  static const double Vnuc  = 27.0        ; // MeV 
+  static const double mn    = 939.565346  ; // MeV
+  static const double mp    = 938.272013  ; // MeV
+    
+  static const double me    = 0.510998   ; // MeV
+  static const double mm    = 105.65836  ; // MeV
+
+  double mass;
+  if(i_particle == ELECTRON){
+    mass = me;
+  }else if(i_particle == MUON){
+    mass = mm;
+  }else{
+    std::cout<<"Unknown Partilce! CANNOT reconstruct neutrino energy!"<<std::endl;
+    std::exit(-1);
+  }
+  
+  float cos_beam = ComputeCosBeam(nsubevent, i_particle, rad_struct);
+  float lep_mom = rad_struct.fq1rmom[nsubevent][i_particle];
+   
+  float nu_en  = 0.;
+  float lep_en = sqrt( mass*mass + lep_mom*lep_mom );
+      
+  nu_en = ( mn - Vnuc)*lep_en - mass*mass/2. ;
+  nu_en+=   mn*Vnuc  - Vnuc*Vnuc/2.;
+  nu_en+= ( mp*mp - mn*mn)/2.;
+    
+  nu_en/= ( mn - Vnuc - lep_en + lep_mom*cos_beam ); 
+
+  return nu_en;
+
+}
+//============================================================================//  
+bool pass_nu_en_rec_RES_cut(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct, float max_nu_en){
+//============================================================================//  
+/*
+Reconstructed neutrino energy E_rec is less than 1250 MeV under CCRES formula
+*/
+  float nu_en = compute_nu_en_rec_RES(nsubevent, i_particle, rad_struct);
+  return (nu_en < max_nu_en);
+
+}
+//============================================================================//  
+float compute_nu_en_rec_RES(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct){
+//============================================================================//  
+// phisics constants
+  static const double Vnuc  = 27.0        ; // MeV 
+  static const double mn    = 939.565346  ; // MeV
+  static const double mp    = 938.272013  ; // MeV
+  static const double md    = 1232.0  ; // MeV
+    
+  static const double me    = 0.510998   ; // MeV
+  static const double mm    = 105.65836  ; // MeV
+
+  double mass;
+  if(i_particle == ELECTRON){
+    mass = me;
+  }else if(i_particle == MUON){
+    mass = mm;
+  }else{
+    std::cout<<"Unknown Partilce! CANNOT reconstruct neutrino energy!"<<std::endl;
+    std::exit(-1);
+  }
+  
+  float cos_beam = ComputeCosBeam(nsubevent, i_particle, rad_struct);
+  float lep_mom = rad_struct.fq1rmom[nsubevent][i_particle];
+   
+  float nu_en  = 0.;
+  float lep_en = sqrt( mass*mass + lep_mom*lep_mom );
+      
+  nu_en  = mp *lep_en - mass*mass/2. ;
+  nu_en += ( md*md - mp*mp)/2.;
+  nu_en /= ( mp - lep_en + lep_mom*cos_beam );
+
+  return nu_en;
+
 }
 //============================================================================//
 // Data Structure Filling
@@ -382,6 +582,11 @@ void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct){
   tr->SetBranchAddress("fqmrnring", rad_struct.fqmrnring);
   tr->SetBranchStatus("fqmrpid", 1);
   tr->SetBranchAddress("fqmrpid", rad_struct.fqmrpid);
+
+  tr->SetBranchStatus("fqpi0nll", 1);
+  tr->SetBranchAddress("fqpi0nll", rad_struct.fqpi0nll);
+  tr->SetBranchStatus("fqpi0mass", 1);
+  tr->SetBranchAddress("fqpi0mass", rad_struct.fqpi0mass);
 
   // NEUT (truth) variable
   tr->SetBranchStatus("npar", 1);
@@ -793,7 +998,7 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string fi
 
 }
 //============================================================================//
-ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
+ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
 //============================================================================//  
   t2k_sk_radiative ana_struct;
   set_tree_addresses(ana_tree, ana_struct);
@@ -918,7 +1123,7 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
     if (pass_evis_cut(ana_struct, float(30.0)) == false) continue;
 
     // 1. FCFV CUT
-    if (pass_FCFV(0, MUON, ana_struct) == true){
+    if (pass_mu_FCFV(0, MUON, ana_struct) == true){
       //pass
       res_h->mu_mom_fcfv_pass_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_fcfv_pass_h->Fill(ana_struct.g_mom);
@@ -937,7 +1142,7 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
       if(is_radiative) res_h->g_mom_theta_2D_fcfv_fail_h->Fill(ana_struct.g_mom, theta_mu_g);      
     }
     //apply the cut
-    if (pass_FCFV(0, MUON, ana_struct) == false) continue;
+    if (pass_mu_FCFV(0, MUON, ana_struct) == false) continue;
     
     // 2. 1ring
     if (pass_1ring(ana_struct) == true){
@@ -962,7 +1167,7 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
     if (pass_1ring(ana_struct) == false) continue;
 
     // 3. e/mu pid
-    if (pass_e_mu_nll_cut(ana_struct) == true){
+    if (pass_mu_e_nll_cut(ana_struct) == true){
       //pass
       res_h->mu_mom_emu_pid_pass_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_emu_pid_pass_h->Fill(ana_struct.g_mom);
@@ -986,7 +1191,7 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
 
     }
     //apply the cut
-    if (pass_e_mu_nll_cut(ana_struct) == false) continue;
+    if (pass_mu_e_nll_cut(ana_struct) == false) continue;
 
     // 4. mu mom 
     if (pass_mu_mom_cut(ana_struct, float(200.0)) == true){
@@ -1011,7 +1216,7 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
     if (pass_mu_mom_cut(ana_struct, float(200.0)) == false) continue;
 
     // 5. number of e decay  
-    if (pass_nb_decay_e_cut(ana_struct) == true){
+    if (pass_mu_nb_decay_e_cut(ana_struct) == true){
       //pass
       res_h->mu_mom_e_decay_pass_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_e_decay_pass_h->Fill(ana_struct.g_mom);
@@ -1030,10 +1235,10 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
       if(is_radiative) res_h->g_mom_theta_2D_e_decay_fail_h->Fill(ana_struct.g_mom, theta_mu_g);      
     }
     //apply the cut
-    if (pass_nb_decay_e_cut(ana_struct) == false) continue;
+    if (pass_mu_nb_decay_e_cut(ana_struct) == false) continue;
 
     // 6. pi/mu pid  
-    if (pass_pi_mu_nll_cut(ana_struct) == true){
+    if (pass_mu_pi_nll_cut(ana_struct) == true){
       //pass
       res_h->mu_mom_pimu_pid_pass_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_pimu_pid_pass_h->Fill(ana_struct.g_mom);
@@ -1052,7 +1257,7 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
       if(is_radiative) res_h->g_mom_theta_2D_pimu_pid_fail_h->Fill(ana_struct.g_mom, theta_mu_g);      
     }
     //apply the cut
-    if (pass_pi_mu_nll_cut(ana_struct) == false) continue;
+    if (pass_mu_pi_nll_cut(ana_struct) == false) continue;
 
 
   }//end of the tree event loop
@@ -1073,6 +1278,166 @@ ana_results_hists* analyze(TTree* ana_tree, bool is_radiative){
   res_h->ana_cut_step_eff[6].second = nb_e_decay_passed;
   res_h->ana_cut_step_eff[7].first = "pimu_pid";
   res_h->ana_cut_step_eff[7].second = nb_pimu_pid_passed;
+
+ return res_h;
+
+}
+//============================================================================//
+ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de){
+//============================================================================//  
+  t2k_sk_radiative ana_struct;
+  set_tree_addresses(ana_tree, ana_struct);
+  ana_results_hists* res_h = new ana_results_hists;
+  init_result_hists(*res_h, is_radiative);
+
+ //Main event loop
+  long int nb_ev = ana_tree->GetEntries(); 
+  unsigned int nb_evis_passed = 0;
+  unsigned int nb_fcfv_passed = 0;
+  unsigned int nb_1ring_passed = 0;
+  unsigned int nb_emu_pid_passed = 0;
+  unsigned int nb_e_mom_passed = 0;
+  unsigned int nb_e_decay_passed = 0;
+  unsigned int nb_nu_en_rec_passed = 0;
+  unsigned int nb_epi0_pid_passed = 0;
+  
+
+  for (int i = 0; i < nb_ev; i++){
+    //progress
+    print_perc(i, nb_ev, 10);
+    ana_tree->GetEntry(i);
+    fill_particle_kin(ana_struct);
+    
+   
+    //Applying the nu_e sample cuts
+    // 0. EVIS
+    if (pass_evis_cut(ana_struct, float(30.0)) == true){
+      //pass
+      nb_evis_passed++;
+    }else{
+      //fail
+      continue;      
+    }
+    // 1. FCFV CUT
+    if(nb_de == 0){
+      // 1e ring analysis
+      if (pass_1e_FCFV(0, ELECTRON, ana_struct) == true){
+        //pass         
+        nb_fcfv_passed++;
+      }else{
+        //fail
+        continue;    
+      }
+    }else if(nb_de == 1){
+      //1e1de analysis
+      if (pass_1e1de_FCFV(0, ELECTRON, ana_struct) == true){
+        //pass         
+        nb_fcfv_passed++;
+      }else{
+        //fail
+        continue;    
+      }      
+    }else{
+      std::cout<<"ERROR not an 1e or an 1e1de analysis!" << std::endl;
+      exit(-1);
+    }
+    // 2. 1ring
+    if (pass_1ring(ana_struct) == true){
+      //pass             
+      nb_1ring_passed++;
+    }else{
+      //fail
+      continue;   
+    }
+    // 3. e/mu pid
+    if (pass_e_mu_nll_cut(ana_struct) == true){
+      //pass
+      nb_emu_pid_passed++;
+    }else{
+      //fail
+      continue;
+    }
+    // 4. mu mom 
+    if (pass_e_mom_cut(ana_struct, float(100.0)) == true){
+      //pass    
+      nb_e_mom_passed++;
+    }else{
+      //fail
+      continue;
+    }
+    // 5. number of e decay
+    if(nb_de == 0){
+      // 1e ring analysis  
+      if (pass_1e_nb_decay_e_cut(ana_struct) == true){
+        //pass   
+        nb_e_decay_passed++;
+      }else{
+        //fail
+        continue;   
+      }
+    }else if(nb_de == 1){
+      // 1e1de ring analysis  
+      if (pass_1e1de_nb_decay_e_cut(ana_struct) == true){
+        //pass   
+        nb_e_decay_passed++;
+      }else{
+        //fail
+        continue;   
+      }
+    }else{
+      std::cout<<"ERROR not an 1e or an 1e1de analysis!" << std::endl;
+      exit(-1);      
+    }
+    // 6. nu_en_rec
+    if(nb_de == 0){
+      if (pass_nu_en_rec_CCQE_cut(0, ELECTRON, ana_struct, float(1250))== true){
+        //pass   
+        nb_nu_en_rec_passed++;
+      }else{
+        //fail
+        continue;   
+      }
+    }else if(nb_de == 1){
+      if (pass_nu_en_rec_RES_cut(0, ELECTRON, ana_struct, float(1250))== true){
+        //pass   
+        nb_nu_en_rec_passed++;
+      }else{
+        //fail
+        continue;   
+      }
+    }else{
+      std::cout<<"ERROR not an 1e or an 1e1de analysis!" << std::endl;
+      exit(-1);        
+    }
+    // 7. e/pi0 pid  
+    if (pass_e_pi0_nll_cut(ana_struct) == true){
+      //pass    
+      nb_epi0_pid_passed++;
+    }else{
+      //fail
+      continue;     
+    }
+
+  }//end of the tree event loop
+
+  res_h->ana_cut_step_eff[0].first = "No cuts";
+  res_h->ana_cut_step_eff[0].second = nb_ev;
+  res_h->ana_cut_step_eff[1].first = "evis";
+  res_h->ana_cut_step_eff[1].second = nb_evis_passed;
+  res_h->ana_cut_step_eff[2].first = "fcfv";
+  res_h->ana_cut_step_eff[2].second = nb_fcfv_passed;
+  res_h->ana_cut_step_eff[3].first = "1ring";
+  res_h->ana_cut_step_eff[3].second = nb_1ring_passed;
+  res_h->ana_cut_step_eff[4].first = "emu_pid";
+  res_h->ana_cut_step_eff[4].second = nb_emu_pid_passed;
+  res_h->ana_cut_step_eff[5].first = "e_mom";
+  res_h->ana_cut_step_eff[5].second = nb_e_mom_passed;
+  res_h->ana_cut_step_eff[6].first = "e_decay";
+  res_h->ana_cut_step_eff[6].second = nb_e_decay_passed;
+  res_h->ana_cut_step_eff[7].first = "nu_en";
+  res_h->ana_cut_step_eff[7].second = nb_nu_en_rec_passed;
+  res_h->ana_cut_step_eff[8].first = "epi0_pid";
+  res_h->ana_cut_step_eff[8].second = nb_epi0_pid_passed;
 
  return res_h;
 
@@ -1457,4 +1822,4 @@ void plot_2D_efficiency(TH2* pass_hist, TH2* fail_hist, std::string title, std::
   delete sum_hist;
   delete ratio_hist;
 }
-//============================================================================//
+//============================================================================// 
