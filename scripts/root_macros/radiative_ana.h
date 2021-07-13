@@ -206,7 +206,20 @@ typedef struct ana_results_hists{
   TH1D * g_frac_en_pimu_pid_pass_h;
   TH1D * g_frac_en_pimu_pid_fail_h;
   TH2D * g_mom_theta_2D_pimu_pid_pass_h;
-  TH2D * g_mom_theta_2D_pimu_pid_fail_h;  
+  TH2D * g_mom_theta_2D_pimu_pid_fail_h; 
+  // Specific for nu_e analysis
+  TH1D * mu_mom_epi0_pid_pass_h;
+  TH1D * mu_mom_epi0_pid_fail_h;
+  TH1D * g_mom_epi0_pid_pass_h;
+  TH1D * g_mom_epi0_pid_fail_h;
+  TH1D * theta_mu_g_epi0_pid_pass_h;  
+  TH1D * theta_mu_g_epi0_pid_fail_h;  
+  TH1D * g_tr_mom_epi0_pid_pass_h;
+  TH1D * g_tr_mom_epi0_pid_fail_h;
+  TH1D * g_frac_en_epi0_pid_pass_h;
+  TH1D * g_frac_en_epi0_pid_fail_h;
+  TH2D * g_mom_theta_2D_epi0_pid_pass_h;
+  TH2D * g_mom_theta_2D_epi0_pid_fail_h; 
   //FV and reconstruction residuals histograms 
   TH1D* wall_h;
   TH1D* towall_h;
