@@ -24,6 +24,7 @@ ELEC_REST_MASS = 0.511 #MeV rest mass of the electron
 # Gamma Kiematics
 #-----------------
 MAX_GAMMA_EN = 80 #MeV limiting the phase space of the radiative gamma
+MAX_GAMMA_OPENING_ANGLE = 50 #degree (0 to 180 degree)
 # MC Sampling
 #-------------
 NB_SAMPLES = 10000# was 10000
@@ -327,7 +328,7 @@ def generate_gamma_dir_from_lep_dir(lep_dir, opening_angle_max_rad):
     y_d = np.array([0, 1, 0])
     z_d = np.array([0, 0, 1])
 
-    # step 3 find rotation transformation that map detector coordinates to lepton coordinates, s.t.
+    # find rotation transformation that map detector coordinates to lepton coordinates, s.t.
     # lep_dir = Rot_mat . z_detector 
     # a rotation matrix for each lep direction entry
     #find axis or ratation (perpondicular on both the z_l and z_d)
@@ -391,7 +392,7 @@ def conserve_En_radiative(lep_mass, lep_total_en_init, lep_dir_init):
     #generate gamma kinematics
     gamma_en = generate_gamma_en(lep_mass, lep_total_en_init)
     #gamma_dir = generate_gamma_dir(gamma_en.size)    #old uniform in 3d
-    g_dir_before_rot, g_dir_after_rot = generate_gamma_dir_from_lep_dir(lep_dir=lep_dir_init, opening_angle_max_rad=50.0*pi/180.0)   
+    g_dir_before_rot, g_dir_after_rot = generate_gamma_dir_from_lep_dir(lep_dir=lep_dir_init, opening_angle_max_rad=MAX_GAMMA_OPENING_ANGLE*pi/180.0)   
     
     #calculate lepton final kinematics
     lep_en = lep_total_en_init - gamma_en
@@ -495,5 +496,5 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_ki
 #------------------------------------------------------------------------------ 
 # Test generate_radiative_corr_particle_gun
 generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'particle_kinematics_vtx.txt' ,\
-                                     file_name=temp_output_dir+'pg_mu_ID_g80_th50_10e4.txt', plot_dist=True)
+                                     file_name=temp_output_dir+'pg_mu_ID_g80_t50_10e4.txt', plot_dist=True)
 #test_gamma_dir()
