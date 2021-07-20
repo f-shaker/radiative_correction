@@ -3,9 +3,9 @@ from math import ceil
 from itertools import islice, count
 
 #----------Parameters Definition---------------
-input_pg_file = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/pg_mu_ID_g80_t50_10e4.txt'
-output_folder = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/splited_pg/'
-generated_pg_prefix = 'pg_mu_g80_t50_'
+input_pg_file = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/pg_mu_ID_g120_t25_10e4.txt'
+output_folder = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/splited_pg/g120t25/'
+generated_pg_prefix = 'pg_mu_g120_t25_'
 nb_events_per_file = 250
 #------------------------------------------------------------------------------
 def get_event_block(pg_file):
