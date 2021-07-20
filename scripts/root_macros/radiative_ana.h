@@ -228,7 +228,8 @@ typedef struct ana_results_hists{
   TH1D* towall_h;
   TH1D* alpha_dir1r_mu_h;
   TH1D* delta_pos1r_vtx_h;
-  TH1D* mu_mom_res_h; 
+  TH1D* mu_mom_res_h;
+  TH1D* mu_mom_res_g_added_h; 
   TH2D * g_tr_mom_cosalpha_2D;
   TH2D * g_tr_mom_vtx_res_2D;
  

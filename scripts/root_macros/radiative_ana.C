@@ -99,6 +99,7 @@ void plot_1_res_hists(ana_results_hists& res_h, bool is_radiative){
     plot_hist2D(res_h.g_tr_mom_cosalpha_2D, "cos#alpha_{#mufq1r} vs. p_{T}_{#gamma}; p_{T}_{#gamma} [MeV];cos#alpha_{#mufq1r}", "colz");
     plot_hist1D(res_h.delta_pos1r_vtx_h, "mu_g_delta_pos1r_vtx", "#mu+#gamma #Delta pos1r-vtx;#Delta distance[cm];count", kBlue , 2, 1);
     plot_hist1D(res_h.mu_mom_res_h, "mu_g_mu_mom_res", "#mu#gamma #Delta p_{#mu};#Delta p_{#mu}[MeV];count", kBlue , 2, 1);
+    plot_hist1D(res_h.mu_mom_res_g_added_h, "mu_g_mu_mom_res_g_added", "#mu#gamma #Delta p_{#mu};#Delta p_{#mu}[MeV];count", kBlue , 2, 1);
     plot_hist2D(res_h.g_tr_mom_vtx_res_2D, "#Delta_{#mufq1r} vs. p_{T}_{#gamma}; p_{T}_{#gamma} [MeV];#Delta_{#mufq1r}[cm]", "colz");    
 
   }else{
@@ -127,7 +128,8 @@ void plot_2_res_comp_hists(ana_results_hists& res_h1, ana_results_hists& res_h2)
   plot_ratio_hist1D(res_h1.towall_h, res_h2.towall_h, "diffsig","towall_diff", "distance[cm]", "entries", "diff/#sigma");  
   plot_efficency(res_h1.ana_cut_step_eff, res_h2.ana_cut_step_eff, "mu_g_eff", "mu_only_eff","mu_g_superimposed_eff");  
   plot_ratio_hist1D(res_h1.delta_pos1r_vtx_h, res_h2.delta_pos1r_vtx_h, "diffsig","vtx_pos_diff", "#Delta_{distance}[cm]", "PDF", "diff/#sigma", true); 
-  plot_ratio_hist1D(res_h1.mu_mom_res_h, res_h2.mu_mom_res_h, "diffsig","mu_mom_residual", "#Delta p_{#mu}[MeV]", "PDF", "diff/#sigma", true);    
+  plot_ratio_hist1D(res_h1.mu_mom_res_h, res_h2.mu_mom_res_h, "diffsig","mu_mom_residual", "#Delta p_{#mu}[MeV]", "PDF", "diff/#sigma", true); 
+  plot_ratio_hist1D(res_h1.mu_mom_res_g_added_h, res_h2.mu_mom_res_g_added_h, "diffsig","mu_mom_residual_g_added", "#Delta p_{#mu}[MeV]", "PDF", "diff/#sigma", true);      
   plot_ratio_hist1D(res_h1.alpha_dir1r_mu_h, res_h2.alpha_dir1r_mu_h, "diffsig","vtx_dir_diff", "#theta_{#mu 1r}", "PDF", "diff/#sigma", true);  
 
 }
@@ -1033,6 +1035,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
   float g_frac_en; // fraction energy carried by the photon = E_g/ (E_g + E_mu)
   float mu_en;
   float mu_mom_res;
+  float mu_mom_res_g_added;
  //Main event loop
   long int nb_ev = ana_tree->GetEntries(); 
   unsigned int nb_evis_passed = 0;
@@ -1113,8 +1116,18 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
     if( is_radiative && pass_ccqe_numu_sample(ana_struct) ) res_h->g_tr_mom_vtx_res_2D->Fill(g_tr_mom, delta_pos1r_vtx);
 
     mu_mom_res = ana_struct.fq1rmom[0][MUON] - ana_struct.mu_mom;
+    mu_mom_res_g_added = ana_struct.fq1rmom[0][MUON] - ana_struct.mu_mom - ana_struct.g_mom;
     //fill the residual histogram for events that will pass all the selection cuts
-    if(pass_ccqe_numu_sample(ana_struct)) res_h->mu_mom_res_h->Fill(mu_mom_res);
+    if(pass_ccqe_numu_sample(ana_struct)){
+      res_h->mu_mom_res_h->Fill(mu_mom_res);
+      if(is_radiative){
+        res_h->mu_mom_res_g_added_h->Fill(mu_mom_res_g_added);
+      }else{
+        //non radiative the g_added shall be zero, i.e it shall be the same as mu_mom_res
+        res_h->mu_mom_res_g_added_h->Fill(mu_mom_res);
+      }
+      
+    } 
     // Filling the total histogram
     // Design choice: filling it before any cuts
     if(is_radiative) res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_mu_g);
@@ -1688,6 +1701,7 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   res_h.g_tr_mom_vtx_res_2D = new TH2D("g_tr_mom_vtx_res", "g_tr_mom_vtx_res_2D", g_mom_nb_bins, g_mom_bining_arr, 10, 0, 100);
 
   res_h.mu_mom_res_h = new TH1D(Form("mu_mom_res_%s", h_name_postfix.c_str()), Form("mu_mom_res_%s", h_name_postfix.c_str()), 100, -100., 100.);
+  res_h.mu_mom_res_g_added_h = new TH1D(Form("mu_mom_res_g_added_%s", h_name_postfix.c_str()), Form("mu_mom_res_g_added_%s", h_name_postfix.c_str()), 100, -100., 100.);
   //free dynemically allocated arrays
   delete [] g_mom_bining_arr;
   delete [] mu_mom_bining_arr;
@@ -1836,6 +1850,7 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.g_tr_mom_cosalpha_2D;
   delete res_h.g_tr_mom_vtx_res_2D;
   delete res_h.mu_mom_res_h;
+  delete res_h.mu_mom_res_g_added_h;  
 }
 //============================================================================//
 double * calculate_bin_arr(double max_val, double max_roi_val, double fine_step_val, int& ret_nb_bins){
