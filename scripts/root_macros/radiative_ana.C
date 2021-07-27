@@ -43,6 +43,7 @@ void radiative_ana(){
            e1de_res_mu_g->g_frac_en_epi0_pid_pass_h, e1de_res_mu_g->g_frac_en_epi0_pid_fail_h, "cut_e1de_epi0_pid_eff");
   plot_2D_efficiency(e1de_res_mu_g->g_mom_theta_2D_epi0_pid_pass_h, e1de_res_mu_g->g_mom_theta_2D_epi0_pid_fail_h, ";p_{#gamma} [MeV];#theta^{#circ}_{#mu#gamma}", "colz", "cut_e1de_epi0_2D");
   plot_2D_efficiency_tot(e1de_res_mu_g->g_mom_theta_2D_epi0_pid_pass_h, e1de_res_mu_g->g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{#mu#gamma}", "colz", "cut_e1de_epi0_2D_tot");
+  plot_2D_efficiency_tot(e_res_mu_g->g_mom_theta_2D_epi0_pid_pass_h, e_res_mu_g->g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{#mu#gamma}", "colz", "cut_e_epi0_2D_tot");
   // free allocated dynamic memory
   clear_result_hists(*mu_g_results);
   clear_result_hists(*mu_only_results);
@@ -738,7 +739,7 @@ void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt){
   TCanvas * canv = new TCanvas(Form("canv_%s",hist->GetName()), Form("canv_%s",hist->GetName()), 1200, 800);   
   canv->cd();
   hist->SetStats(0);
-  gStyle->SetPalette(kDeepSea);// kDeepSea=51, kDarkBodyRadiator=53 (better if I had higher stats)
+  gStyle->SetPalette(kInvertedDarkBodyRadiator);// kDeepSea=51, kDarkBodyRadiator=53, kInvertedDarkBodyRadiator (better if I had higher stats)
   hist->Draw(draw_opt.c_str());
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),hist->GetName()));
   delete canv;
@@ -1925,7 +1926,7 @@ void plot_2D_efficiency_tot(TH2* pass_hist, TH2* total_hist, std::string title, 
   // construct the ratio histogram 
   TH2D* ratio_hist = (TH2D*)pass_hist->Clone();
   ratio_hist->SetTitle(title.c_str());
-  ratio_hist->SetName("ratio_hist");
+  ratio_hist->SetName(Form("%s_%s", fname.c_str(),"eff_only"));
   //ratio_hist->Divide(sum_hist);
   //TH1::Divide(const TH1* h1, const TH1* h2, Double_t c1 = 1, Double_t c2 = 1, Option_t * option = "" )
   // compute c1*h1/c2*h2 and use binomial error bars so if bin1/bin2 = 0 or 1 error =0!
@@ -1938,7 +1939,7 @@ void plot_2D_efficiency_tot(TH2* pass_hist, TH2* total_hist, std::string title, 
   pass_hist->SetStats(0);
   tot_hist->SetStats(0);
   ratio_hist->SetStats(0);
-  gStyle->SetPalette(kInvertedDarkBodyRadiator);// kDeepSea=51, kDarkBodyRadiator=53 (better if I had higher stats)
+  gStyle->SetPalette(kInvertedDarkBodyRadiator);// kDeepSea=51, kDarkBodyRadiator=53, kInvertedDarkBodyRadiator (better if I had higher stats)
 
   canv->cd(1);
   pass_hist->SetTitle("pass");//overwrite just the main title not the axes titles
@@ -1949,7 +1950,15 @@ void plot_2D_efficiency_tot(TH2* pass_hist, TH2* total_hist, std::string title, 
   canv->cd(3);
   ratio_hist->SetTitle("efficiency");
   ratio_hist->Draw(draw_opt.c_str());
+  plot_hist2D(ratio_hist, "total efficiency;p_{#gamma} [MeV];#theta_{#mu#gamma}^{#circ}", "colz"); 
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),fname.c_str()));
+  // Sanity check for debuging
+  // integral of the bin content for all angles and low gamma mom shall be consistent with the mu only case
+  std::cout<<" checking " << fname.c_str() << std::endl;
+  std::cout<<" pass cnt = " <<  pass_hist->Integral(1, 1, 1, 5)  << std::endl;
+  std::cout<<" total cnt = " <<  total_hist->Integral(1, 1, 1, 5)  << std::endl;
+  std::cout<< "generated = " << total_hist->Integral(1, 8, 1, 5)  << std::endl;
+  std::cout<<" eff integral of 2D  = " << pass_hist->Integral(1, 1, 1, 5) / total_hist->Integral(1, 1, 1, 5) << std::endl;
   delete canv;
   delete tot_hist;
   delete ratio_hist;

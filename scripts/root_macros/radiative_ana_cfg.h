@@ -33,7 +33,7 @@ const float THETA_ROI_MAX_BIN = 25; //degrees (used in fine binning)
 // opening angle step size (for fine bining)
 const float THETA_STEP = 1.25; // degrees
 // gamma mom step size (for coarse 2D bining)
-const float GAMMA_MOM_STEP_2D = 10.0; //MeV
+const float GAMMA_MOM_STEP_2D = 15.0; //MeV
 // opening angle step size (for coarse 2D bining)
 const float THETA_STEP_2D = 5.0; // degrees
 #endif
