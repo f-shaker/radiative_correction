@@ -23,15 +23,16 @@ MU_REST_MASS = 105.66 #MeV rest mass of muon
 ELEC_REST_MASS = 0.511 #MeV rest mass of the electron
 # Gamma Kiematics
 #-----------------
-MAX_GAMMA_EN = 200 #MeV limiting the phase space of the radiative gamma
-MAX_GAMMA_OPENING_ANGLE = 25 #degree (0 to 180 degree)
+INFINITY = float('inf')
+MAX_GAMMA_EN = INFINITY #MeV limiting the phase space of the radiative gamma, can be set to any float say 200.0 MeV
+MAX_GAMMA_OPENING_ANGLE = 180.0 #degree (0 to 180 degree)
 # MC Sampling
 #-------------
-NB_SAMPLES = 10000# was 10000
+NB_SAMPLES = 50000# was 10000
 np.random.seed(20140489) # a 8-digits prime number
 #----------Parameters Definition END----------
-plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/"
-temp_output_dir = "/home/fshaker/t2k/radiative-correction/analysis/temp_output/"
+plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/mu/ginft180"
+temp_output_dir = "/home/fshaker/t2k/radiative-correction/analysis/temp_output/mu/"
 plot_extension=".png"
 #------------------------------------------------------------------------------
 #plotting functionality
@@ -495,6 +496,6 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_ki
         
 #------------------------------------------------------------------------------ 
 # Test generate_radiative_corr_particle_gun
-generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'particle_kinematics_vtx.txt' ,\
-                                     file_name=temp_output_dir+'pg_mu_ID_g200_t25_10e4.txt', plot_dist=True)
+generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'mu_kinematics.txt' ,\
+                                     file_name=temp_output_dir+'pg_mu_ginft180_5e4.txt', plot_dist=True)
 #test_gamma_dir()
