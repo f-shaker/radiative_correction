@@ -21,8 +21,6 @@
 #include "TGraph.h"
 #include "TMath.h"
 using namespace std;
-  // J-PARC beam direction in SK coordinates
-  static const double beamdir[3] = { 0.669764, -0.742179, 0.024223 };
 //============================================================================//
 // Types Declaration
 //============================================================================//
@@ -76,6 +74,13 @@ typedef struct t2k_sk_radiative{
   float mu_dir[3];
   float g_mom;
   float g_dir[3];
+  float elec_mom;
+  float elec_dir[3];
+  // ONLY for modified weighted input files (These variables does NOT exist in regular produced fitqun nutuple output)
+  int is_rad; 
+  float w_osc; 
+  float w_rad; 
+  float w_total; 
     		
 } t2k_sk_radiative;
 //============================================================================//
@@ -238,7 +243,7 @@ typedef struct ana_results_hists{
 // Functions Declarations
 //============================================================================//
 int find_particle_idx(unsigned char* ipv_arr, int size, unsigned char particle_ipv);
-void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct);
+void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct, bool is_mixed_file);
 
 // CCQE (CC0pi) nu_mu sample selection 
 float ComputeWall(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
@@ -298,5 +303,9 @@ void plot_1_res_hists(ana_results_hists& res_h,  bool is_radiative);
 void plot_2_res_comp_hists(ana_results_hists& res_h1, ana_results_hists& res_h2); 
 void plot_selection_cuts(ana_results_hists& res_h, bool is_radiative);
 double * calculate_bin_arr(double max_val, double max_roi_val, double fine_step_val, int& ret_nb_bins);
+float calc_survival_osc_prob(float nu_en);
+float calc_photon_emission_weight(float gamma_en);
+float calc_no_photon_weight(float lep_mom, fq_particle i_particle);
+void create_weight_branches(std::string in_file_name, bool is_radiative, fq_particle i_particle);
 //============================================================================//
 #endif

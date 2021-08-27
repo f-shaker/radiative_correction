@@ -11,6 +11,12 @@ void radiative_ana(){
   TH1::SetDefaultSumw2(kTRUE); 	
   TH2::SetDefaultSumw2(kTRUE);
 
+
+//debug start
+create_weight_branches(mu_gamma_file, true, MUON);
+create_weight_branches(mu_file_init, false, MUON);
+return;
+// debug end
   // radiative particle gun file
   TFile *f_mu_g=new TFile(mu_gamma_file.c_str());
   TTree *tr_mu_g=(TTree*)f_mu_g->Get("h1");
@@ -582,7 +588,7 @@ float compute_nu_en_rec_RES(int nsubevent, fq_particle i_particle, t2k_sk_radiat
 //============================================================================//
 // Data Structure Filling
 //============================================================================//
-void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct){
+void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct, bool is_mixed_file){
 //============================================================================//  
   // disable all branches
   tr->SetBranchStatus("*", 0);
@@ -622,6 +628,18 @@ void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct){
   // other variables
   tr->SetBranchStatus("nhitac", 1);
   tr->SetBranchAddress("nhitac", &(rad_struct.nhitac));
+
+  // MANUALLY added variables
+  if(is_mixed_file == true){
+    tr->SetBranchStatus("is_radiative", 1);
+    tr->SetBranchAddress("is_radiative", &rad_struct.is_rad);
+    tr->SetBranchStatus("weight_oscillation", 1);
+    tr->SetBranchAddress("weight_oscillation", &rad_struct.w_osc);    
+    tr->SetBranchStatus("weight_radiative", 1); 
+    tr->SetBranchAddress("weight_radiative", &rad_struct.w_rad);    
+    tr->SetBranchStatus("weight_total", 1); 
+    tr->SetBranchAddress("weight_total", &rad_struct.w_total);      
+  }
 }
 //============================================================================//
 // Plotting Functions
@@ -1020,7 +1038,7 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string fi
 ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
 //============================================================================//  
   t2k_sk_radiative ana_struct;
-  set_tree_addresses(ana_tree, ana_struct);
+  set_tree_addresses(ana_tree, ana_struct, false);
   ana_results_hists* res_h = new ana_results_hists;
   init_result_hists(*res_h, is_radiative);
 
@@ -1319,7 +1337,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
 ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de){
 //============================================================================//  
   t2k_sk_radiative ana_struct;
-  set_tree_addresses(ana_tree, ana_struct);
+  set_tree_addresses(ana_tree, ana_struct, false);
   ana_results_hists* res_h = new ana_results_hists;
   init_result_hists(*res_h, is_radiative);
 
@@ -1507,8 +1525,9 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de){
 //============================================================================//
 void fill_particle_kin(t2k_sk_radiative & ana_struct){
 //============================================================================//
-  // in GEANT particle code 1 = gamma, 6 = mu-
+  // in GEANT particle code 1 = gamma, 3 = e-, 6 = mu- 
   int g_idx = find_particle_idx(ana_struct.ipv, ana_struct.npar, 1);
+  int e_idx = find_particle_idx(ana_struct.ipv, ana_struct.npar, 3);
   int mu_idx = find_particle_idx(ana_struct.ipv, ana_struct.npar, 6);
 
   //filling gamma and muon kinematics
@@ -1525,7 +1544,12 @@ void fill_particle_kin(t2k_sk_radiative & ana_struct){
       ana_struct.mu_dir[ix] = ana_struct.dirv[mu_idx][ix];    
     }     
   }  
-
+  if(e_idx != -1){
+    ana_struct.elec_mom = ana_struct.pmomv[e_idx];
+    for(int ix = 0 ; ix < 3; ix++){
+      ana_struct.elec_dir[ix] = ana_struct.dirv[e_idx][ix];    
+    }     
+  }
 
 }
 //============================================================================//
@@ -1964,3 +1988,130 @@ void plot_2D_efficiency_tot(TH2* pass_hist, TH2* total_hist, std::string title, 
   delete ratio_hist;
 }
 //============================================================================// 
+float calc_survival_osc_prob(float nu_en){
+//============================================================================//
+  double osc_angle = 1.27 * delta_m2_23 * baseline_len / (nu_en/1e3);//nu_en is passed in MeV and has to be convert to GeV
+  //survival probability
+  double prob_mumu = 1 - ( sin2_2theta_23 *  sin(osc_angle) * sin(osc_angle) );
+  return prob_mumu;
+}
+//============================================================================// 
+float calc_photon_emission_weight(float gamma_en){
+//============================================================================//   
+  float w = 1.0;
+  if(gamma_en > gamma_en_cutoff){
+    w = 0.0073/gamma_en;//gamma_en in MeV
+  }
+  return w;
+}
+//============================================================================// 
+float calc_no_photon_weight(float lep_mom, fq_particle i_particle){
+//============================================================================//
+// weight = 1 - integral[gamma_en_cutoff to maximum available photon energy] 0.0073/gamma_en(MeV) dgamma_en
+// gamma_en_cutoff is a configurable parameter
+  float lep_mass;
+  float lep_en;
+  float w;
+
+  if(i_particle == MUON){
+    lep_mass = MU_MASS;    
+  }else if(i_particle == ELECTRON){
+    lep_mass = ELEC_MASS;
+  }else{
+    std::cout<<"Unknown Partilce! CANNOT calculate no photon emission weight!"<<std::endl;
+    std::exit(-1);
+  }
+  lep_en = sqrt( lep_mass*lep_mass + lep_mom*lep_mom);
+  if( (lep_en - lep_mass) > gamma_en_cutoff ){
+    // otherwise the log will be negative and the weight will be > 1!
+    w =  1 - 0.0073*log( (lep_en - lep_mass) /gamma_en_cutoff);
+  }else{
+    // we can neglect the emitted photon, i.e weight (probability) of not emmitting a photon will be set to 1
+    w = 1;
+  }
+  
+
+  if( (w > 1.0) || (w < 0.0) ){
+    std::cout<<" weight > 1.0 or negative!! Please check calculations"<< std::endl;
+    std::cout<< "w = "<< w << " , lep_en = " << lep_en << ", i_particle = "<< i_particle << ", lep_mom = "<< lep_mom << " lep_mass = "<< lep_mass <<std::endl;
+    std::exit(-1);
+  }
+  return w;
+}
+//============================================================================//
+void create_weight_branches(std::string in_file_name, bool is_radiative, fq_particle i_particle){
+//============================================================================//
+// to build a mixed weighted file from 2 different particle guns:
+// create_weight_branches(mu_gamma_file, true, MUON);
+// create_weight_branches(mu_file_init, false, MUON);
+// then use the hadd command to compine them in 1 root file
+
+  // variables to add to the existing tree
+  int is_rad; 
+  float w_osc; 
+  float w_rad; 
+  float w_total;   
+  //
+  float nu_en;
+  float lep_mom;
+
+   
+  TFile *f_in = new TFile(in_file_name.c_str(),"update");
+  TTree *tree_in = (TTree*)f_in->Get("h1");
+  TBranch *br_is_rad = tree_in->Branch("is_radiative",&is_rad,"is_radiative/I");
+  TBranch *br_w_osc = tree_in->Branch("weight_oscillation",&w_osc,"weight_oscillation/F");
+  TBranch *br_w_rad = tree_in->Branch("weight_radiative",&w_rad,"weight_radiative/F");
+  TBranch *br_w_total = tree_in->Branch("weight_total",&w_total,"weight_total/F");
+
+  if(is_radiative == true){
+    is_rad = 1;
+  }else{
+    is_rad = 0;
+  }
+  
+  t2k_sk_radiative ana_struct;
+  set_tree_addresses(tree_in, ana_struct, false);  
+  tree_in->SetBranchStatus("is_radiative", 1);
+  tree_in->SetBranchStatus("weight_oscillation", 1);    
+  tree_in->SetBranchStatus("weight_radiative", 1);     
+  tree_in->SetBranchStatus("weight_total", 1); 
+
+
+  Long64_t nentries = tree_in->GetEntries();
+  for (Long64_t i=0;i<nentries;i++){
+    tree_in->GetEntry(i);
+    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
+    // Filling is_radiative branch (same value for the whole file)
+    br_is_rad->Fill();
+    // Filling oscillation weight
+    nu_en = compute_nu_en_rec_CCQE(0, i_particle, ana_struct);
+    w_osc = calc_survival_osc_prob(nu_en);
+    br_w_osc->Fill();
+    // Filling radiative weights
+    if(is_radiative == true){
+      // photon emission
+      w_rad = calc_photon_emission_weight(ana_struct.g_mom);
+    }else{
+      // No photon emission
+      if(i_particle == ELECTRON){
+        lep_mom = ana_struct.elec_mom;
+      }else if(i_particle == MUON){
+        lep_mom = ana_struct.mu_mom;
+      }else{
+        std::cout<<"Unsupported particle for energy calculation!" << std::endl;
+        exit(-1);
+      }
+      w_rad = calc_no_photon_weight(lep_mom, i_particle);
+    }
+    br_w_rad->Fill();
+    // Filling total weight variable
+    w_total = w_osc * w_rad;
+    br_w_total->Fill();
+
+    }   
+  tree_in->Write();
+  tree_in->Print(); 
+  delete f_in;
+  
+}
+//============================================================================//
