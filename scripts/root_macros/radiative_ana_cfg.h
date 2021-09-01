@@ -12,6 +12,7 @@ const std::string mu_file_init = "/home/fshaker/t2k/radiative-correction/analysi
 // mu kinematic after emmiting a gmma (mu only)
 const std::string mu_file_fin = "/home/fshaker/t2k/radiative-correction/analysis/root_files/radiative_fin.root";// low stats (1e3 ev)
 //const std::string mu_file_fin = "/home/fshaker/t2k/radiative-correction/analysis/root_files/elec_no_g_fin.root";// 1e4 ev
+const std::string mu_g_weighted_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted.root";
 const std::string plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted/";
 //==============================================================================
 // Physics 

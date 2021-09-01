@@ -307,5 +307,7 @@ float calc_survival_osc_prob(float nu_en);
 float calc_photon_emission_weight(float gamma_en);
 float calc_no_photon_weight(float lep_mom, fq_particle i_particle);
 void create_weight_branches(std::string in_file_name, bool is_radiative, fq_particle i_particle);
+void check_mixed_weights(std::string mix_file);
+float compute_nu_en_rec_CCQE_truth(fq_particle i_particle, t2k_sk_radiative& rad_struct);
 //============================================================================//
 #endif
