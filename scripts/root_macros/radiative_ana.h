@@ -65,7 +65,7 @@ typedef struct t2k_sk_radiative{
   float pmomv[100]; // particle mom
   float dirv[100][3]; // particle direction at vertex
   float posv[3]; // vertex position
-      
+  char mode;// NEUT neutrino interaction mode 1 = CCQE, 2 = 2p2h, 11 to 13 single pion resonance, etc, anti neutrinos have NEGATIVE SIGN
   // other variables	
   unsigned short int nhitac;
 
@@ -308,6 +308,6 @@ float calc_photon_emission_weight(float gamma_en);
 float calc_no_photon_weight(float lep_mom, fq_particle i_particle);
 void create_weight_branches(std::string in_file_name, bool is_radiative, fq_particle i_particle);
 void check_mixed_weights(std::string mix_file);
-float compute_nu_en_rec_CCQE_truth(fq_particle i_particle, t2k_sk_radiative& rad_struct);
+float compute_nu_en_rec_CCQE_truth(fq_particle i_particle, t2k_sk_radiative& rad_struct, bool is_radiative);
 //============================================================================//
 #endif
