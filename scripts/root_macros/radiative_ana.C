@@ -640,9 +640,13 @@ void set_tree_addresses(TTree * tr, t2k_sk_radiative& rad_struct, bool is_mixed_
     tr->SetBranchStatus("weight_oscillation", 1);
     tr->SetBranchAddress("weight_oscillation", &rad_struct.w_osc);    
     tr->SetBranchStatus("weight_radiative", 1); 
-    tr->SetBranchAddress("weight_radiative", &rad_struct.w_rad);    
+    tr->SetBranchAddress("weight_radiative", &rad_struct.w_rad);   
+    tr->SetBranchStatus("weight_radiative_sum1", 1); 
+    tr->SetBranchAddress("weight_radiative_sum1", &rad_struct.w_rad_sum1);      
     tr->SetBranchStatus("weight_total", 1); 
-    tr->SetBranchAddress("weight_total", &rad_struct.w_total);      
+    tr->SetBranchAddress("weight_total", &rad_struct.w_total);  
+    tr->SetBranchStatus("weight_total_sum1", 1); 
+    tr->SetBranchAddress("weight_total_sum1", &rad_struct.w_total_sum1);          
   }
 }
 //============================================================================//
@@ -2008,6 +2012,31 @@ float calc_photon_emission_weight(float gamma_en){
   }
   return w;
 }
+//============================================================================//
+float calc_photon_emission_weight(float gamma_en, float lep_mom, fq_particle i_particle){
+//============================================================================//
+  float lep_mass;
+  float lep_en;  
+  float w = 0.0;
+
+  if(gamma_en > gamma_en_cutoff){
+
+    if(i_particle == MUON){
+      lep_mass = MU_MASS;    
+    }else if(i_particle == ELECTRON){
+      lep_mass = ELEC_MASS;
+    }else{
+      std::cout<<"Unknown Partilce! CANNOT calculate no photon emission weight!"<<std::endl;
+      std::exit(-1);
+    }
+    //initial lepton energy before emmiting the photon
+    lep_en = sqrt(lep_mom*lep_mom + lep_mass*lep_mass);
+    lep_en+= gamma_en;
+    // this will insure that weight no gamma emission + weight of gamma emmision = 1
+    w = 0.0073*log( (lep_en - lep_mass) /gamma_en_cutoff);
+  }
+  return w;  
+}
 //============================================================================// 
 float calc_no_photon_weight(float lep_mom, fq_particle i_particle){
 //============================================================================//
@@ -2025,13 +2054,14 @@ float calc_no_photon_weight(float lep_mom, fq_particle i_particle){
     std::cout<<"Unknown Partilce! CANNOT calculate no photon emission weight!"<<std::endl;
     std::exit(-1);
   }
-  lep_en = sqrt( lep_mass*lep_mass + lep_mom*lep_mom);
+
+  lep_en = sqrt(lep_mass*lep_mass + lep_mom*lep_mom);
   if( (lep_en - lep_mass) > gamma_en_cutoff ){
     // otherwise the log will be negative and the weight will be > 1!
-    w =  1 - 0.0073*log( (lep_en - lep_mass) /gamma_en_cutoff);
+    w =  1.0 - 0.0073*log( (lep_en - lep_mass) /gamma_en_cutoff);
   }else{
     // we can neglect the emitted photon, i.e weight (probability) of not emmitting a photon will be set to 1
-    w = 1;
+    w = 1.0;
   }
   
 
@@ -2053,8 +2083,10 @@ void create_weight_branches(std::string in_file_name, bool is_radiative, fq_part
   // variables to add to the existing tree
   int is_rad; 
   float w_osc; 
-  float w_rad; 
-  float w_total;   
+  float w_rad;
+  float w_rad_sum1; 
+  float w_total;
+  float w_total_sum1;   
   //
   float nu_en;
   float lep_mom;
@@ -2065,7 +2097,9 @@ void create_weight_branches(std::string in_file_name, bool is_radiative, fq_part
   TBranch *br_is_rad = tree_in->Branch("is_radiative",&is_rad,"is_radiative/I");
   TBranch *br_w_osc = tree_in->Branch("weight_oscillation",&w_osc,"weight_oscillation/F");
   TBranch *br_w_rad = tree_in->Branch("weight_radiative",&w_rad,"weight_radiative/F");
+  TBranch *br_w_rad_sum1 = tree_in->Branch("weight_radiative_sum1",&w_rad_sum1,"weight_radiative_sum1/F");
   TBranch *br_w_total = tree_in->Branch("weight_total",&w_total,"weight_total/F");
+  TBranch *br_w_total_sum1 = tree_in->Branch("weight_total_sum1",&w_total_sum1,"weight_total_sum1/F");  
 
   if(is_radiative == true){
     is_rad = 1;
@@ -2077,14 +2111,23 @@ void create_weight_branches(std::string in_file_name, bool is_radiative, fq_part
   set_tree_addresses(tree_in, ana_struct, false);  
   tree_in->SetBranchStatus("is_radiative", 1);
   tree_in->SetBranchStatus("weight_oscillation", 1);    
-  tree_in->SetBranchStatus("weight_radiative", 1);     
+  tree_in->SetBranchStatus("weight_radiative", 1);  
+  tree_in->SetBranchStatus("weight_radiative_sum1", 1);      
   tree_in->SetBranchStatus("weight_total", 1); 
-
+  tree_in->SetBranchStatus("weight_total_sum1", 1);
 
   Long64_t nentries = tree_in->GetEntries();
   for (Long64_t i=0;i<nentries;i++){
     tree_in->GetEntry(i);
     fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
+    if(i_particle == ELECTRON){
+      lep_mom = ana_struct.elec_mom;
+    }else if(i_particle == MUON){
+      lep_mom = ana_struct.mu_mom;
+    }else{
+      std::cout<<"Unsupported particle for energy calculation!" << std::endl;
+      exit(-1);
+    }    
     // Filling is_radiative branch (same value for the whole file)
     br_is_rad->Fill();
     // Filling oscillation weight
@@ -2095,24 +2138,20 @@ void create_weight_branches(std::string in_file_name, bool is_radiative, fq_part
     if(is_radiative == true){
       // photon emission
       w_rad = calc_photon_emission_weight(ana_struct.g_mom);
+      w_rad_sum1 = calc_photon_emission_weight(ana_struct.g_mom, lep_mom, i_particle);
     }else{
       // No photon emission
-      if(i_particle == ELECTRON){
-        lep_mom = ana_struct.elec_mom;
-      }else if(i_particle == MUON){
-        lep_mom = ana_struct.mu_mom;
-      }else{
-        std::cout<<"Unsupported particle for energy calculation!" << std::endl;
-        exit(-1);
-      }
       w_rad = calc_no_photon_weight(lep_mom, i_particle);
     }
     br_w_rad->Fill();
+    br_w_rad_sum1->Fill();
     // Filling total weight variable
     w_total = w_osc * w_rad;
+    w_total_sum1 = w_osc * w_rad_sum1;
     br_w_total->Fill();
+    br_w_total_sum1->Fill();
 
-    }   
+  }   
   tree_in->Write();
   tree_in->Print(); 
   delete f_in;
@@ -2136,17 +2175,21 @@ void check_mixed_weights(std::string mix_file){
   TH1D* h_mu_mom_rad_oscw = new TH1D("mu_mom_rad_oscw", "mu_mom_rad_oscw", 100, 0, 2000);
   TH1D* h_mu_mom_mix_oscw = new TH1D("mu_mom_mix_oscw", "mu_mom_mix_oscw", 100, 0, 2000);
   // photon emmision weights
-  TH1D* h_mu_mom_norad_radw = new TH1D("mu_mom_norad_radw", "mu_mom_norad_radw", 100, 0, 2000);
-  TH1D* h_mu_mom_rad_radw = new TH1D("mu_mom_rad_radw", "mu_mom_rad_radw", 100, 0, 2000);  
+  TH1D* h_mu_mom_norad_radw = new TH1D("mu_mom_norad_radw", "mu_mom_norad_radw", 100, 0, 2000); 
+  TH1D* h_mu_mom_rad_radw = new TH1D("mu_mom_rad_radw", "mu_mom_rad_radw", 100, 0, 2000);
+  TH1D* h_mu_mom_rad_radw_sum1 = new TH1D("mu_mom_rad_radw_sum1", "mu_mom_rad_radw_sum1", 100, 0, 2000);    
   TH1D* h_mu_plus_g_mom_noradw = new TH1D("mu_plus_g_mom_noradw", "mu_plus_g_mom_noradw", 100, 0, 2000);  
   TH1D* h_mu_mom_mix_radw = new TH1D("mu_mom_mix_radw", "mu_mom_mix_radw", 100, 0, 2000);
   // radiative weights distibution
   // note : radiative weighted mu mom distribution = mu mom distribution * radiative weight distribution
   TH1D* h_rad_radw = new TH1D("h_rad_radw", "h_rad_radw", 100, 0.0, 1.0);
+  TH1D* h_rad_radw_sum1 = new TH1D("h_rad_radw_sum1", "h_rad_radw_sum1", 100, 0.0, 1.0);
   TH1D* h_norad_radw = new TH1D("h_norad_radw", "h_norad_radw", 100, 0.0, 1.0);
+  TH1D* h_radw_sum = new TH1D("h_radw_sum", "h_radw_sum", 10, 0.5, 1.5);
   // total weights  
   TH1D* h_mu_mom_norad_totw = new TH1D("h_mu_mom_norad_totw", "h_mu_mom_norad_totw", 100, 0, 2000);
-  TH1D* h_mu_mom_rad_totw = new TH1D("h_mu_mom_rad_totw", "h_mu_mom_rad_totw", 100, 0, 2000);  
+  TH1D* h_mu_mom_rad_totw = new TH1D("h_mu_mom_rad_totw", "h_mu_mom_rad_totw", 100, 0, 2000); 
+  TH1D* h_mu_mom_rad_totw_sum1 = new TH1D("h_mu_mom_rad_totw_sum1", "h_mu_mom_rad_totw_sum1", 100, 0, 2000);    
   TH1D* h_mu_mom_mix_totw = new TH1D("h_mu_mom_mix_totw", "h_mu_mom_mix_totw", 100, 0, 2000);
   // reconstructed neutrino energy
   TH1D* h_nu_en_norad_noosc = new TH1D("h_nu_en_norad_noosc", "h_nu_en_norad_noosc", 100, 0, 2000);
@@ -2165,6 +2208,7 @@ void check_mixed_weights(std::string mix_file){
   double init_mu_mom; // initial muon momnetum before emitting the photon in a radiative process 
   double init_mu_en; // initial muon energy before emitting the photon in a radiative process 
   Long64_t nentries = tr_mw->GetEntries();
+  long int cnt = 0;
   for (Long64_t i=0;i<nentries;i++){
     tr_mw->GetEntry(i);
     fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
@@ -2198,19 +2242,39 @@ void check_mixed_weights(std::string mix_file){
       h_mu_mom_rad_radw->Fill(ana_struct.mu_mom, ana_struct.w_rad);
       h_mu_mom_rad_totw->Fill(ana_struct.mu_mom, ana_struct.w_total);
 
+      h_mu_mom_rad_radw_sum1->Fill(ana_struct.mu_mom, ana_struct.w_rad_sum1);
+      h_mu_mom_rad_totw_sum1->Fill(ana_struct.mu_mom, ana_struct.w_total_sum1);
+
       h_g_mom_rad_init->Fill(ana_struct.g_mom);
       init_mu_en = sqrt(ana_struct.mu_mom * ana_struct.mu_mom  + MU_MASS*MU_MASS);
       init_mu_en+=  ana_struct.g_mom;
       init_mu_mom = sqrt(init_mu_en*init_mu_en - MU_MASS*MU_MASS );
       h_mu_plus_g_mom_init->Fill(init_mu_mom);
       h_mu_plus_g_mom_noradw->Fill(init_mu_mom, calc_no_photon_weight(init_mu_mom, MUON));
+      float w_nog = calc_no_photon_weight(init_mu_mom, MUON);
+      float w_g_sum1 = calc_photon_emission_weight(ana_struct.g_mom, ana_struct.mu_mom, MUON);
 
+      float sum_w =  w_nog + ana_struct.w_rad_sum1;
+      if(ana_struct.w_rad_sum1 != w_g_sum1){
+        std::cout<< "the impossible happened : w_rad_sum1 = " << w_g_sum1 << " , ana_struct.w_rad_sum1 = " << ana_struct.w_rad_sum1 << std::endl;
+      }
+      
+      if(sum_w >= 1.0+1e-5 || sum_w <= 1.0 - 1e-5){
+        cnt++;
+        std::cout<<"sum_w = " << sum_w << " , w_g = "<< ana_struct.w_rad_sum1 << " , w_nog = "<< w_nog << " , E_gamma = " << ana_struct.g_mom << " , E_lep - m_lep = " << init_mu_en - MU_MASS << std::endl;
+
+      }
+          
+      h_radw_sum->Fill(calc_no_photon_weight(init_mu_mom, MUON) + ana_struct.w_rad_sum1);
+     
       h_nu_en_rad_noosc->Fill(nu_en_corr);
       h_nu_en_rad_osc->Fill(nu_en_corr, ana_struct.w_osc) ;
 
-      h_rad_radw->Fill(ana_struct.w_rad); 
+      h_rad_radw->Fill(ana_struct.w_rad);
+      h_rad_radw_sum1->Fill(ana_struct.w_rad_sum1); 
     }    
   }
+  std::cout<<"number of wrong weights = " << cnt << std::endl;
 
   // initial distributions
   plot_hist1D(h_mu_mom_norad_init,"h_mu_mom_norad_init",  "Initial Non-Radiative (no weights);p_{#mu};count" , kBlue , 2, 1);  
@@ -2240,8 +2304,10 @@ void check_mixed_weights(std::string mix_file){
   // non-radiative weight for the initial muon momentum before emmiting the photon
   plot_hist1D(h_mu_plus_g_mom_noradw,"h_mu_plus_g_mom_noradw",  "w_{nog}(p_{#mu_{init}}) (radiation weights);p_{#mu};count" , kBlue , 2, 1);
 
-  plot_hist1D(h_norad_radw,"h_norad_radw",  "Non-radiative weight;w_{non-radiative};prob" , kBlue , 2, 1);
-  plot_hist1D(h_rad_radw,"h_rad_radw",  "radiative weight;w_{radiative};prob" , kBlue , 2, 1);  
+  plot_hist1D(h_norad_radw,"h_norad_radw",  "Non-radiative weight;w_{non-radiative};count" , kBlue , 2, 1);
+  plot_hist1D(h_rad_radw,"h_rad_radw",  "radiative weight;w_{radiative};count" , kBlue , 2, 1); 
+  plot_hist1D(h_rad_radw_sum1,"h_rad_radw_sum1",  "radiative weight;w_{radiative-sum1};count" , kBlue , 2, 1);  
+  plot_hist1D(h_radw_sum,"h_radw_sum",  "radiative weight sum;w_{radiative-sum1} + w_{non-radiative};count" , kBlue , 2, 1);  
 
   plot_hist1D(h_mu_mom_norad_totw,"h_mu_mom_norad_totw",  "total weight (non-radiative);p_{#mu};count" , kBlue , 2, 1);
   plot_hist1D(h_mu_mom_rad_totw,"h_mu_mom_rad_totw",  "total weight (radiative);p_{#mu};count" , kBlue , 2, 1);

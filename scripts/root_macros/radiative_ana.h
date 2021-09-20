@@ -78,9 +78,16 @@ typedef struct t2k_sk_radiative{
   float elec_dir[3];
   // ONLY for modified weighted input files (These variables does NOT exist in regular produced fitqun nutuple output)
   int is_rad; 
-  float w_osc; 
+  float w_osc;
+  // radiative weights following 1/E_gamma (radiative) and 1 - f(ln(E_l/E_cut) for non radiative
+  // (sum of radiative and non radiative event weights) does NOT add up to 1 
   float w_rad; 
+  // assigning the whole weight sum of all radiative events to a single radiative event, forcing sum of weights (radiative  + non radiative) = 1
+  float w_rad_sum1;
+  // total weight calculated with w_rad * w_osc 
   float w_total; 
+  // total weight calculated with w_rad_sum1 * w_osc
+  float w_total_sum1;
     		
 } t2k_sk_radiative;
 //============================================================================//
@@ -305,6 +312,7 @@ void plot_selection_cuts(ana_results_hists& res_h, bool is_radiative);
 double * calculate_bin_arr(double max_val, double max_roi_val, double fine_step_val, int& ret_nb_bins);
 float calc_survival_osc_prob(float nu_en);
 float calc_photon_emission_weight(float gamma_en);
+float calc_photon_emission_weight(float gamma_en, float lep_mom, fq_particle i_particle);
 float calc_no_photon_weight(float lep_mom, fq_particle i_particle);
 void create_weight_branches(std::string in_file_name, bool is_radiative, fq_particle i_particle);
 void check_mixed_weights(std::string mix_file);
