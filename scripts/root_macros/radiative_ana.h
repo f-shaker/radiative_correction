@@ -277,6 +277,7 @@ bool pass_1e_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_s
 bool pass_1e1de_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct);
 bool pass_nu_en_rec_CCQE_cut(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct, float max_nu_en);
 bool pass_nu_en_rec_RES_cut(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct, float max_nu_en);
+bool pass_1e1de_sample(t2k_sk_radiative & ana_struct);
 
 //supoorting functions
 void format_hist1D(TH1* hist, std::string title, int col , int width, int sty);
