@@ -2249,6 +2249,28 @@ void check_mixed_weights(std::string mix_file){
 
   TH1D* h1_mins_h2_mu_en = new TH1D("h1_mins_h2_mu_en", "h1_mins_h2_mu_en", 100, 0, 2000);
   TH1D* h4f_mu_en_plus_g_wgsum1 = new TH1D("h4f_mu_en_plus_g_wgsum1", "h4f_mu_en_plus_g_wgsum1", 100, 0, 2000);
+  // method 1 (Debbie)
+  // 1.1 apply the radiative weights 0.0073/E_gamma then multiply by the correction factor then by the oscw
+  TH1D* h_mu_en_plus_g_rfact_oscw = new TH1D("h_mu_en_plus_g_rfact_oscw", "h_mu_en_plus_g_rfact_oscw", 100, 0, 2000);
+  // check the number of these events that passes the CCnumu selection
+  TH1D* h_mu_en_plus_g_rfact_oscw_ccnumu = new TH1D("h_mu_en_plus_g_rfact_oscw_ccnumu", "h_mu_en_plus_g_rfact_oscw_ccnumu", 100, 0, 2000);
+  // check the number of these events that passes the 1e1de selection
+  TH1D* h_mu_en_plus_g_rfact_oscw_1e1de = new TH1D("h_mu_en_plus_g_rfact_oscw_1e1de", "h_mu_en_plus_g_rfact_oscw_1e1de", 100, 0, 2000);    
+  // method 2 (Fady)
+  // 1. apply the analysis twice: one with the total weights calculated from radw = 0.0073/ E_gamma * oscw ,  
+  //  and another from the total weights = radw_sum1 * oscw 
+  TH1D* h_mu_en_plus_totw = new TH1D("h_mu_en_plus_totw", "h_mu_en_plus_totw", 100, 0, 2000);
+  TH1D* h_mu_en_plus_totw_sum1 = new TH1D("h_mu_en_plus_totw_sum1", "h_mu_en_plus_totw_sum1", 100, 0, 2000);
+  // Get the correct energy dependence from the first and the correct normalization from the second
+  //i.e multiply result 1 by integral of result 2 / integral of result 1
+  TH1D* h_mu_en_plus_totw_ccnumu = new TH1D("h_mu_en_plus_totw_ccnumu", "h_mu_en_plus_totw_ccnumu", 100, 0, 2000);
+  TH1D* h_mu_en_plus_totw_sum1_ccnumu = new TH1D("h_mu_en_plus_totw_sum1_ccnumu", "h_mu_en_plus_totw_sum1_ccnumu", 100, 0, 2000);
+  TH1D* h_mu_en_plus_totw_ccnumu_norm = new TH1D("h_mu_en_plus_totw_ccnumu_norm", "h_mu_en_plus_totw_ccnumu_norm", 100, 0, 2000);
+
+  TH1D* h_mu_en_plus_totw_1e1de = new TH1D("h_mu_en_plus_totw_1e1de", "h_mu_en_plus_totw_1e1de", 100, 0, 2000);
+  TH1D* h_mu_en_plus_totw_sum1_1e1de = new TH1D("h_mu_en_plus_totw_sum1_1e1de", "h_mu_en_plus_totw_sum1_1e1de", 100, 0, 2000);
+  TH1D* h_mu_en_plus_totw_1e1de_norm = new TH1D("h_mu_en_plus_totw_1e1de_norm", "h_mu_en_plus_totw_1e1de_norm", 100, 0, 2000);
+
 
   double nu_en_corr; // adding the gamma en to the muom energy before reconstructing the nu energy
   double nu_en_calc; // neglegting the emitted photon in case of radiation    
@@ -2335,6 +2357,19 @@ void check_mixed_weights(std::string mix_file){
 
       h4_mu_en_plus_g_wg->Fill(init_mu_en, ana_struct.w_rad);
       h4f_mu_en_plus_g_wgsum1->Fill(init_mu_en, ana_struct.w_rad_sum1);
+      //Debbie Checks, they will have to be multiplied by the correction factor 
+      h_mu_en_plus_g_rfact_oscw->Fill(init_mu_en, ana_struct.w_total);
+      if(pass_ccqe_numu_sample(ana_struct))h_mu_en_plus_g_rfact_oscw_ccnumu->Fill(init_mu_en, ana_struct.w_total);
+      if(pass_1e1de_sample(ana_struct)) h_mu_en_plus_g_rfact_oscw_1e1de->Fill(init_mu_en, ana_struct.w_total);  
+
+      if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_plus_totw_ccnumu->Fill(init_mu_en, ana_struct.w_total);
+      if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_plus_totw_ccnumu_norm->Fill(init_mu_en, ana_struct.w_total);       
+      if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_plus_totw_sum1_ccnumu->Fill(init_mu_en, ana_struct.w_total_sum1); 
+
+      if(pass_1e1de_sample(ana_struct)) h_mu_en_plus_totw_1e1de->Fill(init_mu_en, ana_struct.w_total); 
+      if(pass_1e1de_sample(ana_struct)) h_mu_en_plus_totw_1e1de_norm->Fill(init_mu_en, ana_struct.w_total);       
+      if(pass_1e1de_sample(ana_struct)) h_mu_en_plus_totw_sum1_1e1de->Fill(init_mu_en, ana_struct.w_total_sum1); 
+
     }    
   }
   std::cout<<"number of wrong weights = " << cnt << std::endl;
@@ -2348,7 +2383,12 @@ void check_mixed_weights(std::string mix_file){
   h5_mu_en_plus_g_factor->Divide(h4_mu_en_plus_g_wg);
   // Bool_t TH1::Multiply ( const TH1 * h1,	const TH1 *	h2,	Double_t  c1 = 1,	Double_t 	c2 = 1,	Option_t *  	option = "" ) 	
   // this = (c1*h1)*(c2*h2)
-  h3_mu_en_plus_g_corr->Multiply(h4_mu_en_plus_g_wg, h5_mu_en_plus_g_factor);  	
+  h3_mu_en_plus_g_corr->Multiply(h4_mu_en_plus_g_wg, h5_mu_en_plus_g_factor);
+  //Debbie's method
+  h_mu_en_plus_g_rfact_oscw->Multiply(h5_mu_en_plus_g_factor);
+  h_mu_en_plus_g_rfact_oscw_ccnumu->Multiply(h5_mu_en_plus_g_factor);
+  h_mu_en_plus_g_rfact_oscw_1e1de->Multiply(h5_mu_en_plus_g_factor);    
+	
   // initial distributions
   plot_hist1D(h_mu_mom_norad_init,"h_mu_mom_norad_init",  "Initial Non-Radiative (no weights);p_{#mu};count" , kBlue , 2, 1);  
   plot_hist1D(h_mu_mom_rad_init,"h_mu_mom_rad_init",  "Initial Radiative (no weights);p_{#mu};count" , kBlue , 2, 1);  
@@ -2402,6 +2442,25 @@ void check_mixed_weights(std::string mix_file){
 
   plot_hist1D(h1_mins_h2_mu_en,"h1_mins_h2_mu_en",  "Non-Radiative (nog_{now} - nog_{wng});E_{#mu};count" , kBlue , 2, 1, "hist");
   plot_hist1D(h4f_mu_en_plus_g_wgsum1,"h4f_mu_en_plus_g_wgsum1",  "Radiative (radiative weights sum1);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1);
+
+  // Debbie's method
+  plot_hist1D(h_mu_en_plus_g_rfact_oscw,"h_mu_en_plus_g_rfact_oscw",  "Radiative (radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_g_rfact_oscw_ccnumu,"h_mu_en_plus_g_rfact_oscw_ccnumu",  "Radiative CC#nu_{#mu}(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_g_rfact_oscw_1e1de,"h_mu_en_plus_g_rfact_oscw_1e1de",  "Radiative 1e1de(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");  
+
+  // Fady 's method
+  double ccnumu_scale =  h_mu_en_plus_totw_sum1_ccnumu->Integral()/ h_mu_en_plus_totw_ccnumu->Integral();
+  double e1de_scale =  h_mu_en_plus_totw_sum1_1e1de->Integral()/ h_mu_en_plus_totw_1e1de->Integral();
+
+  h_mu_en_plus_totw_ccnumu_norm->Scale(ccnumu_scale);
+  h_mu_en_plus_totw_1e1de_norm->Scale(e1de_scale);  
+  plot_hist1D(h_mu_en_plus_totw_ccnumu,"h_mu_en_plus_totw_ccnumu",  "Radiative CC#nu_{#mu}(radw 0.0073/E_{#gamma} * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_totw_sum1_ccnumu,"h_mu_en_plus_totw_sum1_ccnumu",  "Radiative CC#nu_{#mu}(radw sum1 * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_totw_ccnumu_norm,"h_mu_en_plus_totw_ccnumu_norm",  "Radiative CC#nu_{#mu}(radw 0.0073/E_{#gamma} * oscw) scaled;E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+
+  plot_hist1D(h_mu_en_plus_totw_1e1de,"h_mu_en_plus_totw_1e1de",  "Radiative 1e1de(radw 0.0073/E_{#gamma} * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_totw_sum1_1e1de,"h_mu_en_plus_totw_sum1_1e1de",  "Radiative 1e1de(radw sum1 * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_totw_1e1de_norm,"h_mu_en_plus_totw_1e1de_norm",  "Radiative 1e1de(radw 0.0073/E_{#gamma} * oscw) scaled;E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
 
   //Integral Calculation:
   std::cout<<"Integral Caculation:" << std::endl;
