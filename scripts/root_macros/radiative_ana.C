@@ -10,7 +10,22 @@ void radiative_ana(){
   TH1::AddDirectory(kFALSE);
   TH1::SetDefaultSumw2(kTRUE); 	
   TH2::SetDefaultSumw2(kTRUE);
-
+  /*
+k = 1;  kurtosis printed
+k = 2;  kurtosis and kurtosis error printed
+s = 1;  skewness printed
+s = 2;  skewness and skewness error printed
+i = 1;  integral of bins printed
+o = 1;  number of overflows printed
+u = 1;  number of underflows printed
+r = 1;  rms printed
+r = 2;  rms and rms error printed
+m = 1;  mean value printed
+m = 2;  mean and mean error values printed
+e = 1;  number of entries printed
+n = 1;  name of histogram is printed
+  */
+  gStyle->SetOptStat("nemruoi");
 
 //debug start
 //create_weight_branches(mu_gamma_file, true, MUON);
@@ -679,12 +694,18 @@ void format_hist1D(TH1* hist, std::string title, int col , int width, int sty){
   hist->SetMaximum(hist->GetMaximum()*1.2);
 }
 //============================================================================//
-void plot_hist1D(TH1* hist,  std::string filename, std::string title, int col , int width, int sty){
+void plot_hist1D(TH1* hist,  std::string filename, std::string title, int col , int width, int sty, std::string draw_opt){
 //============================================================================//
   format_hist1D(hist, title, col , width, sty);
   TCanvas * canv = new TCanvas(Form("canv_%s",hist->GetName()), Form("canv_%s",hist->GetName()), 1200, 800);
   canv->cd();
-  hist->Draw();
+  if(draw_opt.empty()){
+    hist->Draw();
+  }else{
+    // drawing option supplied
+    hist->Draw(draw_opt.c_str());
+  }
+
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),filename.c_str()));
   delete canv;
 }
@@ -2218,7 +2239,16 @@ void check_mixed_weights(std::string mix_file){
   TH1D* h_mu_en_m_mass_ccnumu_mu_g = new TH1D("mu_en_m_mass_ccnumu_mu_g", "mu_en_m_mass_ccnumu_mu_g", 100, 0, 2000);
   TH1D* h_mu_en_m_mass_ccnumu_mu_only = new TH1D("mu_en_m_mass_ccnumu_mu_only", "mu_en_m_mass_ccnumu_mu_only", 100, 0, 2000);  
   TH1D* h_mu_en_m_mass_1e1de_mu_g = new TH1D("mu_en_m_mass_ccnumu_mu_g", "mu_en_m_mass_ccnumu_mu_g", 100, 0, 2000);
-  TH1D* h_mu_en_m_mass_1e1de_mu_only = new TH1D("mu_en_m_mass_ccnumu_mu_only", "mu_en_m_mass_ccnumu_mu_only", 100, 0, 2000);  
+  TH1D* h_mu_en_m_mass_1e1de_mu_only = new TH1D("mu_en_m_mass_ccnumu_mu_only", "mu_en_m_mass_ccnumu_mu_only", 100, 0, 2000);
+  // Debbies histograms
+  TH1D* h1_mu_en_nog_now = new TH1D("h1_mu_en_nog_now", "h1_mu_en_nog_now", 100, 0, 2000);
+  TH1D* h2_mu_en_nog_wnog = new TH1D("h2_mu_en_nog_wnog", "h2_mu_en_nog_wnog", 100, 0, 2000);
+  TH1D* h3_mu_en_plus_g_corr = new TH1D("h3_mu_en_plus_g_corr", "h3_mu_en_plus_g_corr", 100, 0, 2000);
+  TH1D* h4_mu_en_plus_g_wg = new TH1D("h4_mu_en_plus_g_wg", "h4_mu_en_plus_g_wg", 100, 0, 2000);
+  TH1D* h5_mu_en_plus_g_factor = new TH1D("h5_mu_en_plus_g_factor", "h5_mu_en_plus_g_factor", 100, 0, 2000);
+
+  TH1D* h1_mins_h2_mu_en = new TH1D("h1_mins_h2_mu_en", "h1_mins_h2_mu_en", 100, 0, 2000);
+  TH1D* h4f_mu_en_plus_g_wgsum1 = new TH1D("h4f_mu_en_plus_g_wgsum1", "h4f_mu_en_plus_g_wgsum1", 100, 0, 2000);
 
   double nu_en_corr; // adding the gamma en to the muom energy before reconstructing the nu energy
   double nu_en_calc; // neglegting the emitted photon in case of radiation    
@@ -2255,9 +2285,13 @@ void check_mixed_weights(std::string mix_file){
       h_nu_en_norad_osc->Fill(nu_en_corr, ana_struct.w_osc) ;
 
       h_norad_radw->Fill(ana_struct.w_rad); 
-      mu_en_m_mass = sqrt(ana_struct.mu_mom * ana_struct.mu_mom  + MU_MASS*MU_MASS) - MU_MASS;
+      init_mu_en = sqrt(ana_struct.mu_mom * ana_struct.mu_mom  + MU_MASS*MU_MASS);
+      mu_en_m_mass = init_mu_en  - MU_MASS;
       if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_m_mass_ccnumu_mu_only->Fill(mu_en_m_mass);  
-      if(pass_1e1de_sample(ana_struct)) h_mu_en_m_mass_1e1de_mu_only->Fill(mu_en_m_mass);                      
+      if(pass_1e1de_sample(ana_struct)) h_mu_en_m_mass_1e1de_mu_only->Fill(mu_en_m_mass);    
+
+      h1_mu_en_nog_now->Fill(init_mu_en);
+      h2_mu_en_nog_wnog->Fill(init_mu_en, ana_struct.w_rad);                  
     }else{
       // radiative entry
       h_mu_mom_rad_init->Fill(ana_struct.mu_mom);
@@ -2298,10 +2332,23 @@ void check_mixed_weights(std::string mix_file){
       mu_en_m_mass = init_mu_en - MU_MASS;
       if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_m_mass_ccnumu_mu_g->Fill(mu_en_m_mass);  
       if(pass_1e1de_sample(ana_struct)) h_mu_en_m_mass_1e1de_mu_g->Fill(mu_en_m_mass);  
+
+      h4_mu_en_plus_g_wg->Fill(init_mu_en, ana_struct.w_rad);
+      h4f_mu_en_plus_g_wgsum1->Fill(init_mu_en, ana_struct.w_rad_sum1);
     }    
   }
   std::cout<<"number of wrong weights = " << cnt << std::endl;
+  //Bool_t TH1::Add (const TH1 *  	h1,		const TH1 *  	h2,		Double_t  	c1 = 1,		Double_t  	c2 = 1 	) 	
+  //this = c1*h1 + c2*h2 if errors are defined (see TH1::Sumw2), errors are also recalculated
 
+  h5_mu_en_plus_g_factor->Add(h1_mu_en_nog_now, h2_mu_en_nog_wnog, 1, -1);
+  h1_mins_h2_mu_en->Add(h1_mu_en_nog_now, h2_mu_en_nog_wnog, 1, -1);
+  // Bool_t TH1::Divide 	(const TH1 * h1	)
+  // Divide this histogram by h1.  	
+  h5_mu_en_plus_g_factor->Divide(h4_mu_en_plus_g_wg);
+  // Bool_t TH1::Multiply ( const TH1 * h1,	const TH1 *	h2,	Double_t  c1 = 1,	Double_t 	c2 = 1,	Option_t *  	option = "" ) 	
+  // this = (c1*h1)*(c2*h2)
+  h3_mu_en_plus_g_corr->Multiply(h4_mu_en_plus_g_wg, h5_mu_en_plus_g_factor);  	
   // initial distributions
   plot_hist1D(h_mu_mom_norad_init,"h_mu_mom_norad_init",  "Initial Non-Radiative (no weights);p_{#mu};count" , kBlue , 2, 1);  
   plot_hist1D(h_mu_mom_rad_init,"h_mu_mom_rad_init",  "Initial Radiative (no weights);p_{#mu};count" , kBlue , 2, 1);  
@@ -2347,6 +2394,22 @@ void check_mixed_weights(std::string mix_file){
   plot_hist1D(h_mu_en_m_mass_1e1de_mu_g,"h_mu_en_m_mass_1e1de_mu_g",  "1e1de Radiative (no weights);E_{#mu} - m_{#mu};count" , kBlue , 2, 1);
   plot_hist1D(h_mu_en_m_mass_1e1de_mu_only,"h_mu_en_m_mass_1e1de_mu_only",  "1e1de Non-radiative (no weights);E_{#mu} - m_{#mu};count" , kBlue , 2, 1);     
 
+  plot_hist1D(h1_mu_en_nog_now,"h1_mu_en_nog_now",  "Non-Radiative (no weights);E_{#mu};count" , kBlue , 2, 1);
+  plot_hist1D(h2_mu_en_nog_wnog,"h2_mu_en_nog_wnog",  "Non-Radiative (radiative weights 1 -Int);E_{#mu};count" , kBlue , 2, 1);
+  plot_hist1D(h4_mu_en_plus_g_wg,"h4_mu_en_plus_g_wg",  "Radiative (radiative weights 0.0073/E_{#gamma});E_{#mu}+E_{#gamma};count" , kBlue , 2, 1);
+  plot_hist1D(h5_mu_en_plus_g_factor,"h5_mu_en_plus_g_factor",  "Radiative factor (nog_{now} - nog_{wng})/g_{wg};E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h3_mu_en_plus_g_corr,"h3_mu_en_plus_g_corr",  "Radiative (radiative weights 0.0073/E_{#gamma} * Factor);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+
+  plot_hist1D(h1_mins_h2_mu_en,"h1_mins_h2_mu_en",  "Non-Radiative (nog_{now} - nog_{wng});E_{#mu};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h4f_mu_en_plus_g_wgsum1,"h4f_mu_en_plus_g_wgsum1",  "Radiative (radiative weights sum1);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1);
+
+  //Integral Calculation:
+  std::cout<<"Integral Caculation:" << std::endl;
+  std::cout<< " integral of " << h2_mu_en_nog_wnog->GetName() << " = " << h2_mu_en_nog_wnog->Integral() << std::endl;
+  std::cout<< " integral of " << h4_mu_en_plus_g_wg->GetName() << " = " << h4_mu_en_plus_g_wg->Integral() << std::endl;
+  std::cout<< " integral of " << h3_mu_en_plus_g_corr->GetName() << " = " << h3_mu_en_plus_g_corr->Integral() << std::endl;
+  std::cout<< " integral of " << h1_mins_h2_mu_en->GetName() << " = " << h1_mins_h2_mu_en->Integral() << std::endl;  
+  std::cout<< " integral of " << h4f_mu_en_plus_g_wgsum1->GetName() << " = " << h4f_mu_en_plus_g_wgsum1->Integral() << std::endl;  
   f_mw->Close();
 }
 //============================================================================//  
