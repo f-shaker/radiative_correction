@@ -2249,6 +2249,12 @@ void check_mixed_weights(std::string mix_file){
 
   TH1D* h1_mins_h2_mu_en = new TH1D("h1_mins_h2_mu_en", "h1_mins_h2_mu_en", 100, 0, 2000);
   TH1D* h4f_mu_en_plus_g_wgsum1 = new TH1D("h4f_mu_en_plus_g_wgsum1", "h4f_mu_en_plus_g_wgsum1", 100, 0, 2000);
+  // CCnumu and 1e1de analysis
+  // non-radiative (common between the 2 methods):
+  // non radiative contribution that passes selection cuts
+  TH1D* h_mu_en_norad_totw_ccnumu = new TH1D("h_mu_en_norad_totw_ccnumu", "h_mu_en_norad_totw_ccnumu", 100, 0, 2000);
+  TH1D* h_mu_en_norad_totw_1e1de = new TH1D("h_mu_en_norad_totw_1e1de", "h_mu_en_norad_totw_1e1de", 100, 0, 2000);  
+
   // method 1 (Debbie)
   // 1.1 apply the radiative weights 0.0073/E_gamma then multiply by the correction factor then by the oscw
   TH1D* h_mu_en_plus_g_rfact_oscw = new TH1D("h_mu_en_plus_g_rfact_oscw", "h_mu_en_plus_g_rfact_oscw", 100, 0, 2000);
@@ -2309,8 +2315,14 @@ void check_mixed_weights(std::string mix_file){
       h_norad_radw->Fill(ana_struct.w_rad); 
       init_mu_en = sqrt(ana_struct.mu_mom * ana_struct.mu_mom  + MU_MASS*MU_MASS);
       mu_en_m_mass = init_mu_en  - MU_MASS;
-      if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_m_mass_ccnumu_mu_only->Fill(mu_en_m_mass);  
-      if(pass_1e1de_sample(ana_struct)) h_mu_en_m_mass_1e1de_mu_only->Fill(mu_en_m_mass);    
+      if(pass_ccqe_numu_sample(ana_struct)){
+        h_mu_en_norad_totw_ccnumu->Fill(init_mu_en, ana_struct.w_total);
+        h_mu_en_m_mass_ccnumu_mu_only->Fill(mu_en_m_mass);  
+      } 
+      if(pass_1e1de_sample(ana_struct)){
+        h_mu_en_norad_totw_1e1de->Fill(init_mu_en, ana_struct.w_total);
+        h_mu_en_m_mass_1e1de_mu_only->Fill(mu_en_m_mass);    
+      } 
 
       h1_mu_en_nog_now->Fill(init_mu_en);
       h2_mu_en_nog_wnog->Fill(init_mu_en, ana_struct.w_rad);                  
@@ -2461,6 +2473,10 @@ void check_mixed_weights(std::string mix_file){
   plot_hist1D(h_mu_en_plus_totw_1e1de,"h_mu_en_plus_totw_1e1de",  "Radiative 1e1de(radw 0.0073/E_{#gamma} * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
   plot_hist1D(h_mu_en_plus_totw_sum1_1e1de,"h_mu_en_plus_totw_sum1_1e1de",  "Radiative 1e1de(radw sum1 * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
   plot_hist1D(h_mu_en_plus_totw_1e1de_norm,"h_mu_en_plus_totw_1e1de_norm",  "Radiative 1e1de(radw 0.0073/E_{#gamma} * oscw) scaled;E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+
+  // non radiative contributions that passes selection cuts
+  plot_hist1D(h_mu_en_norad_totw_ccnumu,"h_mu_en_norad_totw_ccnumu",  "Non-Radiative CC#nu_{#mu}(1- #int 0.0073/E_{#gamma} dE_{#gamma} * oscw);E_{#mu};count" , kBlue , 2, 1);
+  plot_hist1D(h_mu_en_norad_totw_1e1de,"h_mu_en_norad_totw_1e1de",  "Non-Radiative 1e1de(1- #int 0.0073/E_{#gamma} dE_{#gamma} * oscw);E_{#mu};count" , kBlue , 2, 1);  
 
   //Integral Calculation:
   std::cout<<"Integral Caculation:" << std::endl;
