@@ -2262,6 +2262,12 @@ void check_mixed_weights(std::string mix_file){
   TH1D* h_mu_en_plus_g_rfact_oscw_ccnumu = new TH1D("h_mu_en_plus_g_rfact_oscw_ccnumu", "h_mu_en_plus_g_rfact_oscw_ccnumu", 100, 0, 2000);
   // check the number of these events that passes the 1e1de selection
   TH1D* h_mu_en_plus_g_rfact_oscw_1e1de = new TH1D("h_mu_en_plus_g_rfact_oscw_1e1de", "h_mu_en_plus_g_rfact_oscw_1e1de", 100, 0, 2000);    
+  //fixing multiplication bug
+  TH1D* h_mu_en_plus_g_rfact_oscw_ccnumu_bf = new TH1D("h_mu_en_plus_g_rfact_oscw_ccnumu_bf", "h_mu_en_plus_g_rfact_oscw_ccnumu_bf", 100, 0, 2000);
+  // check the number of these events that passes the 1e1de selection
+  TH1D* h_mu_en_plus_g_rfact_oscw_1e1de_bf = new TH1D("h_mu_en_plus_g_rfact_oscw_1e1de_bf", "h_mu_en_plus_g_rfact_oscw_1e1de_bf", 100, 0, 2000);    
+
+
   // method 2 (Fady)
   // 1. apply the analysis twice: one with the total weights calculated from radw = 0.0073/ E_gamma * oscw ,  
   //  and another from the total weights = radw_sum1 * oscw 
@@ -2401,6 +2407,40 @@ void check_mixed_weights(std::string mix_file){
   h_mu_en_plus_g_rfact_oscw_ccnumu->Multiply(h5_mu_en_plus_g_factor);
   h_mu_en_plus_g_rfact_oscw_1e1de->Multiply(h5_mu_en_plus_g_factor);    
 	
+  h5_mu_en_plus_g_factor->Fit("pol5", "P");
+  TF1* corr_fun = h5_mu_en_plus_g_factor->GetFunction("pol5");
+  // Debbie's method bug fix
+  for (Long64_t i=0;i<nentries;i++){
+    tr_mw->GetEntry(i);
+    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
+    if(ana_struct.is_rad == 1){
+      //works for radiative enetries only
+      init_mu_en = sqrt(ana_struct.mu_mom * ana_struct.mu_mom  + MU_MASS*MU_MASS);
+      init_mu_en+=  ana_struct.g_mom;
+      double corr_factor;
+      double corr_factor_fun;
+      int bin = h5_mu_en_plus_g_factor->FindFixBin(init_mu_en);
+      int bin_range = h5_mu_en_plus_g_factor->FindFixBin(1200); // 1.2 GeV;
+      int bin_max = h5_mu_en_plus_g_factor->GetNbinsX();
+      if(bin > 0 && bin <= bin_range){
+        corr_factor = h5_mu_en_plus_g_factor->GetBinContent(bin);
+        corr_factor_fun = corr_fun->Eval(init_mu_en);
+      }else if (bin > bin_range && bin <= bin_max){
+        corr_factor = h5_mu_en_plus_g_factor->Integral(bin_range, bin_max)/ (bin_max-bin_range);
+        corr_factor_fun = corr_fun->Eval(init_mu_en);
+      }else{
+        corr_factor = 1;// not correct for outside bin scope
+        corr_factor_fun = 1;        
+      }
+
+      if(pass_ccqe_numu_sample(ana_struct)){
+        h_mu_en_plus_g_rfact_oscw_ccnumu_bf->Fill(init_mu_en, ana_struct.w_total*corr_factor);
+      }
+      if(pass_1e1de_sample(ana_struct)){
+        h_mu_en_plus_g_rfact_oscw_1e1de_bf->Fill(init_mu_en, ana_struct.w_total*corr_factor);
+      }        
+    }
+  }
   // initial distributions
   plot_hist1D(h_mu_mom_norad_init,"h_mu_mom_norad_init",  "Initial Non-Radiative (no weights);p_{#mu};count" , kBlue , 2, 1);  
   plot_hist1D(h_mu_mom_rad_init,"h_mu_mom_rad_init",  "Initial Radiative (no weights);p_{#mu};count" , kBlue , 2, 1);  
@@ -2460,6 +2500,9 @@ void check_mixed_weights(std::string mix_file){
   plot_hist1D(h_mu_en_plus_g_rfact_oscw_ccnumu,"h_mu_en_plus_g_rfact_oscw_ccnumu",  "Radiative CC#nu_{#mu}(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
   plot_hist1D(h_mu_en_plus_g_rfact_oscw_1e1de,"h_mu_en_plus_g_rfact_oscw_1e1de",  "Radiative 1e1de(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");  
 
+  plot_hist1D(h_mu_en_plus_g_rfact_oscw_ccnumu_bf,"h_mu_en_plus_g_rfact_oscw_ccnumu_bf",  "Radiative CC#nu_{#mu}(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_g_rfact_oscw_1e1de_bf,"h_mu_en_plus_g_rfact_oscw_1e1de_bf",  "Radiative 1e1de(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+
   // Fady 's method
   double ccnumu_scale =  h_mu_en_plus_totw_sum1_ccnumu->Integral()/ h_mu_en_plus_totw_ccnumu->Integral();
   double e1de_scale =  h_mu_en_plus_totw_sum1_1e1de->Integral()/ h_mu_en_plus_totw_1e1de->Integral();
@@ -2485,6 +2528,11 @@ void check_mixed_weights(std::string mix_file){
   std::cout<< " integral of " << h3_mu_en_plus_g_corr->GetName() << " = " << h3_mu_en_plus_g_corr->Integral() << std::endl;
   std::cout<< " integral of " << h1_mins_h2_mu_en->GetName() << " = " << h1_mins_h2_mu_en->Integral() << std::endl;  
   std::cout<< " integral of " << h4f_mu_en_plus_g_wgsum1->GetName() << " = " << h4f_mu_en_plus_g_wgsum1->Integral() << std::endl;  
+  std::cout<< " integral of " << h_mu_en_plus_totw_1e1de_norm->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_totw_1e1de_norm->Integral(1,12) << std::endl;  
+  std::cout<< " integral of " << h_mu_en_plus_g_rfact_oscw_1e1de_bf->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_g_rfact_oscw_1e1de_bf->Integral(1,12) << std::endl;  
+  std::cout<< " integral of " << h_mu_en_plus_totw_ccnumu_norm->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_totw_ccnumu_norm->Integral(1,12) << std::endl;  
+  std::cout<< " integral of " << h_mu_en_plus_g_rfact_oscw_ccnumu_bf->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_g_rfact_oscw_ccnumu_bf->Integral(1,12) << std::endl;  
+      
   f_mw->Close();
 }
 //============================================================================//  
