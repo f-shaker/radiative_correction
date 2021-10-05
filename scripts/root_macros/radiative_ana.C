@@ -2283,14 +2283,28 @@ void check_mixed_weights(std::string mix_file){
   TH1D* h_mu_en_plus_totw_sum1_1e1de = new TH1D("h_mu_en_plus_totw_sum1_1e1de", "h_mu_en_plus_totw_sum1_1e1de", 100, 0, 2000);
   TH1D* h_mu_en_plus_totw_1e1de_norm = new TH1D("h_mu_en_plus_totw_1e1de_norm", "h_mu_en_plus_totw_1e1de_norm", 100, 0, 2000);
 
+  //method 3 (Kevin)
+   TH1D* h_mu_en_totw_k = new TH1D("h_mu_en_totw_k", "h_mu_en_totw_k", 100, 0, 2000);    
+   TH1D* h_w_rad_k = new TH1D("h_w_rad_k", "h_w_rad_k", 100, 0, 1.0); 
+   TH1D* h_w_totw_k = new TH1D("h_w_totw_k", "h_w_totw_k", 100, 0.5, 1.5);
+   int g_nb_pts = 1000;
+   int g_pt_cnt = 0;
+   TGraph * g_mu_en_w_tot_k = new TGraph(g_nb_pts);       
+  TH1D* h_mu_en_plus_g_totw_k_ccnumu = new TH1D("h_mu_en_plus_g_totw_k_ccnumu", "h_mu_en_plus_g_totw_k_ccnumu", 100, 0, 2000);
+  TH1D* h_mu_en_plus_g_radw_k_ccnumu = new TH1D("h_mu_en_plus_g_radw_k_ccnumu", "h_mu_en_plus_g_radw_k_ccnumu", 100, 0, 2000);
+  TH1D* h_mu_en_plus_g_noradw_k_ccnumu = new TH1D("h_mu_en_plus_g_noradw_k_ccnumu", "h_mu_en_plus_g_noradw_k_ccnumu", 100, 0, 2000);    
 
-  double nu_en_corr; // adding the gamma en to the muom energy before reconstructing the nu energy
-  double nu_en_calc; // neglegting the emitted photon in case of radiation    
-  double oscw_corr; // oscillation weight aftter adding gamma ene to the lep en
-  double oscw_calc; // oscillation weight for the calculated neutrino enrergy from  fitqun 1 ring fit
-  double init_mu_mom; // initial muon momnetum before emitting the photon in a radiative process 
-  double init_mu_en; // initial muon energy before emitting the photon in a radiative process 
-  double mu_en_m_mass; // muon energy - muon rest mass (max available energy for a photon)
+  TH1D* h_mu_en_plus_g_totw_k_1e1de = new TH1D("h_mu_en_plus_g_totw_k_1e1de", "h_mu_en_plus_g_totw_k_1e1de", 100, 0, 2000);
+  TH1D* h_mu_en_plus_g_radw_k_1e1de = new TH1D("h_mu_en_plus_g_radw_k_1e1de", "h_mu_en_plus_g_radw_k_1e1de", 100, 0, 2000);
+  TH1D* h_mu_en_plus_g_noradw_k_1e1de = new TH1D("h_mu_en_plus_g_noradw_k_1e1de", "h_mu_en_plus_g_noradw_k_1e1de", 100, 0, 2000);  
+
+  float nu_en_corr; // adding the gamma en to the muom energy before reconstructing the nu energy
+  float nu_en_calc; // neglegting the emitted photon in case of radiation    
+  float oscw_corr; // oscillation weight aftter adding gamma ene to the lep en
+  float oscw_calc; // oscillation weight for the calculated neutrino enrergy from  fitqun 1 ring fit
+  float init_mu_mom; // initial muon momnetum before emitting the photon in a radiative process 
+  float init_mu_en; // initial muon energy before emitting the photon in a radiative process 
+  float mu_en_m_mass; // muon energy - muon rest mass (max available energy for a photon)
   Long64_t nentries = tr_mw->GetEntries();
   long int cnt = 0;
   for (Long64_t i=0;i<nentries;i++){
@@ -2387,9 +2401,41 @@ void check_mixed_weights(std::string mix_file){
       if(pass_1e1de_sample(ana_struct)) h_mu_en_plus_totw_1e1de->Fill(init_mu_en, ana_struct.w_total); 
       if(pass_1e1de_sample(ana_struct)) h_mu_en_plus_totw_1e1de_norm->Fill(init_mu_en, ana_struct.w_total);       
       if(pass_1e1de_sample(ana_struct)) h_mu_en_plus_totw_sum1_1e1de->Fill(init_mu_en, ana_struct.w_total_sum1); 
+      //Kevin's method
+      //define the thrown weight
+      double w_thr_k = 1.0/( TMath::Max(init_mu_en, MU_MASS+gamma_en_cutoff) - MU_MASS);
+      double w_rad_k = ana_struct.w_rad/w_thr_k;
+      h_w_rad_k->Fill(w_rad_k);
+      h_w_totw_k->Fill(w_rad_k+w_nog);
+      h_mu_en_totw_k->Fill(init_mu_en, w_rad_k+w_nog);
+      if(pass_ccqe_numu_sample(ana_struct)){
+        if(ana_struct.is_rad ==1){
+          h_mu_en_plus_g_radw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);
+          h_mu_en_plus_g_totw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);          
+        }else{
+          h_mu_en_plus_g_noradw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_nog);
+          h_mu_en_plus_g_totw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_nog);           
+        }
+      }
+      if(pass_1e1de_sample(ana_struct)){
+        if(ana_struct.is_rad ==1){
+          h_mu_en_plus_g_radw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);
+          h_mu_en_plus_g_totw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);          
+        }else{
+          h_mu_en_plus_g_noradw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_nog);
+          h_mu_en_plus_g_totw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_nog);           
+        }
+      }      
+      //filling a tgraph
+      if((g_pt_cnt < g_nb_pts) && (init_mu_en < 2000)){
+        g_mu_en_w_tot_k->SetPoint(g_pt_cnt, init_mu_en, w_rad_k+w_nog);
+        g_pt_cnt++;
+      }
+      
 
     }    
   }
+
   std::cout<<"number of wrong weights = " << cnt << std::endl;
   //Bool_t TH1::Add (const TH1 *  	h1,		const TH1 *  	h2,		Double_t  	c1 = 1,		Double_t  	c2 = 1 	) 	
   //this = c1*h1 + c2*h2 if errors are defined (see TH1::Sumw2), errors are also recalculated
@@ -2521,6 +2567,30 @@ void check_mixed_weights(std::string mix_file){
   plot_hist1D(h_mu_en_norad_totw_ccnumu,"h_mu_en_norad_totw_ccnumu",  "Non-Radiative CC#nu_{#mu}(1- #int 0.0073/E_{#gamma} dE_{#gamma} * oscw);E_{#mu};count" , kBlue , 2, 1);
   plot_hist1D(h_mu_en_norad_totw_1e1de,"h_mu_en_norad_totw_1e1de",  "Non-Radiative 1e1de(1- #int 0.0073/E_{#gamma} dE_{#gamma} * oscw);E_{#mu};count" , kBlue , 2, 1);  
 
+  // Kevin method 
+  plot_hist1D(h_w_rad_k,"h_w_rad_k",  "Kevin's Radiative Weights( (0.0073/E_{#gamma})/(1/max(E_{#mu}, m_{#mu} + E_{cut}) - m_{#mu}) );radiative weight;count" , kBlue , 2, 1);
+  plot_hist1D(h_w_totw_k,"h_w_totw_k",  "Kevin's Total Probability ;Total Probability ;count" , kBlue , 2, 1);
+  plot_hist1D(h_mu_en_totw_k,"h_mu_en_totw_k", "Kevin's Total Probability ; E_{#mu}[MeV];count" , kBlue , 2, 1);
+
+  plot_hist1D(h_mu_en_plus_g_totw_k_1e1de,"h_mu_en_plus_g_totw_k_1e1de",  "Weighted (Kevin) Radiative + non-radiative Sample passing 1e1de;E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_g_radw_k_1e1de,"h_mu_en_plus_g_radw_k_1e1de",  "Weighted (Kevin) Radiative Sample passing 1e1de;E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_g_noradw_k_1e1de,"h_mu_en_plus_g_noradw_k_1e1de",  "Weighted (Kevin) non-radiative Sample passing 1e1de;E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+
+  plot_hist1D(h_mu_en_plus_g_totw_k_ccnumu,"h_mu_en_plus_g_totw_k_ccnumu",  "Weighted (Kevin) Radiative + non-radiative Sample passing CC#nu_{#mu};E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_g_radw_k_ccnumu,"h_mu_en_plus_g_radw_k_ccnumu",  "Weighted (Kevin) Radiative Sample passing CC#nu_{#mu};E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_g_noradw_k_ccnumu,"h_mu_en_plus_g_noradw_k_ccnumu",  "Weighted (Kevin) non-radiative Sample passing CC#nu_{#mu};E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+
+
+  TCanvas *c1k = new TCanvas("c1","Kevin's Total Probability Vs. Initial Muon Energy",
+                             200,10,600,400);
+
+   // draw the graph with axis, continuous line, and put
+   // a * at each point
+   g_mu_en_w_tot_k->Draw("A*");
+   g_mu_en_w_tot_k->SetTitle("Kevin's Total Prabability Test;E_{#mu}[MeV];Total Proabability");
+   //g_mu_en_w_tot_k->GetXaxis()->SetTitle("E_{#mu}[MeV]");
+   //g_mu_en_w_tot_k->GetYaxis()->SetTitle("Total Proabability");
+   c1k->SaveAs("g_mu_en_w_tot_k.eps");
   //Integral Calculation:
   std::cout<<"Integral Caculation:" << std::endl;
   std::cout<< " integral of " << h2_mu_en_nog_wnog->GetName() << " = " << h2_mu_en_nog_wnog->Integral() << std::endl;
@@ -2532,7 +2602,8 @@ void check_mixed_weights(std::string mix_file){
   std::cout<< " integral of " << h_mu_en_plus_g_rfact_oscw_1e1de_bf->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_g_rfact_oscw_1e1de_bf->Integral(1,12) << std::endl;  
   std::cout<< " integral of " << h_mu_en_plus_totw_ccnumu_norm->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_totw_ccnumu_norm->Integral(1,12) << std::endl;  
   std::cout<< " integral of " << h_mu_en_plus_g_rfact_oscw_ccnumu_bf->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_g_rfact_oscw_ccnumu_bf->Integral(1,12) << std::endl;  
-      
+
+
   f_mw->Close();
 }
 //============================================================================//  
