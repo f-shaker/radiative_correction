@@ -2345,7 +2345,16 @@ void check_mixed_weights(std::string mix_file){
       } 
 
       h1_mu_en_nog_now->Fill(init_mu_en);
-      h2_mu_en_nog_wnog->Fill(init_mu_en, ana_struct.w_rad);                  
+      h2_mu_en_nog_wnog->Fill(init_mu_en, ana_struct.w_rad);  
+
+      if(pass_ccqe_numu_sample(ana_struct)){
+        h_mu_en_plus_g_noradw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * ana_struct.w_rad);
+        h_mu_en_plus_g_totw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * ana_struct.w_rad);           
+      } 
+      if(pass_1e1de_sample(ana_struct)){
+        h_mu_en_plus_g_noradw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * ana_struct.w_rad);
+        h_mu_en_plus_g_totw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * ana_struct.w_rad);           
+      }               
     }else{
       // radiative entry
       h_mu_mom_rad_init->Fill(ana_struct.mu_mom);
@@ -2408,32 +2417,22 @@ void check_mixed_weights(std::string mix_file){
       h_w_rad_k->Fill(w_rad_k);
       h_w_totw_k->Fill(w_rad_k+w_nog);
       h_mu_en_totw_k->Fill(init_mu_en, w_rad_k+w_nog);
-      if(pass_ccqe_numu_sample(ana_struct)){
-        if(ana_struct.is_rad ==1){
-          h_mu_en_plus_g_radw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);
-          h_mu_en_plus_g_totw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);          
-        }else{
-          h_mu_en_plus_g_noradw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_nog);
-          h_mu_en_plus_g_totw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_nog);           
-        }
-      }
-      if(pass_1e1de_sample(ana_struct)){
-        if(ana_struct.is_rad ==1){
-          h_mu_en_plus_g_radw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);
-          h_mu_en_plus_g_totw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);          
-        }else{
-          h_mu_en_plus_g_noradw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_nog);
-          h_mu_en_plus_g_totw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_nog);           
-        }
-      }      
+   
       //filling a tgraph
       if((g_pt_cnt < g_nb_pts) && (init_mu_en < 2000)){
         g_mu_en_w_tot_k->SetPoint(g_pt_cnt, init_mu_en, w_rad_k+w_nog);
         g_pt_cnt++;
       }
       
-
-    }    
+      if(pass_ccqe_numu_sample(ana_struct)){
+        h_mu_en_plus_g_radw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);
+        h_mu_en_plus_g_totw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);          
+      }
+      if(pass_1e1de_sample(ana_struct)){
+        h_mu_en_plus_g_radw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);
+        h_mu_en_plus_g_totw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);          
+      }      
+    }  
   }
 
   std::cout<<"number of wrong weights = " << cnt << std::endl;
@@ -2570,7 +2569,7 @@ void check_mixed_weights(std::string mix_file){
   // Kevin method 
   plot_hist1D(h_w_rad_k,"h_w_rad_k",  "Kevin's Radiative Weights( (0.0073/E_{#gamma})/(1/max(E_{#mu}, m_{#mu} + E_{cut}) - m_{#mu}) );radiative weight;count" , kBlue , 2, 1);
   plot_hist1D(h_w_totw_k,"h_w_totw_k",  "Kevin's Total Probability ;Total Probability ;count" , kBlue , 2, 1);
-  plot_hist1D(h_mu_en_totw_k,"h_mu_en_totw_k", "Kevin's Total Probability ; E_{#mu}[MeV];count" , kBlue , 2, 1);
+  plot_hist1D(h_mu_en_totw_k,"h_mu_en_totw_k", "Events weighted by (non-radiative weight + radiative weight) ; E_{#mu}[MeV];count" , kBlue , 2, 1);
 
   plot_hist1D(h_mu_en_plus_g_totw_k_1e1de,"h_mu_en_plus_g_totw_k_1e1de",  "Weighted (Kevin) Radiative + non-radiative Sample passing 1e1de;E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
   plot_hist1D(h_mu_en_plus_g_radw_k_1e1de,"h_mu_en_plus_g_radw_k_1e1de",  "Weighted (Kevin) Radiative Sample passing 1e1de;E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
