@@ -20,7 +20,7 @@
 #include "TStyle.h"
 #include "TGraph.h"
 #include "TMath.h"
-#include "TF1.h"
+//#include "TF1.h"
 using namespace std;
 //============================================================================//
 // Types Declaration

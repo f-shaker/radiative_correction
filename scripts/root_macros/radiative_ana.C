@@ -2258,33 +2258,12 @@ void check_mixed_weights(std::string mix_file){
   TH1D* h_mu_en_m_mass_ccnumu_mu_only = new TH1D("mu_en_m_mass_ccnumu_mu_only", "mu_en_m_mass_ccnumu_mu_only", 100, 0, 2000);  
   TH1D* h_mu_en_m_mass_1e1de_mu_g = new TH1D("mu_en_m_mass_ccnumu_mu_g", "mu_en_m_mass_ccnumu_mu_g", 100, 0, 2000);
   TH1D* h_mu_en_m_mass_1e1de_mu_only = new TH1D("mu_en_m_mass_ccnumu_mu_only", "mu_en_m_mass_ccnumu_mu_only", 100, 0, 2000);
-  // Debbies histograms
-  TH1D* h1_mu_en_nog_now = new TH1D("h1_mu_en_nog_now", "h1_mu_en_nog_now", 100, 0, 2000);
-  TH1D* h2_mu_en_nog_wnog = new TH1D("h2_mu_en_nog_wnog", "h2_mu_en_nog_wnog", 100, 0, 2000);
-  TH1D* h3_mu_en_plus_g_corr = new TH1D("h3_mu_en_plus_g_corr", "h3_mu_en_plus_g_corr", 100, 0, 2000);
-  TH1D* h4_mu_en_plus_g_wg = new TH1D("h4_mu_en_plus_g_wg", "h4_mu_en_plus_g_wg", 100, 0, 2000);
-  TH1D* h5_mu_en_plus_g_factor = new TH1D("h5_mu_en_plus_g_factor", "h5_mu_en_plus_g_factor", 100, 0, 2000);
 
-  TH1D* h1_mins_h2_mu_en = new TH1D("h1_mins_h2_mu_en", "h1_mins_h2_mu_en", 100, 0, 2000);
-  TH1D* h4f_mu_en_plus_g_wgsum1 = new TH1D("h4f_mu_en_plus_g_wgsum1", "h4f_mu_en_plus_g_wgsum1", 100, 0, 2000);
   // CCnumu and 1e1de analysis
   // non-radiative (common between the 2 methods):
   // non radiative contribution that passes selection cuts
   TH1D* h_mu_en_norad_totw_ccnumu = new TH1D("h_mu_en_norad_totw_ccnumu", "h_mu_en_norad_totw_ccnumu", 100, 0, 2000);
   TH1D* h_mu_en_norad_totw_1e1de = new TH1D("h_mu_en_norad_totw_1e1de", "h_mu_en_norad_totw_1e1de", 100, 0, 2000);  
-
-  // method 1 (Debbie)
-  // 1.1 apply the radiative weights 0.0073/E_gamma then multiply by the correction factor then by the oscw
-  TH1D* h_mu_en_plus_g_rfact_oscw = new TH1D("h_mu_en_plus_g_rfact_oscw", "h_mu_en_plus_g_rfact_oscw", 100, 0, 2000);
-  // check the number of these events that passes the CCnumu selection
-  TH1D* h_mu_en_plus_g_rfact_oscw_ccnumu = new TH1D("h_mu_en_plus_g_rfact_oscw_ccnumu", "h_mu_en_plus_g_rfact_oscw_ccnumu", 100, 0, 2000);
-  // check the number of these events that passes the 1e1de selection
-  TH1D* h_mu_en_plus_g_rfact_oscw_1e1de = new TH1D("h_mu_en_plus_g_rfact_oscw_1e1de", "h_mu_en_plus_g_rfact_oscw_1e1de", 100, 0, 2000);    
-  //fixing multiplication bug
-  TH1D* h_mu_en_plus_g_rfact_oscw_ccnumu_bf = new TH1D("h_mu_en_plus_g_rfact_oscw_ccnumu_bf", "h_mu_en_plus_g_rfact_oscw_ccnumu_bf", 100, 0, 2000);
-  // check the number of these events that passes the 1e1de selection
-  TH1D* h_mu_en_plus_g_rfact_oscw_1e1de_bf = new TH1D("h_mu_en_plus_g_rfact_oscw_1e1de_bf", "h_mu_en_plus_g_rfact_oscw_1e1de_bf", 100, 0, 2000);    
-
 
   // method 2 (Fady)
   // 1. apply the analysis twice: one with the total weights calculated from radw = 0.0073/ E_gamma * oscw ,  
@@ -2362,8 +2341,7 @@ void check_mixed_weights(std::string mix_file){
         h_mu_en_m_mass_1e1de_mu_only->Fill(mu_en_m_mass);    
       } 
 
-      h1_mu_en_nog_now->Fill(init_mu_en);
-      h2_mu_en_nog_wnog->Fill(init_mu_en, ana_struct.w_rad);  
+
 
       if(pass_ccqe_numu_sample(ana_struct)){
         h_mu_en_plus_g_noradw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * ana_struct.w_rad);
@@ -2414,12 +2392,6 @@ void check_mixed_weights(std::string mix_file){
       if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_m_mass_ccnumu_mu_g->Fill(mu_en_m_mass);  
       if(pass_1e1de_sample(ana_struct)) h_mu_en_m_mass_1e1de_mu_g->Fill(mu_en_m_mass);  
 
-      h4_mu_en_plus_g_wg->Fill(init_mu_en, ana_struct.w_rad);
-      h4f_mu_en_plus_g_wgsum1->Fill(init_mu_en, ana_struct.w_rad_sum1);
-      //Debbie Checks, they will have to be multiplied by the correction factor 
-      h_mu_en_plus_g_rfact_oscw->Fill(init_mu_en, ana_struct.w_total);
-      if(pass_ccqe_numu_sample(ana_struct))h_mu_en_plus_g_rfact_oscw_ccnumu->Fill(init_mu_en, ana_struct.w_total);
-      if(pass_1e1de_sample(ana_struct)) h_mu_en_plus_g_rfact_oscw_1e1de->Fill(init_mu_en, ana_struct.w_total);  
 
       if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_plus_totw_ccnumu->Fill(init_mu_en, ana_struct.w_total);
       if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_plus_totw_ccnumu_norm->Fill(init_mu_en, ana_struct.w_total);       
@@ -2454,56 +2426,7 @@ void check_mixed_weights(std::string mix_file){
   }
 
   std::cout<<"number of wrong weights = " << cnt << std::endl;
-  //Bool_t TH1::Add (const TH1 *  	h1,		const TH1 *  	h2,		Double_t  	c1 = 1,		Double_t  	c2 = 1 	) 	
-  //this = c1*h1 + c2*h2 if errors are defined (see TH1::Sumw2), errors are also recalculated
 
-  h5_mu_en_plus_g_factor->Add(h1_mu_en_nog_now, h2_mu_en_nog_wnog, 1, -1);
-  h1_mins_h2_mu_en->Add(h1_mu_en_nog_now, h2_mu_en_nog_wnog, 1, -1);
-  // Bool_t TH1::Divide 	(const TH1 * h1	)
-  // Divide this histogram by h1.  	
-  h5_mu_en_plus_g_factor->Divide(h4_mu_en_plus_g_wg);
-  // Bool_t TH1::Multiply ( const TH1 * h1,	const TH1 *	h2,	Double_t  c1 = 1,	Double_t 	c2 = 1,	Option_t *  	option = "" ) 	
-  // this = (c1*h1)*(c2*h2)
-  h3_mu_en_plus_g_corr->Multiply(h4_mu_en_plus_g_wg, h5_mu_en_plus_g_factor);
-  //Debbie's method
-  h_mu_en_plus_g_rfact_oscw->Multiply(h5_mu_en_plus_g_factor);
-  h_mu_en_plus_g_rfact_oscw_ccnumu->Multiply(h5_mu_en_plus_g_factor);
-  h_mu_en_plus_g_rfact_oscw_1e1de->Multiply(h5_mu_en_plus_g_factor);    
-	
-  h5_mu_en_plus_g_factor->Fit("pol5", "P");
-  TF1* corr_fun = h5_mu_en_plus_g_factor->GetFunction("pol5");
-  // Debbie's method bug fix
-  for (Long64_t i=0;i<nentries;i++){
-    tr_mw->GetEntry(i);
-    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
-    if(ana_struct.is_rad == 1){
-      //works for radiative enetries only
-      init_mu_en = sqrt(ana_struct.mu_mom * ana_struct.mu_mom  + MU_MASS*MU_MASS);
-      init_mu_en+=  ana_struct.g_mom;
-      double corr_factor;
-      double corr_factor_fun;
-      int bin = h5_mu_en_plus_g_factor->FindFixBin(init_mu_en);
-      int bin_range = h5_mu_en_plus_g_factor->FindFixBin(1200); // 1.2 GeV;
-      int bin_max = h5_mu_en_plus_g_factor->GetNbinsX();
-      if(bin > 0 && bin <= bin_range){
-        corr_factor = h5_mu_en_plus_g_factor->GetBinContent(bin);
-        corr_factor_fun = corr_fun->Eval(init_mu_en);
-      }else if (bin > bin_range && bin <= bin_max){
-        corr_factor = h5_mu_en_plus_g_factor->Integral(bin_range, bin_max)/ (bin_max-bin_range);
-        corr_factor_fun = corr_fun->Eval(init_mu_en);
-      }else{
-        corr_factor = 1;// not correct for outside bin scope
-        corr_factor_fun = 1;        
-      }
-
-      if(pass_ccqe_numu_sample(ana_struct)){
-        h_mu_en_plus_g_rfact_oscw_ccnumu_bf->Fill(init_mu_en, ana_struct.w_total*corr_factor);
-      }
-      if(pass_1e1de_sample(ana_struct)){
-        h_mu_en_plus_g_rfact_oscw_1e1de_bf->Fill(init_mu_en, ana_struct.w_total*corr_factor);
-      }        
-    }
-  }
   // initial distributions
   plot_hist1D(h_mu_mom_norad_init,"h_mu_mom_norad_init",  "Initial Non-Radiative (no weights);p_{#mu};count" , kBlue , 2, 1);  
   plot_hist1D(h_mu_mom_rad_init,"h_mu_mom_rad_init",  "Initial Radiative (no weights);p_{#mu};count" , kBlue , 2, 1);  
@@ -2549,23 +2472,6 @@ void check_mixed_weights(std::string mix_file){
   plot_hist1D(h_mu_en_m_mass_1e1de_mu_g,"h_mu_en_m_mass_1e1de_mu_g",  "1e1de Radiative (no weights);E_{#mu} - m_{#mu};count" , kBlue , 2, 1);
   plot_hist1D(h_mu_en_m_mass_1e1de_mu_only,"h_mu_en_m_mass_1e1de_mu_only",  "1e1de Non-radiative (no weights);E_{#mu} - m_{#mu};count" , kBlue , 2, 1);     
 
-  plot_hist1D(h1_mu_en_nog_now,"h1_mu_en_nog_now",  "Non-Radiative (no weights);E_{#mu};count" , kBlue , 2, 1);
-  plot_hist1D(h2_mu_en_nog_wnog,"h2_mu_en_nog_wnog",  "Non-Radiative (radiative weights 1 -Int);E_{#mu};count" , kBlue , 2, 1);
-  plot_hist1D(h4_mu_en_plus_g_wg,"h4_mu_en_plus_g_wg",  "Radiative (radiative weights 0.0073/E_{#gamma});E_{#mu}+E_{#gamma};count" , kBlue , 2, 1);
-  plot_hist1D(h5_mu_en_plus_g_factor,"h5_mu_en_plus_g_factor",  "Radiative factor (nog_{now} - nog_{wng})/g_{wg};E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
-  plot_hist1D(h3_mu_en_plus_g_corr,"h3_mu_en_plus_g_corr",  "Radiative (radiative weights 0.0073/E_{#gamma} * Factor);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
-
-  plot_hist1D(h1_mins_h2_mu_en,"h1_mins_h2_mu_en",  "Non-Radiative (nog_{now} - nog_{wng});E_{#mu};count" , kBlue , 2, 1, "hist");
-  plot_hist1D(h4f_mu_en_plus_g_wgsum1,"h4f_mu_en_plus_g_wgsum1",  "Radiative (radiative weights sum1);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1);
-
-  // Debbie's method
-  plot_hist1D(h_mu_en_plus_g_rfact_oscw,"h_mu_en_plus_g_rfact_oscw",  "Radiative (radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
-  plot_hist1D(h_mu_en_plus_g_rfact_oscw_ccnumu,"h_mu_en_plus_g_rfact_oscw_ccnumu",  "Radiative CC#nu_{#mu}(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
-  plot_hist1D(h_mu_en_plus_g_rfact_oscw_1e1de,"h_mu_en_plus_g_rfact_oscw_1e1de",  "Radiative 1e1de(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");  
-
-  plot_hist1D(h_mu_en_plus_g_rfact_oscw_ccnumu_bf,"h_mu_en_plus_g_rfact_oscw_ccnumu_bf",  "Radiative CC#nu_{#mu}(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
-  plot_hist1D(h_mu_en_plus_g_rfact_oscw_1e1de_bf,"h_mu_en_plus_g_rfact_oscw_1e1de_bf",  "Radiative 1e1de(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
-
   // Fady 's method
   double global_corr_scale = calc_global_prob_corr_fact(tr_mw, MUON);
   std::cout<<"global correction factor = " << global_corr_scale <<std::endl;
@@ -2597,19 +2503,7 @@ void check_mixed_weights(std::string mix_file){
   plot_hist1D(h_mu_en_plus_g_noradw_k_ccnumu,"h_mu_en_plus_g_noradw_k_ccnumu",  "Weighted (Kevin) non-radiative Sample passing CC#nu_{#mu};E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
 
   plot_gr1D(g_mu_en_w_tot_k, "g_mu_en_w_tot_k", "Kevin's Total Prabability Test;E_{#mu}[MeV];Total Proabability", 5, 2, kBlue, "AP");
-  //Integral Calculation:
-  std::cout<<"Integral Caculation:" << std::endl;
-  std::cout<< " integral of " << h2_mu_en_nog_wnog->GetName() << " = " << h2_mu_en_nog_wnog->Integral() << std::endl;
-  std::cout<< " integral of " << h4_mu_en_plus_g_wg->GetName() << " = " << h4_mu_en_plus_g_wg->Integral() << std::endl;
-  std::cout<< " integral of " << h3_mu_en_plus_g_corr->GetName() << " = " << h3_mu_en_plus_g_corr->Integral() << std::endl;
-  std::cout<< " integral of " << h1_mins_h2_mu_en->GetName() << " = " << h1_mins_h2_mu_en->Integral() << std::endl;  
-  std::cout<< " integral of " << h4f_mu_en_plus_g_wgsum1->GetName() << " = " << h4f_mu_en_plus_g_wgsum1->Integral() << std::endl;  
-  std::cout<< " integral of " << h_mu_en_plus_totw_1e1de_norm->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_totw_1e1de_norm->Integral(1,12) << std::endl;  
-  std::cout<< " integral of " << h_mu_en_plus_g_rfact_oscw_1e1de_bf->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_g_rfact_oscw_1e1de_bf->Integral(1,12) << std::endl;  
-  std::cout<< " integral of " << h_mu_en_plus_totw_ccnumu_norm->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_totw_ccnumu_norm->Integral(1,12) << std::endl;  
-  std::cout<< " integral of " << h_mu_en_plus_g_rfact_oscw_ccnumu_bf->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_g_rfact_oscw_ccnumu_bf->Integral(1,12) << std::endl;  
-
-
+  
   f_mw->Close();
 }
 //============================================================================//  
@@ -2697,3 +2591,121 @@ double calc_global_prob_corr_fact(TTree* mix_tree, fq_particle i_particle){
 
 }
 //============================================================================//
+//To be deleted 
+// Debbie's Method 
+#if 0
+  // Debbies histograms
+  TH1D* h1_mu_en_nog_now = new TH1D("h1_mu_en_nog_now", "h1_mu_en_nog_now", 100, 0, 2000);
+  TH1D* h2_mu_en_nog_wnog = new TH1D("h2_mu_en_nog_wnog", "h2_mu_en_nog_wnog", 100, 0, 2000);
+  TH1D* h3_mu_en_plus_g_corr = new TH1D("h3_mu_en_plus_g_corr", "h3_mu_en_plus_g_corr", 100, 0, 2000);
+  TH1D* h4_mu_en_plus_g_wg = new TH1D("h4_mu_en_plus_g_wg", "h4_mu_en_plus_g_wg", 100, 0, 2000);
+  TH1D* h5_mu_en_plus_g_factor = new TH1D("h5_mu_en_plus_g_factor", "h5_mu_en_plus_g_factor", 100, 0, 2000);
+
+  TH1D* h1_mins_h2_mu_en = new TH1D("h1_mins_h2_mu_en", "h1_mins_h2_mu_en", 100, 0, 2000);
+  TH1D* h4f_mu_en_plus_g_wgsum1 = new TH1D("h4f_mu_en_plus_g_wgsum1", "h4f_mu_en_plus_g_wgsum1", 100, 0, 2000);
+  // method 1 (Debbie)
+  // 1.1 apply the radiative weights 0.0073/E_gamma then multiply by the correction factor then by the oscw
+  TH1D* h_mu_en_plus_g_rfact_oscw = new TH1D("h_mu_en_plus_g_rfact_oscw", "h_mu_en_plus_g_rfact_oscw", 100, 0, 2000);
+  // check the number of these events that passes the CCnumu selection
+  TH1D* h_mu_en_plus_g_rfact_oscw_ccnumu = new TH1D("h_mu_en_plus_g_rfact_oscw_ccnumu", "h_mu_en_plus_g_rfact_oscw_ccnumu", 100, 0, 2000);
+  // check the number of these events that passes the 1e1de selection
+  TH1D* h_mu_en_plus_g_rfact_oscw_1e1de = new TH1D("h_mu_en_plus_g_rfact_oscw_1e1de", "h_mu_en_plus_g_rfact_oscw_1e1de", 100, 0, 2000);    
+  //fixing multiplication bug
+  TH1D* h_mu_en_plus_g_rfact_oscw_ccnumu_bf = new TH1D("h_mu_en_plus_g_rfact_oscw_ccnumu_bf", "h_mu_en_plus_g_rfact_oscw_ccnumu_bf", 100, 0, 2000);
+  // check the number of these events that passes the 1e1de selection
+  TH1D* h_mu_en_plus_g_rfact_oscw_1e1de_bf = new TH1D("h_mu_en_plus_g_rfact_oscw_1e1de_bf", "h_mu_en_plus_g_rfact_oscw_1e1de_bf", 100, 0, 2000);    
+
+      h1_mu_en_nog_now->Fill(init_mu_en);
+      h2_mu_en_nog_wnog->Fill(init_mu_en, ana_struct.w_rad);  
+
+  //Bool_t TH1::Add (const TH1 *  	h1,		const TH1 *  	h2,		Double_t  	c1 = 1,		Double_t  	c2 = 1 	) 	
+  //this = c1*h1 + c2*h2 if errors are defined (see TH1::Sumw2), errors are also recalculated
+
+  h5_mu_en_plus_g_factor->Add(h1_mu_en_nog_now, h2_mu_en_nog_wnog, 1, -1);
+  h1_mins_h2_mu_en->Add(h1_mu_en_nog_now, h2_mu_en_nog_wnog, 1, -1);
+  // Bool_t TH1::Divide 	(const TH1 * h1	)
+  // Divide this histogram by h1.  	
+  h5_mu_en_plus_g_factor->Divide(h4_mu_en_plus_g_wg);
+  // Bool_t TH1::Multiply ( const TH1 * h1,	const TH1 *	h2,	Double_t  c1 = 1,	Double_t 	c2 = 1,	Option_t *  	option = "" ) 	
+  // this = (c1*h1)*(c2*h2)
+  h3_mu_en_plus_g_corr->Multiply(h4_mu_en_plus_g_wg, h5_mu_en_plus_g_factor);
+  //Debbie's method
+  h_mu_en_plus_g_rfact_oscw->Multiply(h5_mu_en_plus_g_factor);
+  h_mu_en_plus_g_rfact_oscw_ccnumu->Multiply(h5_mu_en_plus_g_factor);
+  h_mu_en_plus_g_rfact_oscw_1e1de->Multiply(h5_mu_en_plus_g_factor);    
+	
+
+      h4_mu_en_plus_g_wg->Fill(init_mu_en, ana_struct.w_rad);
+      h4f_mu_en_plus_g_wgsum1->Fill(init_mu_en, ana_struct.w_rad_sum1);
+      //Debbie Checks, they will have to be multiplied by the correction factor 
+      h_mu_en_plus_g_rfact_oscw->Fill(init_mu_en, ana_struct.w_total);
+
+      if(pass_ccqe_numu_sample(ana_struct))h_mu_en_plus_g_rfact_oscw_ccnumu->Fill(init_mu_en, ana_struct.w_total);
+      if(pass_1e1de_sample(ana_struct)) h_mu_en_plus_g_rfact_oscw_1e1de->Fill(init_mu_en, ana_struct.w_total);  
+
+  h5_mu_en_plus_g_factor->Fit("pol5", "P");
+  TF1* corr_fun = h5_mu_en_plus_g_factor->GetFunction("pol5");
+  // Debbie's method bug fix
+  for (Long64_t i=0;i<nentries;i++){
+    tr_mw->GetEntry(i);
+    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
+    if(ana_struct.is_rad == 1){
+      //works for radiative enetries only
+      init_mu_en = sqrt(ana_struct.mu_mom * ana_struct.mu_mom  + MU_MASS*MU_MASS);
+      init_mu_en+=  ana_struct.g_mom;
+      double corr_factor;
+      double corr_factor_fun;
+      int bin = h5_mu_en_plus_g_factor->FindFixBin(init_mu_en);
+      int bin_range = h5_mu_en_plus_g_factor->FindFixBin(1200); // 1.2 GeV;
+      int bin_max = h5_mu_en_plus_g_factor->GetNbinsX();
+      if(bin > 0 && bin <= bin_range){
+        corr_factor = h5_mu_en_plus_g_factor->GetBinContent(bin);
+        corr_factor_fun = corr_fun->Eval(init_mu_en);
+      }else if (bin > bin_range && bin <= bin_max){
+        corr_factor = h5_mu_en_plus_g_factor->Integral(bin_range, bin_max)/ (bin_max-bin_range);
+        corr_factor_fun = corr_fun->Eval(init_mu_en);
+      }else{
+        corr_factor = 1;// not correct for outside bin scope
+        corr_factor_fun = 1;        
+      }
+
+      if(pass_ccqe_numu_sample(ana_struct)){
+        h_mu_en_plus_g_rfact_oscw_ccnumu_bf->Fill(init_mu_en, ana_struct.w_total*corr_factor);
+      }
+      if(pass_1e1de_sample(ana_struct)){
+        h_mu_en_plus_g_rfact_oscw_1e1de_bf->Fill(init_mu_en, ana_struct.w_total*corr_factor);
+      }        
+    }
+  }
+
+   // Debbie's method
+  plot_hist1D(h1_mu_en_nog_now,"h1_mu_en_nog_now",  "Non-Radiative (no weights);E_{#mu};count" , kBlue , 2, 1);
+  plot_hist1D(h2_mu_en_nog_wnog,"h2_mu_en_nog_wnog",  "Non-Radiative (radiative weights 1 -Int);E_{#mu};count" , kBlue , 2, 1);
+  plot_hist1D(h4_mu_en_plus_g_wg,"h4_mu_en_plus_g_wg",  "Radiative (radiative weights 0.0073/E_{#gamma});E_{#mu}+E_{#gamma};count" , kBlue , 2, 1);
+  plot_hist1D(h5_mu_en_plus_g_factor,"h5_mu_en_plus_g_factor",  "Radiative factor (nog_{now} - nog_{wng})/g_{wg};E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h3_mu_en_plus_g_corr,"h3_mu_en_plus_g_corr",  "Radiative (radiative weights 0.0073/E_{#gamma} * Factor);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+
+  plot_hist1D(h1_mins_h2_mu_en,"h1_mins_h2_mu_en",  "Non-Radiative (nog_{now} - nog_{wng});E_{#mu};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h4f_mu_en_plus_g_wgsum1,"h4f_mu_en_plus_g_wgsum1",  "Radiative (radiative weights sum1);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1);
+
+  plot_hist1D(h_mu_en_plus_g_rfact_oscw,"h_mu_en_plus_g_rfact_oscw",  "Radiative (radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_g_rfact_oscw_ccnumu,"h_mu_en_plus_g_rfact_oscw_ccnumu",  "Radiative CC#nu_{#mu}(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_g_rfact_oscw_1e1de,"h_mu_en_plus_g_rfact_oscw_1e1de",  "Radiative 1e1de(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");  
+
+  plot_hist1D(h_mu_en_plus_g_rfact_oscw_ccnumu_bf,"h_mu_en_plus_g_rfact_oscw_ccnumu_bf",  "Radiative CC#nu_{#mu}(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+  plot_hist1D(h_mu_en_plus_g_rfact_oscw_1e1de_bf,"h_mu_en_plus_g_rfact_oscw_1e1de_bf",  "Radiative 1e1de(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
+
+
+//Integral Calculation:
+  std::cout<<"Integral Caculation:" << std::endl;
+  std::cout<< " integral of " << h2_mu_en_nog_wnog->GetName() << " = " << h2_mu_en_nog_wnog->Integral() << std::endl;
+  std::cout<< " integral of " << h4_mu_en_plus_g_wg->GetName() << " = " << h4_mu_en_plus_g_wg->Integral() << std::endl;
+  std::cout<< " integral of " << h3_mu_en_plus_g_corr->GetName() << " = " << h3_mu_en_plus_g_corr->Integral() << std::endl;
+  std::cout<< " integral of " << h1_mins_h2_mu_en->GetName() << " = " << h1_mins_h2_mu_en->Integral() << std::endl;  
+  std::cout<< " integral of " << h4f_mu_en_plus_g_wgsum1->GetName() << " = " << h4f_mu_en_plus_g_wgsum1->Integral() << std::endl;  
+  std::cout<< " integral of " << h_mu_en_plus_totw_1e1de_norm->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_totw_1e1de_norm->Integral(1,12) << std::endl;  
+  std::cout<< " integral of " << h_mu_en_plus_g_rfact_oscw_1e1de_bf->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_g_rfact_oscw_1e1de_bf->Integral(1,12) << std::endl;  
+  std::cout<< " integral of " << h_mu_en_plus_totw_ccnumu_norm->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_totw_ccnumu_norm->Integral(1,12) << std::endl;  
+  std::cout<< " integral of " << h_mu_en_plus_g_rfact_oscw_ccnumu_bf->GetName() << " (till 1200 MeV) = " << h_mu_en_plus_g_rfact_oscw_ccnumu_bf->Integral(1,12) << std::endl;  
+
+#endif 
