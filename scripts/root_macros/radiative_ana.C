@@ -791,6 +791,24 @@ void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt){
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),hist->GetName()));
   delete canv;
 }
+//============================================================================// 
+void plot_gr1D(TGraph* gr, std::string filename, std::string title, int marker_style, int marker_size, int marker_col, std::string draw_opt){
+//============================================================================//  
+  gr->SetMarkerStyle(marker_style);
+  gr->SetMarkerSize(marker_size);
+  gr->SetMarkerColor(marker_col);
+  gr->SetTitle(title.c_str());
+  TCanvas * canv = new TCanvas(Form("canv_%s",gr->GetName()), Form("canv_%s",gr->GetName()), 1200, 800);
+  canv->cd();
+  if(draw_opt.empty()){
+    gr->Draw();
+  }else{
+    // drawing option supplied
+    gr->Draw(draw_opt.c_str());
+  }
+  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),filename.c_str()));
+  delete canv;  
+}
 //============================================================================//
 void plot_cut(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* theta_pass, TH1D* theta_fail,
               TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, TH1D* gamma_frac_en_pass, TH1D* gamma_frac_en_fail, std::string cut_name){
@@ -2579,17 +2597,7 @@ void check_mixed_weights(std::string mix_file){
   plot_hist1D(h_mu_en_plus_g_radw_k_ccnumu,"h_mu_en_plus_g_radw_k_ccnumu",  "Weighted (Kevin) Radiative Sample passing CC#nu_{#mu};E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
   plot_hist1D(h_mu_en_plus_g_noradw_k_ccnumu,"h_mu_en_plus_g_noradw_k_ccnumu",  "Weighted (Kevin) non-radiative Sample passing CC#nu_{#mu};E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
 
-
-  TCanvas *c1k = new TCanvas("c1","Kevin's Total Probability Vs. Initial Muon Energy",
-                             200,10,600,400);
-
-   // draw the graph with axis, continuous line, and put
-   // a * at each point
-   g_mu_en_w_tot_k->Draw("A*");
-   g_mu_en_w_tot_k->SetTitle("Kevin's Total Prabability Test;E_{#mu}[MeV];Total Proabability");
-   //g_mu_en_w_tot_k->GetXaxis()->SetTitle("E_{#mu}[MeV]");
-   //g_mu_en_w_tot_k->GetYaxis()->SetTitle("Total Proabability");
-   c1k->SaveAs("g_mu_en_w_tot_k.eps");
+  plot_gr1D(g_mu_en_w_tot_k, "g_mu_en_w_tot_k", "Kevin's Total Prabability Test;E_{#mu}[MeV];Total Proabability", 5, 2, kBlue, "AP");
   //Integral Calculation:
   std::cout<<"Integral Caculation:" << std::endl;
   std::cout<< " integral of " << h2_mu_en_nog_wnog->GetName() << " = " << h2_mu_en_nog_wnog->Integral() << std::endl;
