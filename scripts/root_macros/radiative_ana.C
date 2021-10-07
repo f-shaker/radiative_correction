@@ -2567,11 +2567,10 @@ void check_mixed_weights(std::string mix_file){
   plot_hist1D(h_mu_en_plus_g_rfact_oscw_1e1de_bf,"h_mu_en_plus_g_rfact_oscw_1e1de_bf",  "Radiative 1e1de(radw 0.0073/E_{#gamma} * Factor * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
 
   // Fady 's method
-  double ccnumu_scale =  h_mu_en_plus_totw_sum1_ccnumu->Integral()/ h_mu_en_plus_totw_ccnumu->Integral();
-  double e1de_scale =  h_mu_en_plus_totw_sum1_1e1de->Integral()/ h_mu_en_plus_totw_1e1de->Integral();
-
-  h_mu_en_plus_totw_ccnumu_norm->Scale(ccnumu_scale);
-  h_mu_en_plus_totw_1e1de_norm->Scale(e1de_scale);  
+  double global_corr_scale = calc_global_prob_corr_fact(tr_mw, MUON);
+  std::cout<<"global correction factor = " << global_corr_scale <<std::endl;
+  h_mu_en_plus_totw_ccnumu_norm->Scale(global_corr_scale);
+  h_mu_en_plus_totw_1e1de_norm->Scale(global_corr_scale);  
   plot_hist1D(h_mu_en_plus_totw_ccnumu,"h_mu_en_plus_totw_ccnumu",  "Radiative CC#nu_{#mu}(radw 0.0073/E_{#gamma} * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
   plot_hist1D(h_mu_en_plus_totw_sum1_ccnumu,"h_mu_en_plus_totw_sum1_ccnumu",  "Radiative CC#nu_{#mu}(radw sum1 * oscw);E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
   plot_hist1D(h_mu_en_plus_totw_ccnumu_norm,"h_mu_en_plus_totw_ccnumu_norm",  "Radiative CC#nu_{#mu}(radw 0.0073/E_{#gamma} * oscw) scaled;E_{#mu}+E_{#gamma};count" , kBlue , 2, 1, "hist");
@@ -2661,6 +2660,40 @@ float compute_nu_en_rec_CCQE_truth(fq_particle i_particle, t2k_sk_radiative& rad
   nu_en/= ( mn - Vnuc - lep_en + lep_mom*cos_beam ); 
 
   return nu_en;
+
+}
+//============================================================================//
+double calc_global_prob_corr_fact(TTree* mix_tree, fq_particle i_particle){
+//============================================================================//
+// This function compute a global correction factor to correct for single photon simulation at a specific lepton energy
+// corr = Sum_non-raditive_sample (Integral_i) / Sum_radiative_sample (0.0073/E_g_i) see my analytical calculation derivation
+  double sum_integral = 0.0;
+  double sum_rad_w = 0.0;
+  double corr = 0.0;
+  double lep_mom = 0.0;
+  t2k_sk_radiative ana_struct;
+  set_tree_addresses(mix_tree, ana_struct, true);  
+  for (Long64_t i=0;i< mix_tree->GetEntries();i++){
+    mix_tree->GetEntry(i);
+    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
+    if(i_particle == ELECTRON){
+      lep_mom = ana_struct.elec_mom;
+    }else if(i_particle == MUON){
+      lep_mom = ana_struct.mu_mom;
+    }else{
+      std::cout<<"Unsupported particle for energy calculation!" << std::endl;
+      exit(-1);
+    }  
+    if(ana_struct.is_rad == 1){
+      // radiative entry
+      sum_rad_w += calc_photon_emission_weight(ana_struct.g_mom);
+    }else{
+      //non-radiative entry
+      sum_integral += 1.0 - calc_no_photon_weight(lep_mom, i_particle);
+    }
+  }
+  corr = sum_integral/sum_rad_w;
+  return corr;
 
 }
 //============================================================================//
