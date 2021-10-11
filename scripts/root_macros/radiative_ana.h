@@ -321,5 +321,6 @@ void create_weight_branches(std::string in_file_name, bool is_radiative, fq_part
 void check_mixed_weights(std::string mix_file);
 float compute_nu_en_rec_CCQE_truth(fq_particle i_particle, t2k_sk_radiative& rad_struct, bool is_radiative);
 double calc_global_prob_corr_fact(TTree* mix_tree, fq_particle i_particle);
+float calc_lep_energy(t2k_sk_radiative& ana_struct, fq_particle i_particle);
 //============================================================================//
 #endif
