@@ -2253,14 +2253,14 @@ void check_mixed_weights(std::string mix_file){
   
   // radiative weights distibution
   // note : radiative weighted mu mom distribution = mu mom distribution * radiative weight distribution
-  TH1D* h_rad_radw = new TH1D("h_rad_radw", "h_rad_radw", 100, 0.0, 0.005);
+  TH1D* h_radcont_radw = new TH1D("h_radcont_radw", "h_radcont_radw", 100, 0.0, 0.005);
   TH1D* h_rad_radw_sum1 = new TH1D("h_rad_radw_sum1", "h_rad_radw_sum1", 100, 0.0, 0.1);
-  TH1D* h_norad_radw = new TH1D("h_norad_radw", "h_norad_radw", 100, 0.9, 1.0);
+  TH1D* h_noradcont_radw = new TH1D("h_noradcont_radw", "h_noradcont_radw", 100, 0.9, 1.0);
   TH1D* h_radw_sum = new TH1D("h_radw_sum", "h_radw_sum", 10, 0.5, 1.5);
   // total weights  
-  TH1D* h_mu_mom_norad_totw = new TH1D("h_mu_mom_norad_totw", "h_mu_mom_norad_totw", 100, 0, 2000);
+  //TH1D* h_mu_mom_norad_totw = new TH1D("h_mu_mom_norad_totw", "h_mu_mom_norad_totw", 100, 0, 2000);
   TH1D* h_mu_mom_rad_totw = new TH1D("h_mu_mom_rad_totw", "h_mu_mom_rad_totw", 100, 0, 2000); 
-  TH1D* h_mu_mom_rad_totw_sum1 = new TH1D("h_mu_mom_rad_totw_sum1", "h_mu_mom_rad_totw_sum1", 100, 0, 2000);    
+  //TH1D* h_mu_mom_rad_totw_sum1 = new TH1D("h_mu_mom_rad_totw_sum1", "h_mu_mom_rad_totw_sum1", 100, 0, 2000);    
   TH1D* h_mu_mom_mix_totw = new TH1D("h_mu_mom_mix_totw", "h_mu_mom_mix_totw", 100, 0, 2000);
 
   // other checks
@@ -2336,34 +2336,31 @@ void check_mixed_weights(std::string mix_file){
       h_Emu_noradcont_now->Fill(lep_en);
       h_Emu_noradcont_oscw->Fill(lep_en, ana_struct.w_osc);      
       h_Emu_noradcont_radw->Fill(lep_en, ana_struct.w_rad);  
-      h_mu_mom_norad_totw->Fill(lep_en, ana_struct.w_total);
+      //h_mu_mom_norad_totw->Fill(lep_en, ana_struct.w_total);
 
       h_Enu_noradcont_now->Fill(nu_en_corr);
       h_Enu_noradcont_oscw->Fill(nu_en_corr, ana_struct.w_osc) ;
 
-      h_norad_radw->Fill(ana_struct.w_rad); 
+      h_noradcont_radw->Fill(ana_struct.w_rad); 
       mu_en_m_mass = lep_en  - MU_MASS;
       if(pass_ccqe_numu_sample(ana_struct)){
-        h_mu_en_norad_totw_ccnumu->Fill(init_mu_en, ana_struct.w_total);
+        h_mu_en_norad_totw_ccnumu->Fill(lep_en, ana_struct.w_total);
         h_mu_en_m_mass_ccnumu_mu_only->Fill(mu_en_m_mass);  
-      } 
-      if(pass_1e1de_sample(ana_struct)){
-        h_mu_en_norad_totw_1e1de->Fill(init_mu_en, ana_struct.w_total);
-        h_mu_en_m_mass_1e1de_mu_only->Fill(mu_en_m_mass);    
-      } 
 
-      if(pass_ccqe_numu_sample(ana_struct)){
-        h_mu_en_plus_g_noradw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * ana_struct.w_rad);
-        h_mu_en_plus_g_totw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * ana_struct.w_rad);           
+        h_mu_en_plus_g_noradw_k_ccnumu->Fill(lep_en, ana_struct.w_osc * ana_struct.w_rad);
+        h_mu_en_plus_g_totw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * ana_struct.w_rad);   
+
       } 
       if(pass_1e1de_sample(ana_struct)){
-        h_mu_en_plus_g_noradw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * ana_struct.w_rad);
-        h_mu_en_plus_g_totw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * ana_struct.w_rad);           
-      }               
+        h_mu_en_norad_totw_1e1de->Fill(lep_en, ana_struct.w_total);
+        h_mu_en_m_mass_1e1de_mu_only->Fill(mu_en_m_mass);   
+        h_mu_en_plus_g_noradw_k_1e1de->Fill(lep_en, ana_struct.w_osc * ana_struct.w_rad);
+        h_mu_en_plus_g_totw_k_1e1de->Fill(lep_en, ana_struct.w_osc * ana_struct.w_rad);           
+      } 
+          
     }else{
       // radiative entry
-      init_mu_en = sqrt(ana_struct.mu_mom * ana_struct.mu_mom  + MU_MASS*MU_MASS);
-      init_mu_en+=  ana_struct.g_mom;
+      init_mu_en = lep_en + ana_struct.g_mom;
       //Kevin's method to correct for sampling a single photon at a specific muon energy
       //define the thrown weight
       
@@ -2393,8 +2390,6 @@ void check_mixed_weights(std::string mix_file){
 
       h_Eg_now->Fill(ana_struct.g_mom);
       
-
-
       h_mu_plus_g_mom_noradw->Fill(init_mu_mom, calc_no_photon_weight(init_mu_mom, MUON));
 
       float w_g_sum1 = calc_photon_emission_weight(ana_struct.g_mom, ana_struct.mu_mom, MUON);
@@ -2415,30 +2410,31 @@ void check_mixed_weights(std::string mix_file){
       h_Enu_radcont_now->Fill(nu_en_corr);
       h_Enu_radcont_oscw->Fill(nu_en_corr, ana_struct.w_osc) ;
 
-      h_rad_radw->Fill(ana_struct.w_rad);
+      h_radcont_radw->Fill(ana_struct.w_rad);
       h_rad_radw_sum1->Fill(ana_struct.w_rad_sum1); 
       mu_en_m_mass = init_mu_en - MU_MASS;
-      if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_m_mass_ccnumu_mu_g->Fill(mu_en_m_mass);  
-      if(pass_1e1de_sample(ana_struct)) h_mu_en_m_mass_1e1de_mu_g->Fill(mu_en_m_mass);  
 
-
-      if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_plus_totw_ccnumu->Fill(init_mu_en, ana_struct.w_total);
-      if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_plus_totw_ccnumu_norm->Fill(init_mu_en, ana_struct.w_total);       
-      if(pass_ccqe_numu_sample(ana_struct)) h_mu_en_plus_totw_sum1_ccnumu->Fill(init_mu_en, ana_struct.w_total_sum1); 
-
-      if(pass_1e1de_sample(ana_struct)) h_mu_en_plus_totw_1e1de->Fill(init_mu_en, ana_struct.w_total); 
-      if(pass_1e1de_sample(ana_struct)) h_mu_en_plus_totw_1e1de_norm->Fill(init_mu_en, ana_struct.w_total);       
-      if(pass_1e1de_sample(ana_struct)) h_mu_en_plus_totw_sum1_1e1de->Fill(init_mu_en, ana_struct.w_total_sum1); 
-
-      
       if(pass_ccqe_numu_sample(ana_struct)){
+        h_mu_en_m_mass_ccnumu_mu_g->Fill(mu_en_m_mass); 
+        h_mu_en_plus_totw_ccnumu->Fill(init_mu_en, ana_struct.w_total);
+        h_mu_en_plus_totw_ccnumu_norm->Fill(init_mu_en, ana_struct.w_total);
+        h_mu_en_plus_totw_sum1_ccnumu->Fill(init_mu_en, ana_struct.w_total_sum1);  
+
         h_mu_en_plus_g_radw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);
-        h_mu_en_plus_g_totw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);          
-      }
+        h_mu_en_plus_g_totw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);  
+
+      }  
       if(pass_1e1de_sample(ana_struct)){
+        h_mu_en_m_mass_1e1de_mu_g->Fill(mu_en_m_mass);
+        h_mu_en_plus_totw_1e1de->Fill(init_mu_en, ana_struct.w_total);
+        h_mu_en_plus_totw_1e1de_norm->Fill(init_mu_en, ana_struct.w_total);
+        h_mu_en_plus_totw_sum1_1e1de->Fill(init_mu_en, ana_struct.w_total_sum1); 
+
         h_mu_en_plus_g_radw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);
-        h_mu_en_plus_g_totw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);          
-      }      
+        h_mu_en_plus_g_totw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_rad_k); 
+
+      }   
+         
     }  
   }
 
@@ -2472,14 +2468,14 @@ void check_mixed_weights(std::string mix_file){
   // non-radiative weight for the initial muon momentum before emmiting the photon
   plot_hist1D(h_mu_plus_g_mom_noradw,"h_mu_plus_g_mom_noradw",  "w_{nog}(p_{#mu_{init}}) (radiation weights);p_{#mu};count" , kBlue , 2, 1);
 
-  plot_hist1D(h_norad_radw,"h_norad_radw",  "Non-radiative weight;w_{non-radiative};count" , kBlue , 2, 1);
-  plot_hist1D(h_rad_radw,"h_rad_radw",  "radiative weight;w_{radiative};count" , kBlue , 2, 1); 
+  plot_hist1D(h_noradcont_radw,"h_noradcont_radw",  "Non-radiative Weights Distribution;w_{non-radiative};count" , kBlue , 2, 1);
+  plot_hist1D(h_radcont_radw,"h_radcont_radw",  "Radiative Weights Distribution;w_{radiative};count" , kBlue , 2, 1); 
   plot_hist1D(h_rad_radw_sum1,"h_rad_radw_sum1",  "radiative weight;w_{radiative-sum1};count" , kBlue , 2, 1);  
   plot_hist1D(h_radw_sum,"h_radw_sum",  "radiative weight sum;w_{radiative-sum1} + w_{non-radiative};count" , kBlue , 2, 1);  
 
-  plot_hist1D(h_mu_mom_norad_totw,"h_mu_mom_norad_totw",  "total weight (non-radiative);p_{#mu};count" , kBlue , 2, 1);
+  //plot_hist1D(h_mu_mom_norad_totw,"h_mu_mom_norad_totw",  "total weight (non-radiative);p_{#mu};count" , kBlue , 2, 1);
   plot_hist1D(h_mu_mom_rad_totw,"h_mu_mom_rad_totw",  "total weight (radiative);p_{#mu};count" , kBlue , 2, 1);
-  plot_hist1D(h_mu_mom_rad_totw_sum1,"h_mu_mom_rad_totw_sum1",  "total weight (radiative sum1);p_{#mu};count" , kBlue , 2, 1);  
+  //plot_hist1D(h_mu_mom_rad_totw_sum1,"h_mu_mom_rad_totw_sum1",  "total weight (radiative sum1);p_{#mu};count" , kBlue , 2, 1);  
   plot_hist1D(h_mu_mom_mix_totw,"h_mu_mom_mix_totw",  "total weight (mixed);p_{#mu};count" , kBlue , 2, 1);  
 
   //other checks
