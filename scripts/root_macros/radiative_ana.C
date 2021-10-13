@@ -2284,7 +2284,18 @@ void check_mixed_weights(std::string mix_file){
   TH2D* h2d_radcont_emuenu_now = new TH2D("h2d_radcont_emuenu_now", "h2d_radcont_emuenu_now", 20, 0, 2000, 20, 0, 2000);
   TH2D* h2d_radcont_emuenu_oscw = new TH2D("h2d_radcont_emuenu_oscw", "h2d_radcont_emuenu_oscw", 20, 0, 2000, 20, 0, 2000);
   TH2D* h2d_radcont_emuenu_radw = new TH2D("h2d_radcont_emuenu_radw", "h2d_radcont_emuenu_radw", 20, 0, 2000, 20, 0, 2000);
-  TH2D* h2d_radcont_emuenu_totw = new TH2D("h2d_radcont_emuenu_totw", "h2d_radcont_emuenu_totw", 20, 0, 2000, 20, 0, 2000);  
+  TH2D* h2d_radcont_emuenu_totw = new TH2D("h2d_radcont_emuenu_totw", "h2d_radcont_emuenu_totw", 20, 0, 2000, 20, 0, 2000); 
+  // CCnumu Selection 1D histograms
+  // non-radiative contribution
+  TH1D* h_ccnumu_noradcont_Emu_now = new TH1D("h_ccnumu_noradcont_Emu_now", "h_ccnumu_noradcont_Emu_now", 100, 0, 2000);
+  TH1D* h_ccnumu_noradcont_Emu_oscw = new TH1D("h_ccnumu_noradcont_Emu_oscw", "h_ccnumu_noradcont_Emu_oscw", 100, 0, 2000);
+  TH1D* h_ccnumu_noradcont_Emu_radw = new TH1D("h_ccnumu_noradcont_Emu_radw", "h_ccnumu_noradcont_Emu_radw", 100, 0, 2000); 
+  TH1D* h_ccnumu_noradcont_Emu_totw = new TH1D("h_ccnumu_noradcont_Emu_totw", "h_ccnumu_noradcont_Emu_totw", 100, 0, 2000);   
+  // radiative contribution
+  TH1D* h_ccnumu_radcont_Emu_now = new TH1D("h_ccnumu_radcont_Emu_now", "h_ccnumu_radcont_Emu_now", 100, 0, 2000);
+  TH1D* h_ccnumu_radcont_Emu_oscw = new TH1D("h_ccnumu_radcont_Emu_oscw", "h_ccnumu_radcont_Emu_oscw", 100, 0, 2000);
+  TH1D* h_ccnumu_radcont_Emu_radw = new TH1D("h_ccnumu_radcont_Emu_radw", "h_ccnumu_radcont_Emu_radw", 100, 0, 2000); 
+  TH1D* h_ccnumu_radcont_Emu_totw = new TH1D("h_ccnumu_radcont_Emu_totw", "h_ccnumu_radcont_Emu_totw", 100, 0, 2000);      
   // CCnumu Selection 2D histograms
   // non-radiative contribution
   TH2D* h2d_ccnumu_noradcont_emuenu_now = new TH2D("h2d_ccnumu_noradcont_emuenu_now", "h2d_ccnumu_noradcont_emuenu_now", 20, 0, 2000, 20, 0, 2000);
@@ -2307,6 +2318,17 @@ void check_mixed_weights(std::string mix_file){
   TH2D* h2d_ccnumu_radcont_emuenu_eg3_radw = new TH2D("h2d_ccnumu_radcont_emuenu_eg3_radw", "h2d_ccnumu_radcont_emuenu_eg3_radw", 20, 0, 2000, 20, 0, 2000);
   TH2D* h2d_ccnumu_radcont_emuenu_eg3_totw = new TH2D("h2d_ccnumu_radcont_emuenu_eg3_totw", "h2d_ccnumu_radcont_emuenu_eg3_totw", 20, 0, 2000, 20, 0, 2000);
 
+  // 1e1de Selection 1D histograms
+  // non-radiative contribution
+  TH1D* h_1e1de_noradcont_Emu_now = new TH1D("h_1e1de_noradcont_Emu_now", "h_1e1de_noradcont_Emu_now", 100, 0, 2000);
+  TH1D* h_1e1de_noradcont_Emu_oscw = new TH1D("h_1e1de_noradcont_Emu_oscw", "h_1e1de_noradcont_Emu_oscw", 100, 0, 2000);
+  TH1D* h_1e1de_noradcont_Emu_radw = new TH1D("h_1e1de_noradcont_Emu_radw", "h_1e1de_noradcont_Emu_radw", 100, 0, 2000); 
+  TH1D* h_1e1de_noradcont_Emu_totw = new TH1D("h_1e1de_noradcont_Emu_totw", "h_1e1de_noradcont_Emu_totw", 100, 0, 2000);   
+  // radiative contribution
+  TH1D* h_1e1de_radcont_Emu_now = new TH1D("h_1e1de_radcont_Emu_now", "h_1e1de_radcont_Emu_now", 100, 0, 2000);
+  TH1D* h_1e1de_radcont_Emu_oscw = new TH1D("h_1e1de_radcont_Emu_oscw", "h_1e1de_radcont_Emu_oscw", 100, 0, 2000);
+  TH1D* h_1e1de_radcont_Emu_radw = new TH1D("h_1e1de_radcont_Emu_radw", "h_1e1de_radcont_Emu_radw", 100, 0, 2000); 
+  TH1D* h_1e1de_radcont_Emu_totw = new TH1D("h_1e1de_radcont_Emu_totw", "h_1e1de_radcont_Emu_totw", 100, 0, 2000);  
   // 1e1de Selection 2D histograms
   // non-radiative contribution
   TH2D* h2d_1e1de_noradcont_emuenu_now = new TH2D("h2d_1e1de_noradcont_emuenu_now", "h2d_1e1de_noradcont_emuenu_now", 20, 0, 2000, 20, 0, 2000);
@@ -2408,6 +2430,11 @@ void check_mixed_weights(std::string mix_file){
         h_mu_en_plus_g_noradw_k_ccnumu->Fill(lep_en, ana_struct.w_osc * ana_struct.w_rad);
         h_mu_en_plus_g_totw_k_ccnumu->Fill(lep_en, ana_struct.w_osc * ana_struct.w_rad); 
 
+        h_ccnumu_noradcont_Emu_now->Fill(lep_en);
+        h_ccnumu_noradcont_Emu_oscw->Fill(lep_en, ana_struct.w_osc);
+        h_ccnumu_noradcont_Emu_radw->Fill(lep_en, ana_struct.w_rad);
+        h_ccnumu_noradcont_Emu_totw->Fill(lep_en, ana_struct.w_total);                        
+
         h2d_ccnumu_noradcont_emuenu_now->Fill(lep_en, nu_en_corr);
         h2d_ccnumu_noradcont_emuenu_oscw->Fill(lep_en, nu_en_corr, ana_struct.w_osc); 
         h2d_ccnumu_noradcont_emuenu_radw->Fill(lep_en, nu_en_corr, ana_struct.w_rad); 
@@ -2419,6 +2446,11 @@ void check_mixed_weights(std::string mix_file){
         h_mu_en_m_mass_1e1de_mu_only->Fill(mu_en_m_mass);   
         h_mu_en_plus_g_noradw_k_1e1de->Fill(lep_en, ana_struct.w_osc * ana_struct.w_rad);
         h_mu_en_plus_g_totw_k_1e1de->Fill(lep_en, ana_struct.w_osc * ana_struct.w_rad);  
+
+        h_1e1de_noradcont_Emu_now->Fill(lep_en);
+        h_1e1de_noradcont_Emu_oscw->Fill(lep_en, ana_struct.w_osc);
+        h_1e1de_noradcont_Emu_radw->Fill(lep_en, ana_struct.w_rad);
+        h_1e1de_noradcont_Emu_totw->Fill(lep_en, ana_struct.w_total);  
 
         h2d_1e1de_noradcont_emuenu_now->Fill(lep_en, nu_en_corr);
         h2d_1e1de_noradcont_emuenu_oscw->Fill(lep_en, nu_en_corr, ana_struct.w_osc); 
@@ -2495,6 +2527,11 @@ void check_mixed_weights(std::string mix_file){
         h_mu_en_plus_g_radw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);
         h_mu_en_plus_g_totw_k_ccnumu->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);  
 
+        h_ccnumu_radcont_Emu_now->Fill(lep_en);
+        h_ccnumu_radcont_Emu_oscw->Fill(lep_en, ana_struct.w_osc);
+        h_ccnumu_radcont_Emu_radw->Fill(lep_en, w_rad_k);
+        h_ccnumu_radcont_Emu_totw->Fill(lep_en, ana_struct.w_osc * w_rad_k);    
+
         if(ana_struct.g_mom < 20){
           h2d_ccnumu_radcont_emuenu_eg1_now->Fill(lep_en, nu_en_corr);
           h2d_ccnumu_radcont_emuenu_eg1_oscw->Fill(lep_en, nu_en_corr, ana_struct.w_osc); 
@@ -2521,6 +2558,11 @@ void check_mixed_weights(std::string mix_file){
 
         h_mu_en_plus_g_radw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_rad_k);
         h_mu_en_plus_g_totw_k_1e1de->Fill(init_mu_en, ana_struct.w_osc * w_rad_k); 
+
+        h_1e1de_radcont_Emu_now->Fill(lep_en);
+        h_1e1de_radcont_Emu_oscw->Fill(lep_en, ana_struct.w_osc);
+        h_1e1de_radcont_Emu_radw->Fill(lep_en, w_rad_k);
+        h_1e1de_radcont_Emu_totw->Fill(lep_en, ana_struct.w_osc * w_rad_k);  
 
         if(ana_struct.g_mom < 20){
           h2d_1e1de_radcont_emuenu_eg1_now->Fill(lep_en, nu_en_corr);
@@ -2631,11 +2673,22 @@ void check_mixed_weights(std::string mix_file){
   plot_hist2D(h2d_radcont_emuenu_totw, "radiative contribution (no cuts, total weights);E_{#mu} [MeV];E_{#nu} [MeV]", "colz");    
 
   // CCnumu Analysis
-  // non-radiative contribution 
+  // non-radiative contribution
+  plot_hist1D(h_ccnumu_noradcont_Emu_now,"h_ccnumu_noradcont_Emu_now",  "CC#nu_{#mu} non-radiative contribution no weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_ccnumu_noradcont_Emu_oscw,"h_ccnumu_noradcont_Emu_oscw",  "CC#nu_{#mu} non-radiative contribution oscilation weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_ccnumu_noradcont_Emu_radw,"h_ccnumu_noradcont_Emu_radw",  "CC#nu_{#mu} non-radiative contribution non-radiative weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_ccnumu_noradcont_Emu_totw,"h_ccnumu_noradcont_Emu_totw",  "CC#nu_{#mu} non-radiative contribution total weights;E_{#mu} [MeV];count", kBlue , 2, 1);      
+
   plot_hist2D(h2d_ccnumu_noradcont_emuenu_now, "CC#nu_{#mu} non-radiative contribution no weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
   plot_hist2D(h2d_ccnumu_noradcont_emuenu_oscw, "CC#nu_{#mu} non-radiative contribution oscilation weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
   plot_hist2D(h2d_ccnumu_noradcont_emuenu_radw, "CC#nu_{#mu} non-radiative contribution non-radiative weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
-  plot_hist2D(h2d_ccnumu_noradcont_emuenu_totw, "CC#nu_{#mu} non-radiative contribution total weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz");   
+  plot_hist2D(h2d_ccnumu_noradcont_emuenu_totw, "CC#nu_{#mu} non-radiative contribution total weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
+  // radiative contribution
+  plot_hist1D(h_ccnumu_radcont_Emu_now,"h_ccnumu_radcont_Emu_now",  "CC#nu_{#mu} radiative contribution no weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_ccnumu_radcont_Emu_oscw,"h_ccnumu_radcont_Emu_oscw",  "CC#nu_{#mu} radiative contribution oscilation weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_ccnumu_radcont_Emu_radw,"h_ccnumu_radcont_Emu_radw",  "CC#nu_{#mu} radiative contribution radiative weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_ccnumu_radcont_Emu_totw,"h_ccnumu_radcont_Emu_totw",  "CC#nu_{#mu} radiative contribution total weights;E_{#mu} [MeV];count", kBlue , 2, 1);      
+  
   // radiative contribution E_gamma slice 1
   plot_hist2D(h2d_ccnumu_radcont_emuenu_eg1_now, "CC#nu_{#mu} radiative contribution (E_{#gamma} < 20 MeV) no weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
   plot_hist2D(h2d_ccnumu_radcont_emuenu_eg1_oscw, "CC#nu_{#mu} radiative contribution (E_{#gamma} < 20 MeV) oscilation weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
@@ -2654,10 +2707,20 @@ void check_mixed_weights(std::string mix_file){
 
   // 1e1de Analysis
   // non-radiative contribution 
+  plot_hist1D(h_1e1de_noradcont_Emu_now,"h_1e1de_noradcont_Emu_now",  "1e1de non-radiative contribution no weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_1e1de_noradcont_Emu_oscw,"h_1e1de_noradcont_Emu_oscw",  "1e1de non-radiative contribution oscilation weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_1e1de_noradcont_Emu_radw,"h_1e1de_noradcont_Emu_radw",  "1e1de non-radiative contribution non-radiative weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_1e1de_noradcont_Emu_totw,"h_1e1de_noradcont_Emu_totw",  "1e1de non-radiative contribution total weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+
   plot_hist2D(h2d_1e1de_noradcont_emuenu_now, "1e1de non-radiative contribution no weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
   plot_hist2D(h2d_1e1de_noradcont_emuenu_oscw, "1e1de non-radiative contribution oscilation weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
   plot_hist2D(h2d_1e1de_noradcont_emuenu_radw, "1e1de non-radiative contribution non-radiative weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
-  plot_hist2D(h2d_1e1de_noradcont_emuenu_totw, "1e1de non-radiative contribution total weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz");   
+  plot_hist2D(h2d_1e1de_noradcont_emuenu_totw, "1e1de non-radiative contribution total weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
+  // radiative contribution
+  plot_hist1D(h_1e1de_radcont_Emu_now,"h_1e1de_radcont_Emu_now",  "1e1de radiative contribution no weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_1e1de_radcont_Emu_oscw,"h_1e1de_radcont_Emu_oscw",  "1e1de adiative contribution oscilation weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_1e1de_radcont_Emu_radw,"h_1e1de_radcont_Emu_radw",  "1e1de radiative contribution radiative weights;E_{#mu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_1e1de_radcont_Emu_totw,"h_1e1de_radcont_Emu_totw",  "1e1de radiative contribution total weights;E_{#mu} [MeV];count", kBlue , 2, 1);    
   // radiative contribution E_gamma slice 1
   plot_hist2D(h2d_1e1de_radcont_emuenu_eg1_now, "1e1de radiative contribution (E_{#gamma} < 20 MeV) no weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
   plot_hist2D(h2d_1e1de_radcont_emuenu_eg1_oscw, "1e1de radiative contribution (E_{#gamma} < 20 MeV) oscilation weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
