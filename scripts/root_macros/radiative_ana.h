@@ -224,12 +224,12 @@ typedef struct ana_results_hists{
   TH2D * g_mom_theta_2D_pimu_pid_pass_h;
   TH2D * g_mom_theta_2D_pimu_pid_fail_h; 
   // Specific for nu_e analysis
-  TH1D * mu_mom_epi0_pid_pass_h;
-  TH1D * mu_mom_epi0_pid_fail_h;
+  TH1D * lep_mom_epi0_pid_pass_h;
+  TH1D * lep_mom_epi0_pid_fail_h;
   TH1D * g_mom_epi0_pid_pass_h;
   TH1D * g_mom_epi0_pid_fail_h;
-  TH1D * theta_mu_g_epi0_pid_pass_h;  
-  TH1D * theta_mu_g_epi0_pid_fail_h;  
+  TH1D * theta_lep_g_epi0_pid_pass_h;  
+  TH1D * theta_lep_g_epi0_pid_fail_h;  
   TH1D * g_tr_mom_epi0_pid_pass_h;
   TH1D * g_tr_mom_epi0_pid_fail_h;
   TH1D * g_frac_en_epi0_pid_pass_h;
@@ -306,7 +306,7 @@ void fill_particle_kin(t2k_sk_radiative & ana_struct);
 void init_result_hists(ana_results_hists& res_h, bool is_radiative);
 void clear_result_hists(ana_results_hists& res_h);       
 ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative);
-ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de);
+ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de, fq_particle i_particle);
 
 void plot_results_hists(ana_results_hists& res_h1, ana_results_hists& res_h2); 
 void plot_1_res_hists(ana_results_hists& res_h,  bool is_radiative); 
@@ -318,9 +318,14 @@ float calc_photon_emission_weight(float gamma_en);
 float calc_photon_emission_weight(float gamma_en, float lep_mom, fq_particle i_particle);
 float calc_no_photon_weight(float lep_mom, fq_particle i_particle);
 void create_weight_branches(std::string in_file_name, bool is_radiative, fq_particle i_particle);
+void analyze_weighted_branches(std::string raditive_file_name, bool is_radiative, fq_particle i_particle);
 void check_mixed_weights(std::string mix_file);
 float compute_nu_en_rec_CCQE_truth(fq_particle i_particle, t2k_sk_radiative& rad_struct, bool is_radiative);
 double calc_global_prob_corr_fact(TTree* mix_tree, fq_particle i_particle);
 float calc_lep_energy(t2k_sk_radiative& ana_struct, fq_particle i_particle);
+void init_root_global_settings(void);
+void radiative_ana(fq_particle i_particle);
+void analyze_nue(TTree* tr_rad_elec, TTree tr_norad_elec);
+void analyze_numu(TTree* tr_rad_elec, TTree tr_norad_elec);
 //============================================================================//
 #endif

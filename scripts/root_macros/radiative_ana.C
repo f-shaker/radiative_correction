@@ -1,12 +1,8 @@
 #include "radiative_ana.h"
 #include "radiative_ana_cfg.h"
-
 //============================================================================//
-void radiative_ana(){
+void init_root_global_settings(){
 //============================================================================//
-//
-//Main analysis function
-//
   TH1::AddDirectory(kFALSE);
   TH1::SetDefaultSumw2(kTRUE); 	
   TH2::SetDefaultSumw2(kTRUE);
@@ -27,52 +23,97 @@ n = 1;  name of histogram is printed
   */
   gStyle->SetOptStat("nemruoi");
 
-//debug start
-//create_weight_branches(mu_gamma_file, true, MUON);
-//create_weight_branches(mu_file_init, false, MUON);
-//after creating the weight branches we use the hadd to create a mixed file
-//e.g hadd -f mu_g_weighted.root mu_ginft180.root mu_only_init.root
-check_mixed_weights(mu_g_weighted_file.c_str());
-return;
-// debug end
-  // radiative particle gun file
-  TFile *f_mu_g=new TFile(mu_gamma_file.c_str());
-  TTree *tr_mu_g=(TTree*)f_mu_g->Get("h1");
-  //analyze radiative particle gun (is_radiative = true)
-  ana_results_hists* mu_g_results = analyze_1mu(tr_mu_g, true);
-
-  // non radiative (mu only) particle gun file
-  TFile *f_mu_only=new TFile(mu_file_fin.c_str());
-  TTree *tr_mu_only=(TTree*)f_mu_only->Get("h1");
-  ana_results_hists* mu_only_results = analyze_1mu(tr_mu_only, false);
-  
-  plot_results_hists(*mu_g_results, *mu_only_results);
-  
+}
+//============================================================================//
+void analyze_nue(TTree* tr_rad_elec, TTree* tr_norad_elec){
+//============================================================================//  
   // nue Analysis
-  ana_results_hists* e_res_mu_g = analyze_1e(tr_mu_g, true, 0);
-  ana_results_hists* e1de_res_mu_g = analyze_1e(tr_mu_g, true, 1);
-  ana_results_hists* e_res_mu_only = analyze_1e(tr_mu_only, false, 0);
-  ana_results_hists* e1de_res_mu_only = analyze_1e(tr_mu_only, false, 1);
-  plot_efficency(e_res_mu_g->ana_cut_step_eff, "e_step_eff_mu_g");
-  plot_efficency(e1de_res_mu_g->ana_cut_step_eff, "e1de_step_eff_mu_g");
-  plot_efficency(e_res_mu_only->ana_cut_step_eff, "e_step_eff_mu_only");
-  plot_efficency(e1de_res_mu_only->ana_cut_step_eff, "e1de_step_eff_mu_only");
-  plot_efficency(e_res_mu_g->ana_cut_step_eff, e_res_mu_only->ana_cut_step_eff, "1e #mu#gamma", "1e #mu only","e_sup_eff");
-  plot_efficency(e1de_res_mu_g->ana_cut_step_eff, e1de_res_mu_only->ana_cut_step_eff, "1e1de #mu#gamma", "1e1de #mu only","e1de_sup_eff"); 
-  plot_cut(e1de_res_mu_g->mu_mom_epi0_pid_pass_h, e1de_res_mu_g->mu_mom_epi0_pid_fail_h, e1de_res_mu_g->g_mom_epi0_pid_pass_h, e1de_res_mu_g->g_mom_epi0_pid_fail_h,
-           e1de_res_mu_g->theta_mu_g_epi0_pid_pass_h, e1de_res_mu_g->theta_mu_g_epi0_pid_fail_h,e1de_res_mu_g->g_tr_mom_epi0_pid_pass_h, e1de_res_mu_g->g_tr_mom_epi0_pid_fail_h, 
-           e1de_res_mu_g->g_frac_en_epi0_pid_pass_h, e1de_res_mu_g->g_frac_en_epi0_pid_fail_h, "cut_e1de_epi0_pid");
-  plot_cut_2(e1de_res_mu_g->mu_mom_epi0_pid_pass_h, e1de_res_mu_g->mu_mom_epi0_pid_fail_h, e1de_res_mu_g->g_mom_epi0_pid_pass_h, e1de_res_mu_g->g_mom_epi0_pid_fail_h,
-           e1de_res_mu_g->theta_mu_g_epi0_pid_pass_h, e1de_res_mu_g->theta_mu_g_epi0_pid_fail_h,e1de_res_mu_g->g_tr_mom_epi0_pid_pass_h, e1de_res_mu_g->g_tr_mom_epi0_pid_fail_h, 
-           e1de_res_mu_g->g_frac_en_epi0_pid_pass_h, e1de_res_mu_g->g_frac_en_epi0_pid_fail_h, "cut_e1de_epi0_pid_eff");
-  plot_2D_efficiency(e1de_res_mu_g->g_mom_theta_2D_epi0_pid_pass_h, e1de_res_mu_g->g_mom_theta_2D_epi0_pid_fail_h, ";p_{#gamma} [MeV];#theta^{#circ}_{#mu#gamma}", "colz", "cut_e1de_epi0_2D");
-  plot_2D_efficiency_tot(e1de_res_mu_g->g_mom_theta_2D_epi0_pid_pass_h, e1de_res_mu_g->g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{#mu#gamma}", "colz", "cut_e1de_epi0_2D_tot");
-  plot_2D_efficiency_tot(e_res_mu_g->g_mom_theta_2D_epi0_pid_pass_h, e_res_mu_g->g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{#mu#gamma}", "colz", "cut_e_epi0_2D_tot");
+  ana_results_hists* res_1esel_elecg = analyze_1e(tr_rad_elec, true, 0, ELECTRON);
+  ana_results_hists* res_1e1desel_elecg = analyze_1e(tr_rad_elec, true, 1, ELECTRON);
+  ana_results_hists* res_1esel_eleconly = analyze_1e(tr_norad_elec, false, 0, ELECTRON);
+  ana_results_hists* res_1e1desel_eleconly = analyze_1e(tr_norad_elec, false, 1, ELECTRON);
+  plot_efficency(res_1esel_elecg->ana_cut_step_eff, "e_step_eff_e_g");
+  plot_efficency(res_1e1desel_elecg->ana_cut_step_eff, "e1de_step_eff_e_g");
+  plot_efficency(res_1esel_eleconly->ana_cut_step_eff, "e_step_eff_e_only");
+  plot_efficency(res_1e1desel_eleconly->ana_cut_step_eff, "e1de_step_eff_e_only");
+  plot_efficency(res_1esel_elecg->ana_cut_step_eff, res_1esel_eleconly->ana_cut_step_eff, "1e e#gamma", "1e elec only","e_sup_eff");
+  plot_efficency(res_1e1desel_elecg->ana_cut_step_eff, res_1e1desel_eleconly->ana_cut_step_eff, "1e1de e#gamma", "1e1de elec only","e1de_sup_eff"); 
+  plot_cut(res_1e1desel_elecg->lep_mom_epi0_pid_pass_h, res_1e1desel_elecg->lep_mom_epi0_pid_fail_h, res_1e1desel_elecg->g_mom_epi0_pid_pass_h, res_1e1desel_elecg->g_mom_epi0_pid_fail_h,
+           res_1e1desel_elecg->theta_lep_g_epi0_pid_pass_h, res_1e1desel_elecg->theta_lep_g_epi0_pid_fail_h,res_1e1desel_elecg->g_tr_mom_epi0_pid_pass_h, res_1e1desel_elecg->g_tr_mom_epi0_pid_fail_h, 
+           res_1e1desel_elecg->g_frac_en_epi0_pid_pass_h, res_1e1desel_elecg->g_frac_en_epi0_pid_fail_h, "cut_e1de_epi0_pid");
+  plot_cut_2(res_1e1desel_elecg->lep_mom_epi0_pid_pass_h, res_1e1desel_elecg->lep_mom_epi0_pid_fail_h, res_1e1desel_elecg->g_mom_epi0_pid_pass_h, res_1e1desel_elecg->g_mom_epi0_pid_fail_h,
+           res_1e1desel_elecg->theta_lep_g_epi0_pid_pass_h, res_1e1desel_elecg->theta_lep_g_epi0_pid_fail_h,res_1e1desel_elecg->g_tr_mom_epi0_pid_pass_h, res_1e1desel_elecg->g_tr_mom_epi0_pid_fail_h, 
+           res_1e1desel_elecg->g_frac_en_epi0_pid_pass_h, res_1e1desel_elecg->g_frac_en_epi0_pid_fail_h, "cut_e1de_epi0_pid_eff");
+  plot_2D_efficiency(res_1e1desel_elecg->g_mom_theta_2D_epi0_pid_pass_h, res_1e1desel_elecg->g_mom_theta_2D_epi0_pid_fail_h, ";p_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "cut_e1de_epi0_2D");
+  plot_2D_efficiency_tot(res_1e1desel_elecg->g_mom_theta_2D_epi0_pid_pass_h, res_1e1desel_elecg->g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "cut_e1de_epi0_2D_tot");
+  plot_2D_efficiency_tot(res_1esel_elecg->g_mom_theta_2D_epi0_pid_pass_h, res_1esel_elecg->g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "cut_e_epi0_2D_tot");
   // free allocated dynamic memory
-  clear_result_hists(*mu_g_results);
-  clear_result_hists(*mu_only_results);
-  clear_result_hists(*e_res_mu_g);
-  clear_result_hists(*e1de_res_mu_g);
+  clear_result_hists(*res_1esel_elecg);
+  clear_result_hists(*res_1e1desel_elecg);
+  clear_result_hists(*res_1esel_eleconly);
+  clear_result_hists(*res_1e1desel_eleconly);  
+}
+//============================================================================//  
+void analyze_numu(TTree* tr_rad_mu, TTree* tr_norad_mu){
+//============================================================================//  
+  //numu analysis
+  ana_results_hists* res_1musel_mug = analyze_1mu(tr_rad_mu, true);
+  ana_results_hists* res_1musel_muonly = analyze_1mu(tr_norad_mu, false); 
+  plot_results_hists(*res_1musel_mug, *res_1musel_muonly);
+  // check the migration to the 1e or 1e1de samples
+  ana_results_hists* res_1esel_mug = analyze_1e(tr_rad_mu, true, 0, MUON);
+  ana_results_hists* res_1e1desel_mug = analyze_1e(tr_rad_mu, true, 1, MUON);
+  ana_results_hists* res_1esel_muonly = analyze_1e(tr_norad_mu, false, 0, MUON);
+  ana_results_hists* res_1e1desel_muonly = analyze_1e(tr_norad_mu, false, 1, MUON);
+  plot_efficency(res_1esel_mug->ana_cut_step_eff, "e_step_eff_e_g");
+  plot_efficency(res_1e1desel_mug->ana_cut_step_eff, "e1de_step_eff_e_g");
+  plot_efficency(res_1esel_muonly->ana_cut_step_eff, "e_step_eff_e_only");
+  plot_efficency(res_1e1desel_muonly->ana_cut_step_eff, "e1de_step_eff_e_only");
+  plot_efficency(res_1esel_mug->ana_cut_step_eff, res_1esel_muonly->ana_cut_step_eff, "1e e#gamma", "1e elec only","e_sup_eff");
+  plot_efficency(res_1e1desel_mug->ana_cut_step_eff, res_1e1desel_muonly->ana_cut_step_eff, "1e1de e#gamma", "1e1de elec only","e1de_sup_eff"); 
+  plot_cut(res_1e1desel_mug->lep_mom_epi0_pid_pass_h, res_1e1desel_mug->lep_mom_epi0_pid_fail_h, res_1e1desel_mug->g_mom_epi0_pid_pass_h, res_1e1desel_mug->g_mom_epi0_pid_fail_h,
+           res_1e1desel_mug->theta_lep_g_epi0_pid_pass_h, res_1e1desel_mug->theta_lep_g_epi0_pid_fail_h,res_1e1desel_mug->g_tr_mom_epi0_pid_pass_h, res_1e1desel_mug->g_tr_mom_epi0_pid_fail_h, 
+           res_1e1desel_mug->g_frac_en_epi0_pid_pass_h, res_1e1desel_mug->g_frac_en_epi0_pid_fail_h, "cut_e1de_epi0_pid");
+  plot_cut_2(res_1e1desel_mug->lep_mom_epi0_pid_pass_h, res_1e1desel_mug->lep_mom_epi0_pid_fail_h, res_1e1desel_mug->g_mom_epi0_pid_pass_h, res_1e1desel_mug->g_mom_epi0_pid_fail_h,
+           res_1e1desel_mug->theta_lep_g_epi0_pid_pass_h, res_1e1desel_mug->theta_lep_g_epi0_pid_fail_h,res_1e1desel_mug->g_tr_mom_epi0_pid_pass_h, res_1e1desel_mug->g_tr_mom_epi0_pid_fail_h, 
+           res_1e1desel_mug->g_frac_en_epi0_pid_pass_h, res_1e1desel_mug->g_frac_en_epi0_pid_fail_h, "cut_e1de_epi0_pid_eff");
+  plot_2D_efficiency(res_1e1desel_mug->g_mom_theta_2D_epi0_pid_pass_h, res_1e1desel_mug->g_mom_theta_2D_epi0_pid_fail_h, ";p_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "cut_e1de_epi0_2D");
+  plot_2D_efficiency_tot(res_1e1desel_mug->g_mom_theta_2D_epi0_pid_pass_h, res_1e1desel_mug->g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "cut_e1de_epi0_2D_tot");
+  plot_2D_efficiency_tot(res_1esel_mug->g_mom_theta_2D_epi0_pid_pass_h, res_1esel_mug->g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "cut_e_epi0_2D_tot");
+  // free allocated dynamic memory
+  clear_result_hists(*res_1musel_mug);
+  clear_result_hists(*res_1musel_muonly);
+  clear_result_hists(*res_1esel_mug);
+  clear_result_hists(*res_1e1desel_mug);  
+  clear_result_hists(*res_1esel_muonly);
+  clear_result_hists(*res_1e1desel_muonly);   
+}
+//============================================================================//
+void radiative_ana(fq_particle i_particle){
+//============================================================================//
+//
+//Main analysis function
+//
+  init_root_global_settings();  
+  // radiative particle gun file
+  TFile *f_lep_g=new TFile(lep_gamma_file.c_str());
+  TTree *tr_lep_g=(TTree*)f_lep_g->Get("h1");
+
+  // non radiative (lepton only) particle gun file
+  TFile *f_lep_only=new TFile(lep_finalkin_file.c_str());
+  TTree *tr_lep_only=(TTree*)f_lep_only->Get("h1");
+  
+  if(i_particle == MUON){
+    // numu analysis
+    analyze_numu(tr_lep_g, tr_lep_only);
+  }else if(i_particle == ELECTRON){
+    // nue Analysis
+    analyze_nue(tr_lep_g, tr_lep_only);
+  }else{
+    std::cout<<"UNKNOWM particle to analyze! Please pass either ELECTRON or MUON" <<std::endl;
+    exit(-1);
+  }
+
 }
 //============================================================================//
 void plot_results_hists(ana_results_hists& rad_res_h, ana_results_hists& mu_res_h){
@@ -1381,18 +1422,21 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
 
 }
 //============================================================================//
-ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de){
+ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de, fq_particle i_particle){
 //============================================================================//  
   t2k_sk_radiative ana_struct;
   set_tree_addresses(ana_tree, ana_struct, false);
   ana_results_hists* res_h = new ana_results_hists;
   init_result_hists(*res_h, is_radiative);
 
-  float cos_mu_g;
-  float theta_mu_g;
+  float cos_lep_g;
+  float theta_lep_g;
   float g_tr_mom;
-  float mu_en;
+  float lep_en;
   float g_frac_en;
+  float lep_mass; 
+  float lep_mom;
+  float lep_dir[3];
 
  //Main event loop
   long int nb_ev = ana_tree->GetEntries(); 
@@ -1405,24 +1449,38 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de){
   unsigned int nb_nu_en_rec_passed = 0;
   unsigned int nb_epi0_pid_passed = 0;
   
-  
-
   for (int i = 0; i < nb_ev; i++){
     //progress
     print_perc(i, nb_ev, 10);
     ana_tree->GetEntry(i);
     fill_particle_kin(ana_struct);
-    cos_mu_g = ( ana_struct.g_dir[0] * ana_struct.mu_dir[0] ) + ( ana_struct.g_dir[1] * ana_struct.mu_dir[1] )
-             + ( ana_struct.g_dir[2] * ana_struct.mu_dir[2] );
-    theta_mu_g = TMath::ACos(cos_mu_g) * 180.0 / TMath::Pi();
+    if(i_particle == MUON){
+      lep_mass = MU_MASS;    
+      lep_mom = ana_struct.mu_mom;
+      lep_dir[0] = ana_struct.mu_dir[0];
+      lep_dir[1] = ana_struct.mu_dir[1];
+      lep_dir[2] = ana_struct.mu_dir[2];      
+    }else if(i_particle == ELECTRON){
+      lep_mass = ELEC_MASS;    
+      lep_mom = ana_struct.elec_mom;
+      lep_dir[0] = ana_struct.elec_dir[0];
+      lep_dir[1] = ana_struct.elec_dir[1];
+      lep_dir[2] = ana_struct.elec_dir[2];   
+    }else{
+      std::cout<<"Unknown Partilce!"<<std::endl;
+      std::exit(-1);
+    }
+    cos_lep_g = ( ana_struct.g_dir[0] * lep_dir[0] ) + ( ana_struct.g_dir[1] * lep_dir[1] )
+             + ( ana_struct.g_dir[2] * lep_dir[2] );
+    theta_lep_g = TMath::ACos(cos_lep_g) * 180.0 / TMath::Pi();
     // transverse momentum, i.e perpondicular to the mu direction = gamma_mom * sin_theta
-    g_tr_mom = ana_struct.g_mom * sqrt(1- (cos_mu_g * cos_mu_g) ); 
-    mu_en = sqrt( (ana_struct.mu_mom * ana_struct.mu_mom ) + (MU_MASS * MU_MASS) );
-    g_frac_en = ana_struct.g_mom/ (ana_struct.g_mom +  mu_en);
+    g_tr_mom = lep_mom * sqrt(1- (cos_lep_g * cos_lep_g) ); 
+    lep_en = sqrt( (lep_mom * lep_mom ) + (lep_mass * lep_mass) );
+    g_frac_en = ana_struct.g_mom/ (ana_struct.g_mom +  lep_en);
    
     // Filling the total histogram
     // Design choice: filling it before any cuts
-    if(is_radiative) res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_mu_g);
+    if(is_radiative) res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_lep_g);
 
     //Applying the nu_e sample cuts
     // 0. EVIS
@@ -1527,21 +1585,21 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de){
     // 7. e/pi0 pid  
     if (pass_e_pi0_nll_cut(ana_struct) == true){
       //pass
-      res_h->mu_mom_epi0_pid_pass_h->Fill(ana_struct.mu_mom);
+      res_h->lep_mom_epi0_pid_pass_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_epi0_pid_pass_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_epi0_pid_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_epi0_pid_pass_h->Fill(theta_mu_g);
+      if(is_radiative) res_h->theta_lep_g_epi0_pid_pass_h->Fill(theta_lep_g);
       if(is_radiative) res_h->g_frac_en_epi0_pid_pass_h->Fill(g_frac_en);
-      if(is_radiative) res_h->g_mom_theta_2D_epi0_pid_pass_h->Fill(ana_struct.g_mom, theta_mu_g);       
+      if(is_radiative) res_h->g_mom_theta_2D_epi0_pid_pass_h->Fill(ana_struct.g_mom, theta_lep_g);       
       nb_epi0_pid_passed++;
     }else{
       //fail
-      res_h->mu_mom_epi0_pid_fail_h->Fill(ana_struct.mu_mom);
+      res_h->lep_mom_epi0_pid_fail_h->Fill(ana_struct.mu_mom);
       if(is_radiative) res_h->g_mom_epi0_pid_fail_h->Fill(ana_struct.g_mom);
       if(is_radiative) res_h->g_tr_mom_epi0_pid_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_epi0_pid_fail_h->Fill(theta_mu_g);
+      if(is_radiative) res_h->theta_lep_g_epi0_pid_fail_h->Fill(theta_lep_g);
       if(is_radiative) res_h->g_frac_en_epi0_pid_fail_h->Fill(g_frac_en);
-      if(is_radiative) res_h->g_mom_theta_2D_epi0_pid_fail_h->Fill(ana_struct.g_mom, theta_mu_g);       
+      if(is_radiative) res_h->g_mom_theta_2D_epi0_pid_fail_h->Fill(ana_struct.g_mom, theta_lep_g);       
       continue;     
     }
 
@@ -1765,12 +1823,12 @@ void init_result_hists(ana_results_hists& res_h, bool is_radiative){
   res_h.g_mom_theta_2D_pimu_pid_fail_h = new TH2D("g_mom_theta_pimu_pid_fail", "g_mom_theta_pimu_pid_fail", g_mom_nb_bins_2d, g_mom_bining_arr_2d, theta_nb_bins_2d, theta_bining_arr_2d); 
   //Nue analysis related hists
   // e pi0 pid
-  res_h.mu_mom_epi0_pid_pass_h = new TH1D("mu_mom_epi0_pid_pass", "mu_mom_epi0_pid_pass", mu_mom_nb_bins,  mu_mom_bining_arr);
-  res_h.mu_mom_epi0_pid_fail_h = new TH1D("mu_mom_epi0_pid_fail", "mu_mom_epi0_pid_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.lep_mom_epi0_pid_pass_h = new TH1D("mu_mom_epi0_pid_pass", "mu_mom_epi0_pid_pass", mu_mom_nb_bins,  mu_mom_bining_arr);
+  res_h.lep_mom_epi0_pid_fail_h = new TH1D("mu_mom_epi0_pid_fail", "mu_mom_epi0_pid_fail", mu_mom_nb_bins,  mu_mom_bining_arr);
   res_h.g_mom_epi0_pid_pass_h = new TH1D("g_mom_epi0_pid_pass", "g_mom_epi0_pid_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_mom_epi0_pid_fail_h = new TH1D("g_mom_epi0_pid_fail", "g_mom_epi0_pid_fail", g_mom_nb_bins,  g_mom_bining_arr);
-  res_h.theta_mu_g_epi0_pid_pass_h = new TH1D("theta_mu_g_epi0_pid_pass", "theta_mu_g_epi0_pid_pass", theta_nb_bins, theta_bining_arr);  
-  res_h.theta_mu_g_epi0_pid_fail_h = new TH1D("theta_mu_g_epi0_pid_fail", "theta_mu_g_epi0_pid_fail", theta_nb_bins, theta_bining_arr);  
+  res_h.theta_lep_g_epi0_pid_pass_h = new TH1D("theta_mu_g_epi0_pid_pass", "theta_mu_g_epi0_pid_pass", theta_nb_bins, theta_bining_arr);  
+  res_h.theta_lep_g_epi0_pid_fail_h = new TH1D("theta_mu_g_epi0_pid_fail", "theta_mu_g_epi0_pid_fail", theta_nb_bins, theta_bining_arr);  
   res_h.g_tr_mom_epi0_pid_pass_h = new TH1D("g_tr_mom_epi0_pid_pass", "g_tr_mom_epi0_pid_pass", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_tr_mom_epi0_pid_fail_h = new TH1D("g_tr_mom_epi0_pid_fail", "g_tr_mom_epi0_pid_fail", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_frac_en_epi0_pid_pass_h = new TH1D("g_frac_en_epi0_pid_pass", "g_frac_en_epi0_pid_pass", 50, 0, 0.5);
@@ -1918,12 +1976,12 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.g_frac_en_pimu_pid_fail_h;
   // Nue Analysis Related hists
   // e pi0 pid
-  delete res_h.mu_mom_epi0_pid_pass_h;
-  delete res_h.mu_mom_epi0_pid_fail_h;
+  delete res_h.lep_mom_epi0_pid_pass_h;
+  delete res_h.lep_mom_epi0_pid_fail_h;
   delete res_h.g_mom_epi0_pid_pass_h;
   delete res_h.g_mom_epi0_pid_fail_h;
-  delete res_h.theta_mu_g_epi0_pid_pass_h;
-  delete res_h.theta_mu_g_epi0_pid_fail_h;
+  delete res_h.theta_lep_g_epi0_pid_pass_h;
+  delete res_h.theta_lep_g_epi0_pid_fail_h;
   delete res_h.g_tr_mom_epi0_pid_pass_h;
   delete res_h.g_tr_mom_epi0_pid_fail_h;
   delete res_h.g_frac_en_epi0_pid_pass_h;
@@ -2035,7 +2093,7 @@ void plot_2D_efficiency_tot(TH2* pass_hist, TH2* total_hist, std::string title, 
   canv->cd(3);
   ratio_hist->SetTitle("efficiency");
   ratio_hist->Draw(draw_opt.c_str());
-  plot_hist2D(ratio_hist, "total efficiency;p_{#gamma} [MeV];#theta_{#mu#gamma}^{#circ}", "colz"); 
+  plot_hist2D(ratio_hist, "total efficiency;p_{#gamma} [MeV];#theta_{lep#gamma}^{#circ}", "colz"); 
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),fname.c_str()));
   // Sanity check for debuging
   // integral of the bin content for all angles and low gamma mom shall be consistent with the mu only case
@@ -2129,10 +2187,13 @@ float calc_no_photon_weight(float lep_mom, fq_particle i_particle){
 void create_weight_branches(std::string in_file_name, bool is_radiative, fq_particle i_particle){
 //============================================================================//
 // to build a mixed weighted file from 2 different particle guns:
-// create_weight_branches(mu_gamma_file, true, MUON);
-// create_weight_branches(mu_file_init, false, MUON);
-// then use the hadd command to compine them in 1 root file
-
+// create_weight_branches(lep_gamma_file, true, MUON);
+// create_weight_branches(lep_initialkin_file, false, MUON);
+// after creating the weight branches we use the hadd to create a mixed file
+// e.g hadd -f mu_g_weighted.root mu_ginft180.root mu_only_init.root
+// then we analyze the mixed file using:
+// check_mixed_weights(mu_g_weighted_file.c_str());
+  
   // variables to add to the existing tree
   int is_rad; 
   float w_osc; 
