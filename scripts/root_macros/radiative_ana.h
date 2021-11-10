@@ -327,5 +327,6 @@ void init_root_global_settings(void);
 void radiative_ana(fq_particle i_particle);
 void analyze_nue(TTree* tr_rad_elec, TTree tr_norad_elec);
 void analyze_numu(TTree* tr_rad_elec, TTree tr_norad_elec);
+double calculate_event_weight(bool is_mixed_weighted, bool is_sim_gamma, t2k_sk_radiative& ana_struct);
 //============================================================================//
 #endif

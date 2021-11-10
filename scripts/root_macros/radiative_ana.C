@@ -100,7 +100,8 @@ void radiative_ana(fq_particle i_particle){
   TTree *tr_lep_g=(TTree*)f_lep_g->Get("h1");
 
   // non radiative (lepton only) particle gun file
-  TFile *f_lep_only=new TFile(lep_finalkin_file.c_str());
+  //TFile *f_lep_only=new TFile(lep_finalkin_file.c_str());
+  TFile *f_lep_only=new TFile(lep_initialkin_file.c_str());
   TTree *tr_lep_only=(TTree*)f_lep_only->Get("h1");
   
   if(i_particle == MUON){
@@ -126,9 +127,9 @@ void plot_results_hists(ana_results_hists& rad_res_h, ana_results_hists& mu_res_
   plot_2_res_comp_hists(rad_res_h, mu_res_h);     
 }
 //============================================================================//
-void plot_1_res_hists(ana_results_hists& res_h, bool is_radiative){
+void plot_1_res_hists(ana_results_hists& res_h, bool is_sim_gamma){
 //============================================================================//
-  if(is_radiative == true){
+  if(is_sim_gamma == true){
     // radiative: mu+gamma 
     plot_hist1D(res_h.g_mom_all_h,"gamma_all", "p_{#gamma}(all);mom[MeV];count", kBlue , 2, 1);
     plot_hist1D(res_h.g_mom_1r_h,"gamma_1r", "p_{#gamma} (1 ring);mom[MeV];count", kBlue , 2, 1);
@@ -183,7 +184,7 @@ void plot_1_res_hists(ana_results_hists& res_h, bool is_radiative){
     plot_hist1D(res_h.mu_mom_res_h, "mu_only_mu_mom_res", "#mu only #Delta p_{#mu};#Delta p_{#mu}[MeV];count", kBlue , 2, 1);
              
   }
-  plot_selection_cuts(res_h, is_radiative);  
+  plot_selection_cuts(res_h, is_sim_gamma);  
 
 }
 //============================================================================//
@@ -200,10 +201,10 @@ void plot_2_res_comp_hists(ana_results_hists& res_h1, ana_results_hists& res_h2)
 
 }
 //============================================================================//
-void plot_selection_cuts(ana_results_hists& res_h, bool is_radiative){
+void plot_selection_cuts(ana_results_hists& res_h, bool is_sim_gamma){
 //============================================================================//
 //TODO NEEDS OPTIMIZATION, just grouping funcationality for now fsamir
-  if(is_radiative){
+  if(is_sim_gamma){
   plot_cut(res_h.mu_mom_fcfv_pass_h, res_h.mu_mom_fcfv_fail_h, res_h.g_mom_fcfv_pass_h, res_h.g_mom_fcfv_fail_h,
            res_h.theta_mu_g_fcfv_pass_h, res_h.theta_mu_g_fcfv_fail_h, res_h.g_tr_mom_fcfv_pass_h, res_h.g_tr_mom_fcfv_fail_h,
            res_h.g_frac_en_fcfv_pass_h, res_h.g_frac_en_fcfv_fail_h, "cut_FCFV");
@@ -1123,12 +1124,13 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string fi
 
 }
 //============================================================================//
-ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
+ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma){
 //============================================================================//  
   t2k_sk_radiative ana_struct;
   set_tree_addresses(ana_tree, ana_struct, false);
   ana_results_hists* res_h = new ana_results_hists;
-  init_result_hists(*res_h, is_radiative);
+  init_result_hists(*res_h, is_sim_gamma); 
+
 
   float cos_mu_g;
   float theta_mu_g;
@@ -1153,21 +1155,22 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
   unsigned int nb_e_decay_passed = 0;
   unsigned int nb_pimu_pid_passed = 0;
 
+
   for (int i = 0; i < nb_ev; i++){
     //progress
     print_perc(i, nb_ev, 10);
     ana_tree->GetEntry(i);
     fill_particle_kin(ana_struct);
-    
-    res_h->nring_h->Fill(ana_struct.fqmrnring[0]);
+    double event_weight = calculate_event_weight(LEP_GAMMA_WEIGHTS, is_sim_gamma, ana_struct);
+    res_h->nring_h->Fill(ana_struct.fqmrnring[0], event_weight);
 
-    res_h->mu_mom_all_h->Fill(ana_struct.mu_mom);    
-    if(is_radiative) res_h->g_mom_all_h->Fill(ana_struct.g_mom);
+    res_h->mu_mom_all_h->Fill(ana_struct.mu_mom, event_weight);    
+    if(is_sim_gamma) res_h->g_mom_all_h->Fill(ana_struct.g_mom, event_weight);
 
     cos_mu_g = ( ana_struct.g_dir[0] * ana_struct.mu_dir[0] ) + ( ana_struct.g_dir[1] * ana_struct.mu_dir[1] )
              + ( ana_struct.g_dir[2] * ana_struct.mu_dir[2] );
     theta_mu_g = TMath::ACos(cos_mu_g) * 180.0 / TMath::Pi();
-    if(is_radiative) res_h->theta_mu_g_all_h->Fill(theta_mu_g);
+    if(is_sim_gamma) res_h->theta_mu_g_all_h->Fill(theta_mu_g, event_weight);
 
     // transverse momentum, i.e perpondicular to the mu direction = gamma_mom * sin_theta
     g_tr_mom = ana_struct.g_mom * sqrt(1- (cos_mu_g * cos_mu_g) ); 
@@ -1175,30 +1178,37 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
     g_frac_en = ana_struct.g_mom/ (ana_struct.g_mom +  mu_en);
     
     if(ana_struct.fqmrnring[0] == 1){
-      res_h->mu_mom_1r_h->Fill(ana_struct.mu_mom);      
-      if(is_radiative) res_h->g_mom_1r_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->theta_mu_g_1r_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_tr_mom_1r_h->Fill(g_tr_mom);      
+      res_h->mu_mom_1r_h->Fill(ana_struct.mu_mom, event_weight);      
+      if(is_sim_gamma){
+        res_h->g_mom_1r_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->theta_mu_g_1r_h->Fill(theta_mu_g, event_weight);
+        res_h->g_tr_mom_1r_h->Fill(g_tr_mom, event_weight);    
+      }   
     }
 
     if(ana_struct.fqmrnring[0] == 2){
-      res_h->mu_mom_2r_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_2r_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->theta_mu_g_2r_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_tr_mom_2r_h->Fill(g_tr_mom);      
+      res_h->mu_mom_2r_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_2r_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->theta_mu_g_2r_h->Fill(theta_mu_g, event_weight);
+        res_h->g_tr_mom_2r_h->Fill(g_tr_mom, event_weight);         
+      } 
+     
     }
 
     if(ana_struct.fqmrnring[0] >= 3){
-      res_h->mu_mom_3mr_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_3mr_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->theta_mu_g_3mr_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_tr_mom_3mr_h->Fill(g_tr_mom);            
+      res_h->mu_mom_3mr_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_3mr_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->theta_mu_g_3mr_h->Fill(theta_mu_g, event_weight);
+        res_h->g_tr_mom_3mr_h->Fill(g_tr_mom, event_weight);
+      }             
     }
 
-    if(is_radiative) res_h->g_tr_mom_nring_2D->Fill(ana_struct.fqmrnring[0], g_tr_mom);
+    if(is_sim_gamma) res_h->g_tr_mom_nring_2D->Fill(ana_struct.fqmrnring[0], g_tr_mom, event_weight);
 
-    res_h->wall_h->Fill(ComputeWall(0, MUON, ana_struct));    
-    res_h->towall_h->Fill(ComputeTowall(0, MUON, ana_struct));
+    res_h->wall_h->Fill(ComputeWall(0, MUON, ana_struct), event_weight);    
+    res_h->towall_h->Fill(ComputeTowall(0, MUON, ana_struct), event_weight);
 
     cos_dir1r_mu = (ana_struct.mu_dir[0] * ana_struct.fq1rdir[0][MUON][0])
                   +(ana_struct.mu_dir[1] * ana_struct.fq1rdir[0][MUON][1])
@@ -1211,52 +1221,57 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
     theta_g_1r = TMath::ACos(cos_dir1r_g) * 180.0 / TMath::Pi(); 
 
     alpha_dir1r_mu = TMath::ACos(cos_dir1r_mu) * 180.0 / TMath::Pi();
-    if(pass_ccqe_numu_sample(ana_struct)) res_h->alpha_dir1r_mu_h->Fill(alpha_dir1r_mu);
-    if( is_radiative && pass_ccqe_numu_sample(ana_struct) ) res_h->g_tr_mom_cosalpha_2D->Fill(g_tr_mom, cos_dir1r_mu);
+    if(pass_ccqe_numu_sample(ana_struct)) res_h->alpha_dir1r_mu_h->Fill(alpha_dir1r_mu, event_weight);
+    if( is_sim_gamma && pass_ccqe_numu_sample(ana_struct) ) res_h->g_tr_mom_cosalpha_2D->Fill(g_tr_mom, cos_dir1r_mu, event_weight);
     
     delta_pos1r_vtx = sqrt(
     ( (ana_struct.posv[0] - ana_struct.fq1rpos[0][MUON][0]) * (ana_struct.posv[0] - ana_struct.fq1rpos[0][MUON][0]) )+
     ( (ana_struct.posv[1] - ana_struct.fq1rpos[0][MUON][1]) * (ana_struct.posv[1] - ana_struct.fq1rpos[0][MUON][1]) )+
     ( (ana_struct.posv[2] - ana_struct.fq1rpos[0][MUON][2]) * (ana_struct.posv[2] - ana_struct.fq1rpos[0][MUON][2]) )
     );
-    if(pass_ccqe_numu_sample(ana_struct)) res_h->delta_pos1r_vtx_h->Fill(delta_pos1r_vtx); 
-    if( is_radiative && pass_ccqe_numu_sample(ana_struct) ) res_h->g_tr_mom_vtx_res_2D->Fill(g_tr_mom, delta_pos1r_vtx);
+    if(pass_ccqe_numu_sample(ana_struct)) res_h->delta_pos1r_vtx_h->Fill(delta_pos1r_vtx, event_weight); 
+    if( is_sim_gamma && pass_ccqe_numu_sample(ana_struct) ) res_h->g_tr_mom_vtx_res_2D->Fill(g_tr_mom, delta_pos1r_vtx, event_weight);
 
     mu_mom_res = ana_struct.fq1rmom[0][MUON] - ana_struct.mu_mom;
     mu_mom_res_g_added = ana_struct.fq1rmom[0][MUON] - ana_struct.mu_mom - ana_struct.g_mom;
     //fill the residual histogram for events that will pass all the selection cuts
     if(pass_ccqe_numu_sample(ana_struct)){
-      res_h->mu_mom_res_h->Fill(mu_mom_res);
-      if(is_radiative){
-        res_h->mu_mom_res_g_added_h->Fill(mu_mom_res_g_added);
+      res_h->mu_mom_res_h->Fill(mu_mom_res, event_weight);
+      if(is_sim_gamma){
+        res_h->mu_mom_res_g_added_h->Fill(mu_mom_res_g_added, event_weight);
       }else{
         //non radiative the g_added shall be zero, i.e it shall be the same as mu_mom_res
-        res_h->mu_mom_res_g_added_h->Fill(mu_mom_res);
+        res_h->mu_mom_res_g_added_h->Fill(mu_mom_res, event_weight);
       }
       
     } 
     // Filling the total histogram
     // Design choice: filling it before any cuts
-    if(is_radiative) res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_mu_g);
+    if(is_sim_gamma) res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);
     //Applying the numu sample cuts
     // 0. EVIS
     if (pass_evis_cut(ana_struct, float(30.0)) == true){
       //pass
-      res_h->mu_mom_evis_pass_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_evis_pass_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_evis_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_evis_pass_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_evis_pass_h->Fill(g_frac_en); 
-      if(is_radiative) res_h->g_mom_theta_2D_evis_pass_h->Fill(ana_struct.g_mom, theta_mu_g);     
+      res_h->mu_mom_evis_pass_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_evis_pass_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_evis_pass_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_evis_pass_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_evis_pass_h->Fill(g_frac_en, event_weight); 
+        res_h->g_mom_theta_2D_evis_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);     
+      }
+
       nb_evis_passed++;
     }else{
       //fail
-      res_h->mu_mom_evis_fail_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_evis_fail_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_evis_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_evis_fail_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_evis_fail_h->Fill(g_frac_en);
-      if(is_radiative) res_h->g_mom_theta_2D_evis_fail_h->Fill(ana_struct.g_mom, theta_mu_g);       
+      res_h->mu_mom_evis_fail_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_evis_fail_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_evis_fail_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_evis_fail_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_evis_fail_h->Fill(g_frac_en, event_weight);
+        res_h->g_mom_theta_2D_evis_fail_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);
+      }        
     }
     //apply the cut
     if (pass_evis_cut(ana_struct, float(30.0)) == false) continue;
@@ -1264,21 +1279,25 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
     // 1. FCFV CUT
     if (pass_mu_FCFV(0, MUON, ana_struct) == true){
       //pass
-      res_h->mu_mom_fcfv_pass_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_fcfv_pass_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_fcfv_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_fcfv_pass_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_fcfv_pass_h->Fill(g_frac_en);
-      if(is_radiative) res_h->g_mom_theta_2D_fcfv_pass_h->Fill(ana_struct.g_mom, theta_mu_g);             
+      res_h->mu_mom_fcfv_pass_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_fcfv_pass_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_fcfv_pass_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_fcfv_pass_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_fcfv_pass_h->Fill(g_frac_en, event_weight);
+        res_h->g_mom_theta_2D_fcfv_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight); 
+      }             
       nb_fcfv_passed++;
     }else{
       //fail
-      res_h->mu_mom_fcfv_fail_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_fcfv_fail_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_fcfv_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_fcfv_fail_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_fcfv_fail_h->Fill(g_frac_en);
-      if(is_radiative) res_h->g_mom_theta_2D_fcfv_fail_h->Fill(ana_struct.g_mom, theta_mu_g);      
+      res_h->mu_mom_fcfv_fail_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_fcfv_fail_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_fcfv_fail_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_fcfv_fail_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_fcfv_fail_h->Fill(g_frac_en, event_weight);
+        res_h->g_mom_theta_2D_fcfv_fail_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);  
+      }     
     }
     //apply the cut
     if (pass_mu_FCFV(0, MUON, ana_struct) == false) continue;
@@ -1286,21 +1305,25 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
     // 2. 1ring
     if (pass_1ring(ana_struct) == true){
       //pass
-      res_h->mu_mom_1ring_pass_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_1ring_pass_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_1ring_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_1ring_pass_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_1ring_pass_h->Fill(g_frac_en);
-      if(is_radiative) res_h->g_mom_theta_2D_1ring_pass_h->Fill(ana_struct.g_mom, theta_mu_g);             
+      res_h->mu_mom_1ring_pass_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_1ring_pass_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_1ring_pass_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_1ring_pass_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_1ring_pass_h->Fill(g_frac_en, event_weight);
+        res_h->g_mom_theta_2D_1ring_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight); 
+      }             
       nb_1ring_passed++;
     }else{
       //fail
-      res_h->mu_mom_1ring_fail_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_1ring_fail_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_1ring_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_1ring_fail_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_1ring_fail_h->Fill(g_frac_en); 
-      if(is_radiative) res_h->g_mom_theta_2D_1ring_fail_h->Fill(ana_struct.g_mom, theta_mu_g);     
+      res_h->mu_mom_1ring_fail_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_1ring_fail_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_1ring_fail_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_1ring_fail_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_1ring_fail_h->Fill(g_frac_en, event_weight); 
+        res_h->g_mom_theta_2D_1ring_fail_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);
+      }      
     }
     //apply the cut
     if (pass_1ring(ana_struct) == false) continue;
@@ -1308,26 +1331,29 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
     // 3. e/mu pid
     if (pass_mu_e_nll_cut(ana_struct) == true){
       //pass
-      res_h->mu_mom_emu_pid_pass_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_emu_pid_pass_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_emu_pid_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_emu_pid_pass_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_emu_pid_pass_h->Fill(g_frac_en); 
-      if(is_radiative) res_h->g_mom_theta_2D_emu_pid_pass_h->Fill(ana_struct.g_mom, theta_mu_g);
-      if(is_radiative) res_h->theta_mu1r_emu_pid_pass_h->Fill(theta_mu_1r);            
-      if(is_radiative) res_h->theta_g1r_emu_pid_pass_h->Fill(theta_g_1r);
+      res_h->mu_mom_emu_pid_pass_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_emu_pid_pass_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_emu_pid_pass_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_emu_pid_pass_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_emu_pid_pass_h->Fill(g_frac_en, event_weight); 
+        res_h->g_mom_theta_2D_emu_pid_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);
+        res_h->theta_mu1r_emu_pid_pass_h->Fill(theta_mu_1r, event_weight);            
+        res_h->theta_g1r_emu_pid_pass_h->Fill(theta_g_1r, event_weight);
+      } 
       nb_emu_pid_passed++;
     }else{
       //fail
-      res_h->mu_mom_emu_pid_fail_h->Fill(ana_struct.mu_mom);      
-      if(is_radiative) res_h->g_mom_emu_pid_fail_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_emu_pid_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_emu_pid_fail_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_emu_pid_fail_h->Fill(g_frac_en);  
-      if(is_radiative) res_h->g_mom_theta_2D_emu_pid_fail_h->Fill(ana_struct.g_mom, theta_mu_g);  
-      if(is_radiative) res_h->theta_mu1r_emu_pid_fail_h->Fill(theta_mu_1r);            
-      if(is_radiative) res_h->theta_g1r_emu_pid_fail_h->Fill(theta_g_1r);
-
+      res_h->mu_mom_emu_pid_fail_h->Fill(ana_struct.mu_mom, event_weight);      
+      if(is_sim_gamma){
+        res_h->g_mom_emu_pid_fail_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_emu_pid_fail_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_emu_pid_fail_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_emu_pid_fail_h->Fill(g_frac_en, event_weight);  
+        res_h->g_mom_theta_2D_emu_pid_fail_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);  
+        res_h->theta_mu1r_emu_pid_fail_h->Fill(theta_mu_1r, event_weight);            
+        res_h->theta_g1r_emu_pid_fail_h->Fill(theta_g_1r, event_weight);        
+      }
     }
     //apply the cut
     if (pass_mu_e_nll_cut(ana_struct) == false) continue;
@@ -1335,21 +1361,25 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
     // 4. mu mom 
     if (pass_mu_mom_cut(ana_struct, float(200.0)) == true){
       //pass
-      res_h->mu_mom_mu_mom_pass_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_mu_mom_pass_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_mu_mom_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_mu_mom_pass_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_mu_mom_pass_h->Fill(g_frac_en);
-      if(is_radiative) res_h->g_mom_theta_2D_mu_mom_pass_h->Fill(ana_struct.g_mom, theta_mu_g);       
+      res_h->mu_mom_mu_mom_pass_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_mu_mom_pass_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_mu_mom_pass_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_mu_mom_pass_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_mu_mom_pass_h->Fill(g_frac_en, event_weight);
+        res_h->g_mom_theta_2D_mu_mom_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);  
+      }      
       nb_mu_mom_passed++;
     }else{
       //fail
-      res_h->mu_mom_mu_mom_fail_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_mu_mom_fail_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_mu_mom_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_mu_mom_fail_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_mu_mom_fail_h->Fill(g_frac_en); 
-      if(is_radiative) res_h->g_mom_theta_2D_mu_mom_fail_h->Fill(ana_struct.g_mom, theta_mu_g);
+      res_h->mu_mom_mu_mom_fail_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_mu_mom_fail_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_mu_mom_fail_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_mu_mom_fail_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_mu_mom_fail_h->Fill(g_frac_en, event_weight); 
+        res_h->g_mom_theta_2D_mu_mom_fail_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);
+      } 
     }
     //apply the cut
     if (pass_mu_mom_cut(ana_struct, float(200.0)) == false) continue;
@@ -1357,21 +1387,25 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
     // 5. number of e decay  
     if (pass_mu_nb_decay_e_cut(ana_struct) == true){
       //pass
-      res_h->mu_mom_e_decay_pass_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_e_decay_pass_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_e_decay_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_e_decay_pass_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_e_decay_pass_h->Fill(g_frac_en);
-      if(is_radiative) res_h->g_mom_theta_2D_e_decay_pass_h->Fill(ana_struct.g_mom, theta_mu_g);       
+      res_h->mu_mom_e_decay_pass_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_e_decay_pass_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_e_decay_pass_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_e_decay_pass_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_e_decay_pass_h->Fill(g_frac_en, event_weight);
+        res_h->g_mom_theta_2D_e_decay_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);          
+      }            
       nb_e_decay_passed++;
     }else{
       //fail
-      res_h->mu_mom_e_decay_pass_h->Fill(ana_struct.mu_mom);      
-      if(is_radiative) res_h->g_mom_e_decay_fail_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_e_decay_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_e_decay_fail_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_e_decay_fail_h->Fill(g_frac_en);
-      if(is_radiative) res_h->g_mom_theta_2D_e_decay_fail_h->Fill(ana_struct.g_mom, theta_mu_g);      
+      res_h->mu_mom_e_decay_pass_h->Fill(ana_struct.mu_mom, event_weight);      
+      if(is_sim_gamma){
+        res_h->g_mom_e_decay_fail_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_e_decay_fail_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_e_decay_fail_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_e_decay_fail_h->Fill(g_frac_en, event_weight);
+        res_h->g_mom_theta_2D_e_decay_fail_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight); 
+      }      
     }
     //apply the cut
     if (pass_mu_nb_decay_e_cut(ana_struct) == false) continue;
@@ -1379,21 +1413,25 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
     // 6. pi/mu pid  
     if (pass_mu_pi_nll_cut(ana_struct) == true){
       //pass
-      res_h->mu_mom_pimu_pid_pass_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_pimu_pid_pass_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_pimu_pid_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_pimu_pid_pass_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_pimu_pid_pass_h->Fill(g_frac_en);
-      if(is_radiative) res_h->g_mom_theta_2D_pimu_pid_pass_h->Fill(ana_struct.g_mom, theta_mu_g);       
+      res_h->mu_mom_pimu_pid_pass_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_pimu_pid_pass_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_pimu_pid_pass_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_pimu_pid_pass_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_pimu_pid_pass_h->Fill(g_frac_en, event_weight);
+        res_h->g_mom_theta_2D_pimu_pid_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);
+      }        
       nb_pimu_pid_passed++;
     }else{
       //fail
-      res_h->mu_mom_pimu_pid_fail_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_pimu_pid_fail_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_pimu_pid_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_mu_g_pimu_pid_fail_h->Fill(theta_mu_g);
-      if(is_radiative) res_h->g_frac_en_pimu_pid_fail_h->Fill(g_frac_en); 
-      if(is_radiative) res_h->g_mom_theta_2D_pimu_pid_fail_h->Fill(ana_struct.g_mom, theta_mu_g);      
+      res_h->mu_mom_pimu_pid_fail_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_sim_gamma){
+        res_h->g_mom_pimu_pid_fail_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_pimu_pid_fail_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_mu_g_pimu_pid_fail_h->Fill(theta_mu_g, event_weight);
+        res_h->g_frac_en_pimu_pid_fail_h->Fill(g_frac_en, event_weight); 
+        res_h->g_mom_theta_2D_pimu_pid_fail_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);   
+      }    
     }
     //apply the cut
     if (pass_mu_pi_nll_cut(ana_struct) == false) continue;
@@ -1422,12 +1460,12 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative){
 
 }
 //============================================================================//
-ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de, fq_particle i_particle){
+ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_particle i_particle){
 //============================================================================//  
   t2k_sk_radiative ana_struct;
   set_tree_addresses(ana_tree, ana_struct, false);
   ana_results_hists* res_h = new ana_results_hists;
-  init_result_hists(*res_h, is_radiative);
+  init_result_hists(*res_h, is_sim_gamma);
 
   float cos_lep_g;
   float theta_lep_g;
@@ -1480,7 +1518,7 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de, fq_
    
     // Filling the total histogram
     // Design choice: filling it before any cuts
-    if(is_radiative) res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_lep_g);
+    if(is_sim_gamma) res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_lep_g);
 
     //Applying the nu_e sample cuts
     // 0. EVIS
@@ -1586,20 +1624,20 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de, fq_
     if (pass_e_pi0_nll_cut(ana_struct) == true){
       //pass
       res_h->lep_mom_epi0_pid_pass_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_epi0_pid_pass_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_epi0_pid_pass_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_lep_g_epi0_pid_pass_h->Fill(theta_lep_g);
-      if(is_radiative) res_h->g_frac_en_epi0_pid_pass_h->Fill(g_frac_en);
-      if(is_radiative) res_h->g_mom_theta_2D_epi0_pid_pass_h->Fill(ana_struct.g_mom, theta_lep_g);       
+      if(is_sim_gamma) res_h->g_mom_epi0_pid_pass_h->Fill(ana_struct.g_mom);
+      if(is_sim_gamma) res_h->g_tr_mom_epi0_pid_pass_h->Fill(g_tr_mom);
+      if(is_sim_gamma) res_h->theta_lep_g_epi0_pid_pass_h->Fill(theta_lep_g);
+      if(is_sim_gamma) res_h->g_frac_en_epi0_pid_pass_h->Fill(g_frac_en);
+      if(is_sim_gamma) res_h->g_mom_theta_2D_epi0_pid_pass_h->Fill(ana_struct.g_mom, theta_lep_g);       
       nb_epi0_pid_passed++;
     }else{
       //fail
       res_h->lep_mom_epi0_pid_fail_h->Fill(ana_struct.mu_mom);
-      if(is_radiative) res_h->g_mom_epi0_pid_fail_h->Fill(ana_struct.g_mom);
-      if(is_radiative) res_h->g_tr_mom_epi0_pid_fail_h->Fill(g_tr_mom);
-      if(is_radiative) res_h->theta_lep_g_epi0_pid_fail_h->Fill(theta_lep_g);
-      if(is_radiative) res_h->g_frac_en_epi0_pid_fail_h->Fill(g_frac_en);
-      if(is_radiative) res_h->g_mom_theta_2D_epi0_pid_fail_h->Fill(ana_struct.g_mom, theta_lep_g);       
+      if(is_sim_gamma) res_h->g_mom_epi0_pid_fail_h->Fill(ana_struct.g_mom);
+      if(is_sim_gamma) res_h->g_tr_mom_epi0_pid_fail_h->Fill(g_tr_mom);
+      if(is_sim_gamma) res_h->theta_lep_g_epi0_pid_fail_h->Fill(theta_lep_g);
+      if(is_sim_gamma) res_h->g_frac_en_epi0_pid_fail_h->Fill(g_frac_en);
+      if(is_sim_gamma) res_h->g_mom_theta_2D_epi0_pid_fail_h->Fill(ana_struct.g_mom, theta_lep_g);       
       continue;     
     }
 
@@ -1672,11 +1710,11 @@ void fill_particle_kin(t2k_sk_radiative & ana_struct){
 
 }
 //============================================================================//
-void init_result_hists(ana_results_hists& res_h, bool is_radiative){
+void init_result_hists(ana_results_hists& res_h, bool is_sim_gamma){
 //============================================================================//
   //In case of superimposing two histograms coming from different files, I want the histogram name to be indicative
   std::string h_name_postfix;
-  if(is_radiative){
+  if(is_sim_gamma){
     h_name_postfix = "mu_g";
   }else{
     h_name_postfix = "mu_only";
@@ -2184,7 +2222,7 @@ float calc_no_photon_weight(float lep_mom, fq_particle i_particle){
   return w;
 }
 //============================================================================//
-void create_weight_branches(std::string in_file_name, bool is_radiative, fq_particle i_particle){
+void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_particle i_particle){
 //============================================================================//
 // to build a mixed weighted file from 2 different particle guns:
 // create_weight_branches(lep_gamma_file, true, MUON);
@@ -2215,7 +2253,7 @@ void create_weight_branches(std::string in_file_name, bool is_radiative, fq_part
   TBranch *br_w_total = tree_in->Branch("weight_total",&w_total,"weight_total/F");
   TBranch *br_w_total_sum1 = tree_in->Branch("weight_total_sum1",&w_total_sum1,"weight_total_sum1/F");  
 
-  if(is_radiative == true){
+  if(is_sim_gamma == true){
     is_rad = 1;
   }else{
     is_rad = 0;
@@ -2245,11 +2283,11 @@ void create_weight_branches(std::string in_file_name, bool is_radiative, fq_part
     // Filling is_radiative branch (same value for the whole file)
     br_is_rad->Fill();
     // Filling oscillation weight
-    nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, is_radiative);
+    nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, is_sim_gamma);
     w_osc = calc_survival_osc_prob(nu_en);
     br_w_osc->Fill();
     // Filling radiative weights
-    if(is_radiative == true){
+    if(is_sim_gamma == true){
       // photon emission
       w_rad = calc_photon_emission_weight(ana_struct.g_mom);
       w_rad_sum1 = calc_photon_emission_weight(ana_struct.g_mom, lep_mom, i_particle);
@@ -2936,6 +2974,47 @@ float calc_lep_energy(t2k_sk_radiative& ana_struct, fq_particle i_particle){
 
   lep_en = sqrt(lep_mass*lep_mass + lep_mom*lep_mom);
   return lep_en;
+}
+//============================================================================//
+double calculate_event_weight(bool is_mixed_weighted, bool is_sim_gamma, t2k_sk_radiative& ana_struct){
+//============================================================================//
+  float nu_en = 0.0;
+  double osc_weight = 1.0;
+  double radiative_weight = 1.0;
+  double radiative_correction_factor = 1.0;
+  double event_weight = 1.0;
+
+  if(is_mixed_weighted == true){
+    if(is_sim_gamma == true){
+      //input file has simulated gamma and include the weights
+      nu_en = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, bool(ana_struct.is_rad));
+      if(ana_struct.is_rad == true){
+        radiative_weight = calc_photon_emission_weight(ana_struct.g_mom);
+        // multiply by the necessary correction factor
+        radiative_correction_factor = TMath::Max(ana_struct.mu_mom + ana_struct.g_mom, MU_MASS+gamma_en_cutoff) - MU_MASS;
+        radiative_weight *= radiative_correction_factor;
+      }else{
+        //Weighted file but that event is not radiative 
+        radiative_weight = calc_no_photon_weight(ana_struct.mu_mom, MUON);
+      }    
+    }else{
+      // input files does not contain gamma but used to compare the mixed file
+      nu_en = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, is_sim_gamma);
+      radiative_weight = 1.0;
+    }
+  }else{
+    // input file does not contain gamma but used to compare a radiative file, or
+    // input file is full of gammas (radiative file)
+    // set oscillation weights correctly
+    nu_en = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, is_sim_gamma);     
+    // set radiative weights to 1 for the comparison (i.e not taking radiation into consideration for all the above cases)
+    radiative_weight = 1.0;   
+  }
+ 
+  osc_weight =  calc_survival_osc_prob(nu_en);
+  event_weight = osc_weight * radiative_weight;
+
+  return event_weight;
 }
 //============================================================================//
 //To be deleted 
