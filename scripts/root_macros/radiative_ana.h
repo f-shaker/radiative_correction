@@ -328,5 +328,6 @@ void radiative_ana(fq_particle i_particle);
 void analyze_nue(TTree* tr_rad_elec, TTree tr_norad_elec);
 void analyze_numu(TTree* tr_rad_elec, TTree tr_norad_elec);
 double calculate_event_weight(bool is_mixed_weighted, bool is_sim_gamma, t2k_sk_radiative& ana_struct);
+void check_ccnumu_event_loss_due_to_radiation(std::string mix_file);
 //============================================================================//
 #endif

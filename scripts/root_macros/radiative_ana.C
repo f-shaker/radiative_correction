@@ -4,6 +4,7 @@
 void init_root_global_settings(){
 //============================================================================//
   TH1::AddDirectory(kFALSE);
+  TH2::AddDirectory(kFALSE);
   TH1::SetDefaultSumw2(kTRUE); 	
   TH2::SetDefaultSumw2(kTRUE);
   /*
@@ -21,8 +22,19 @@ m = 2;  mean and mean error values printed
 e = 1;  number of entries printed
 n = 1;  name of histogram is printed
   */
-  gStyle->SetOptStat("nemruoi");
-
+  //gStyle->SetOptStat("emruoi");
+  gStyle->SetOptStat("i");
+/*
+// Set stat options
+gStyle->SetStatY(0.4);                
+// Set y-position (fraction of pad size)
+gStyle->SetStatX(0.9);                
+// Set x-position (fraction of pad size)
+gStyle->SetStatW(0.4);                
+// Set width of stat-box (fraction of pad size)
+gStyle->SetStatH(0.2);                
+// Set height of stat-box (fraction of pad size)  
+*/
 }
 //============================================================================//
 void analyze_nue(TTree* tr_rad_elec, TTree* tr_norad_elec){
@@ -827,7 +839,7 @@ void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt){
   hist->SetTitle(title.c_str());
   TCanvas * canv = new TCanvas(Form("canv_%s",hist->GetName()), Form("canv_%s",hist->GetName()), 1200, 800);   
   canv->cd();
-  hist->SetStats(0);
+  //hist->SetStats(0);
   gStyle->SetPalette(kInvertedDarkBodyRadiator);// kDeepSea=51, kDarkBodyRadiator=53, kInvertedDarkBodyRadiator (better if I had higher stats)
   hist->Draw(draw_opt.c_str());
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),hist->GetName()));
@@ -2312,6 +2324,8 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
 //============================================================================//
 void check_mixed_weights(std::string mix_file){
 //============================================================================//
+  init_root_global_settings();
+
   TFile * f_mw = new TFile(mix_file.c_str(), "READ");  
   TTree *tr_mw = (TTree*)f_mw->Get("h1");
 
@@ -2456,11 +2470,6 @@ void check_mixed_weights(std::string mix_file){
   TH2D* h2d_1e1de_radcont_emuenu_eg3_radw = new TH2D("h2d_1e1de_radcont_emuenu_eg3_radw", "h2d_1e1de_radcont_emuenu_eg3_radw", 20, 0, 2000, 20, 0, 2000);
   TH2D* h2d_1e1de_radcont_emuenu_eg3_totw = new TH2D("h2d_1e1de_radcont_emuenu_eg3_totw", "h2d_1e1de_radcont_emuenu_eg3_totw", 20, 0, 2000, 20, 0, 2000);
  
-  // Events failing the CCnumu selection just because they have emitted a photon (become radiative)
-  TH2D* h2d_failccnumu_radcont_pmuthetamug_now = new TH2D("h2d_failccnumu_radcont_pmuthetamug_now", "h2d_failccnumu_radcont_pmuthetamug_now", 20, 0, 2000, 20, 0, 180);
-  TH2D* h2d_failccnumu_radcont_pmuthetamug_totw = new TH2D("h2d_failccnumu_radcont_pmuthetamug_totw", "h2d_failccnumu_radcont_pmuthetamug_totw", 20, 0, 2000, 20, 0, 180);  
-  TH1D* h_failccnumu_radcont_Enu_now = new TH1D("h_failccnumu_radcont_Enu_now", "h_failccnumu_radcont_Enu_now", 100, 0, 2000);
-  TH1D* h_failccnumu_radcont_Enu_totw = new TH1D("h_failccnumu_radcont_Enu_totw", "h_failccnumu_radcont_Enu_totw", 100, 0, 2000);    
   // Analysis start
   // Fady 's method to correct for sampling a single photon event at a specific lepton energy
   // Note that inside the calc_global_prob_corr_fact, we setbranchaddress to a alocal varaible to get the calculation
@@ -2661,52 +2670,8 @@ void check_mixed_weights(std::string mix_file){
   }
 
   std::cout<<"number of wrong weights = " << cnt << std::endl;
-  // fs
-  // check who many events will be lost due to the radiative process
-  for (Long64_t i=0;i<nentries/2;i++){
-    // ToDo needs OPTIMIZATION now we rely that we know that the mixed files has all entries of the radiative file first then all entries of the Non-Radiative
-    // that the 2 files are equal in size and are in order!!! too many assumptions that ONLY work for this specific file
-    int rad_entry = i;
-    int nonrad_entry = i + (nentries/2);
-    double rad_lep_init_en = 0;
-    double nonrad_lep_en = 0;
-    double rad_lep_dirx = 0;
-    double rad_lep_diry = 0;
-    double rad_lep_dirz = 0;
-    double nonrad_lep_dirx = 0;
-    double nonrad_lep_diry = 0;
-    double nonrad_lep_dirz = 0;
-    bool rad_pass_ccnumu = false;
-    bool nonrad_pass_ccnumu = false;
-    double cos_mu_g = 0;
-    double theta_mu_g = 0;
-    double nu_en_corr = 0;
 
-    // check the non-radiative entry
-    tr_mw->GetEntry(nonrad_entry);
-    //std::cout<<"processing entry :" << nonrad_entry << std::endl;
-        //progress
-    print_perc(i, nentries/2, 5);
-    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions 
-    if(pass_ccqe_numu_sample(ana_struct) == true){
-      // non-radiative event will pass the ccnumu selection      
-      // check the corresponding raditive entry
-      tr_mw->GetEntry(rad_entry);
-      fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
-      if(pass_ccqe_numu_sample(ana_struct) == false){
-        // this radiative event will not pass the selection because of its photon emission
-        cos_mu_g = ( ana_struct.g_dir[0] * ana_struct.mu_dir[0] ) + ( ana_struct.g_dir[1] * ana_struct.mu_dir[1] )
-                 + ( ana_struct.g_dir[2] * ana_struct.mu_dir[2] );
-        theta_mu_g = TMath::ACos(cos_mu_g) * 180.0 / TMath::Pi();
-        nu_en_corr = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, (bool)ana_struct.is_rad);        
-        h2d_failccnumu_radcont_pmuthetamug_now->Fill(ana_struct.mu_mom, theta_mu_g);
-        h2d_failccnumu_radcont_pmuthetamug_totw->Fill(ana_struct.mu_mom, theta_mu_g, ana_struct.w_osc * ana_struct.w_rad * global_wrad_corr);
-        h_failccnumu_radcont_Enu_now->Fill(nu_en_corr);
-        h_failccnumu_radcont_Enu_totw->Fill(nu_en_corr, ana_struct.w_osc * ana_struct.w_rad * global_wrad_corr);        
-      } 
-    }
-  }
-  // fs
+  check_ccnumu_event_loss_due_to_radiation(mix_file);
   // initial distributions
   plot_hist1D(h_Emu_noradcont_now,"h_Emu_noradcont_now",  "Non-Radiative Contribution (no weights, no cuts);E_{#mu};count" , kBlue , 2, 1);  
   plot_hist1D(h_Emu_radcont_now,"h_Emu_radcont_now",  "Radiative Contribution (no weights, no cuts);E_{#mu};count" , kBlue , 2, 1);  
@@ -2788,7 +2753,7 @@ void check_mixed_weights(std::string mix_file){
 
   plot_hist2D(h2d_radcont_emuenu_now, "radiative contribution (no cuts, no weights);E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
   plot_hist2D(h2d_radcont_emuenu_oscw, "radiative contribution (no cuts, oscilation weights);E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
-  plot_hist2D(h2d_radcont_emuenu_radw, "radiative contribution (no cuts, non-radiative weights);E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
+  plot_hist2D(h2d_radcont_emuenu_radw, "radiative contribution (no cuts, radiative weights);E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
   plot_hist2D(h2d_radcont_emuenu_totw, "radiative contribution (no cuts, total weights);E_{#mu} [MeV];E_{#nu} [MeV]", "colz");    
 
   // CCnumu Analysis
@@ -2861,12 +2826,6 @@ void check_mixed_weights(std::string mix_file){
   plot_hist2D(h2d_1e1de_radcont_emuenu_eg3_radw, "1e1de radiative contribution (E_{#gamma} > 50 MeV) radiative weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz"); 
   plot_hist2D(h2d_1e1de_radcont_emuenu_eg3_totw, "1e1de radiative contribution (E_{#gamma} > 50 MeV) total weights;E_{#mu} [MeV];E_{#nu} [MeV]", "colz");    
   
-  //events that fails the ccnumu due to the emitted photon
-  plot_hist2D(h2d_failccnumu_radcont_pmuthetamug_now, "Radiative events failing the CC#nu_{#mu} Selection (non-radiative ev will pass) no weights;P_{#mu} [MeV];#theta_{#mu#gamma} [#circ]", "colz"); 
-  plot_hist2D(h2d_failccnumu_radcont_pmuthetamug_totw, "Radiative events failing the CC#nu_{#mu} Selection (non-radiative ev will pass) total weights;P_{#mu} [MeV];#theta_{#mu#gamma} [#circ]", "colz");
-  plot_hist1D(h_failccnumu_radcont_Enu_now,"h_failccnumu_radcont_Enu_now",  "Radiative events failing the CC#nu_{#mu} Selection (non-radiative ev will pass) no weights;E_{#nu} [MeV];count", kBlue , 2, 1);
-  plot_hist1D(h_failccnumu_radcont_Enu_totw,"h_failccnumu_radcont_Enu_totw",  "Radiative events failing the CC#nu_{#mu} Selection (non-radiative ev will pass) total weights;E_{#nu} [MeV];count", kBlue , 2, 1);  
-
   f_mw->Close();
 }
 //============================================================================//  
@@ -3015,6 +2974,79 @@ double calculate_event_weight(bool is_mixed_weighted, bool is_sim_gamma, t2k_sk_
   event_weight = osc_weight * radiative_weight;
 
   return event_weight;
+}
+//============================================================================//
+void check_ccnumu_event_loss_due_to_radiation(std::string mix_file){
+//============================================================================//
+  TFile * f_mw = new TFile(mix_file.c_str(), "READ");  
+  TTree *tr_mw = (TTree*)f_mw->Get("h1");
+
+  double global_wrad_corr = calc_global_prob_corr_fact(tr_mw, MUON);
+  std::cout<<"global radiative weight correction factor = " << global_wrad_corr <<std::endl;  
+  // the calc_global_prob_corr_fact calls the set_tree_address to a local variable we have to recall the set_tree_address here 
+  t2k_sk_radiative ana_struct;
+  set_tree_addresses(tr_mw, ana_struct, true);
+
+  // Events failing the CCnumu selection just because they have emitted a photon (become radiative)
+  TH2D* h2d_failccnumu_radcont_pmuthetamug_now = new TH2D("h2d_failccnumu_radcont_pmuthetamug_now", "h2d_failccnumu_radcont_pmuthetamug_now", 20, 0, 2000, 20, 0, 180);
+  TH2D* h2d_failccnumu_radcont_pmuthetamug_totw = new TH2D("h2d_failccnumu_radcont_pmuthetamug_totw", "h2d_failccnumu_radcont_pmuthetamug_totw", 20, 0, 2000, 20, 0, 180);  
+  TH1D* h_failccnumu_radcont_Enu_now = new TH1D("h_failccnumu_radcont_Enu_now", "h_failccnumu_radcont_Enu_now", 100, 0, 2000);
+  TH1D* h_failccnumu_radcont_Enu_totw = new TH1D("h_failccnumu_radcont_Enu_totw", "h_failccnumu_radcont_Enu_totw", 100, 0, 2000);    
+
+
+  Long64_t nentries = tr_mw->GetEntries();
+  // fs
+  // check who many events will be lost due to the radiative process
+  for (Long64_t i=0;i<nentries/2;i++){
+    // ToDo needs OPTIMIZATION now we rely that we know that the mixed files has all entries of the radiative file first then all entries of the Non-Radiative
+    // that the 2 files are equal in size and are in order!!! too many assumptions that ONLY work for this specific file
+    int rad_entry = i;
+    int nonrad_entry = i + (nentries/2);
+    double rad_lep_init_en = 0;
+    double nonrad_lep_en = 0;
+    double rad_lep_dirx = 0;
+    double rad_lep_diry = 0;
+    double rad_lep_dirz = 0;
+    double nonrad_lep_dirx = 0;
+    double nonrad_lep_diry = 0;
+    double nonrad_lep_dirz = 0;
+    bool rad_pass_ccnumu = false;
+    bool nonrad_pass_ccnumu = false;
+    double cos_mu_g = 0;
+    double theta_mu_g = 0;
+    double nu_en_corr = 0;
+
+    // check the non-radiative entry
+    tr_mw->GetEntry(nonrad_entry);
+    //std::cout<<"processing entry :" << nonrad_entry << std::endl;
+        //progress
+    print_perc(i, nentries/2, 5);
+    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions 
+    if(pass_ccqe_numu_sample(ana_struct) == true){
+      // non-radiative event will pass the ccnumu selection      
+      // check the corresponding raditive entry
+      tr_mw->GetEntry(rad_entry);
+      fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
+      if(pass_ccqe_numu_sample(ana_struct) == false){
+        // this radiative event will not pass the selection because of its photon emission
+        cos_mu_g = ( ana_struct.g_dir[0] * ana_struct.mu_dir[0] ) + ( ana_struct.g_dir[1] * ana_struct.mu_dir[1] )
+                 + ( ana_struct.g_dir[2] * ana_struct.mu_dir[2] );
+        theta_mu_g = TMath::ACos(cos_mu_g) * 180.0 / TMath::Pi();
+        nu_en_corr = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, (bool)ana_struct.is_rad);        
+        h2d_failccnumu_radcont_pmuthetamug_now->Fill(ana_struct.mu_mom, theta_mu_g);
+        h2d_failccnumu_radcont_pmuthetamug_totw->Fill(ana_struct.mu_mom, theta_mu_g, ana_struct.w_osc * ana_struct.w_rad * global_wrad_corr);
+        h_failccnumu_radcont_Enu_now->Fill(nu_en_corr);
+        h_failccnumu_radcont_Enu_totw->Fill(nu_en_corr, ana_struct.w_osc * ana_struct.w_rad * global_wrad_corr);        
+      } 
+    }
+  }
+  // fs
+  //events that fails the ccnumu due to the emitted photon
+  plot_hist2D(h2d_failccnumu_radcont_pmuthetamug_now, "Radiative events failing the CC#nu_{#mu} Selection (non-radiative ev will pass) no weights;P_{#mu} [MeV];#theta_{#mu#gamma} [#circ]", "colz"); 
+  plot_hist2D(h2d_failccnumu_radcont_pmuthetamug_totw, "Radiative events failing the CC#nu_{#mu} Selection (non-radiative ev will pass) total weights;P_{#mu} [MeV];#theta_{#mu#gamma} [#circ]", "colz");
+  plot_hist1D(h_failccnumu_radcont_Enu_now,"h_failccnumu_radcont_Enu_now",  "Radiative events failing the CC#nu_{#mu} Selection (non-radiative ev will pass) no weights;E_{#nu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_failccnumu_radcont_Enu_totw,"h_failccnumu_radcont_Enu_totw",  "Radiative events failing the CC#nu_{#mu} Selection (non-radiative ev will pass) total weights;E_{#nu} [MeV];count", kBlue , 2, 1);  
+
 }
 //============================================================================//
 //To be deleted 
