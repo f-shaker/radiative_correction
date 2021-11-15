@@ -17,7 +17,7 @@ FV_PHI_MIN = 0.
 FV_PHI_MAX = 2*pi
 FV_Z_MIN = -1870 #cm (41.4[OD-z] - 4)/2  was -1610 #cm
 FV_Z_MAX = 1870 #cm was 1610 #cm
-# Muon Kinematics
+# Lepton Kinematics
 # ---------------- 
 MU_REST_MASS = 105.66 #MeV rest mass of muon 
 ELEC_REST_MASS = 0.511 #MeV rest mass of the electron
@@ -31,8 +31,8 @@ MAX_GAMMA_OPENING_ANGLE = 180.0 #degree (0 to 180 degree)
 NB_SAMPLES = 50000# was 10000
 np.random.seed(20140489) # a 8-digits prime number
 #----------Parameters Definition END----------
-plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/mu/ginft180"
-temp_output_dir = "/home/fshaker/t2k/radiative-correction/analysis/temp_output/mu/"
+plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/elec/ginft180/"
+temp_output_dir = "/home/fshaker/t2k/radiative-correction/analysis/temp_output/elec/"
 plot_extension=".png"
 #------------------------------------------------------------------------------
 #plotting functionality
@@ -255,7 +255,7 @@ def generate_gamma_dir_from_lep_dir_tst(lep_dir, opening_angle_max_rad, nb_sampl
         rot_axis = np.cross(z_d, z_l)
         rot_axis_mag = np.sqrt(rot_axis[0]*rot_axis[0] + rot_axis[1]*rot_axis[1] + rot_axis[2]*rot_axis[2])
         if  rot_axis_mag < dot_tol:
-            rot_axis = np.array([1, 0, 0]) #mu is // to z use x as rotation axis
+            rot_axis = np.array([1, 0, 0]) #lepton is // to z use x as rotation axis
             rot_axis_mag = 1.0
         #nprmalize the rotation axis
         rot_axis = rot_axis/rot_axis_mag
@@ -337,7 +337,7 @@ def generate_gamma_dir_from_lep_dir(lep_dir, opening_angle_max_rad):
         rot_axis = np.cross(z_d, lep_dir[i,:])
         rot_axis_mag = np.sqrt(rot_axis[0]*rot_axis[0] + rot_axis[1]*rot_axis[1] + rot_axis[2]*rot_axis[2])
         if  rot_axis_mag < 1e-4:
-            rot_axis = np.array([1, 0, 0]) #mu is // to z use x as rotation axis
+            rot_axis = np.array([1, 0, 0]) #lepton is // to z use x as rotation axis
             rot_axis_mag = 1.0
             #nprmalize the rotation axis
         rot_axis = rot_axis/rot_axis_mag
@@ -467,8 +467,8 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_ki
         plot_1D_pdf_hist(vertex_pos[:,1], nb_bins_or_edges=50, var_name='$y_v$', plot_name='vertex_y_dist')
         plot_1D_pdf_hist(vertex_pos[:,2], nb_bins_or_edges=50, var_name='$z_v$', plot_name='vertex_z_dist')
 
-        # muon kinematics
-        plot_3D_cartesian(lep_dir[:,0], lep_dir[:,1], lep_dir[:,2], 'mu_3D_dir_dist')
+        # lepton kinematics
+        plot_3D_cartesian(lep_dir[:,0], lep_dir[:,1], lep_dir[:,2], 'lep_3D_dir_dist')
         plot_1D_pdf_hist(lep_dir[:,0], nb_bins_or_edges=50, var_name='x', plot_name='lep_dir_x_dist')
         plot_1D_pdf_hist(lep_dir[:,1], nb_bins_or_edges=50, var_name='y', plot_name='lep_dir_y_dist')
         plot_1D_pdf_hist(lep_dir[:,2], nb_bins_or_edges=50, var_name='z', plot_name='lep_dir_z_dist')
@@ -492,10 +492,10 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_ki
         cos_op_angle = np.array([])
         for row in range(lep_dir.shape[0]):
             cos_op_angle = np.append(cos_op_angle, np.dot(lep_dir[row,:], gamma_dir[row, :]))
-        plot_1D_pdf_hist(cos_op_angle, nb_bins_or_edges=50, var_name='$cos \\theta_{\mu\gamma}$', plot_name='cos_opening_angle')
+        plot_1D_pdf_hist(cos_op_angle, nb_bins_or_edges=50, var_name='$cos \\theta_{lep\gamma}$', plot_name='cos_opening_angle')
         
 #------------------------------------------------------------------------------ 
 # Test generate_radiative_corr_particle_gun
-generate_radiative_corr_particle_gun(particle='mu-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'mu_kinematics.txt' ,\
-                                     file_name=temp_output_dir+'pg_mu_ginft180_5e4.txt', plot_dist=True)
+generate_radiative_corr_particle_gun(particle='e-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'elec_kinematics_vtx.txt' ,\
+                                     file_name=temp_output_dir+'pg_elec_ginft180_5e4.txt', plot_dist=True)
 #test_gamma_dir()

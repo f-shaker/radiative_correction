@@ -1,7 +1,10 @@
 import os
 import time
 #number of files = the output of the splitting process
-nb_files = 10
+file_start = 0
+file_stop = 99 #will include this file in the submission
+file_step = 1
+
 queue = 'ALL'
 send_job = 'qsub -q {} -eo -lm 3gb -o {} {}'
 
@@ -17,7 +20,7 @@ def create_submission_script(file_idx):
 
 
 
-for i in range(nb_files):
+for i in range(file_start, file_stop+1, file_step):
     dump = "skdetsim_dump_" + str(i) + ".txt"
     sub_script= create_submission_script(i)
     sub_cmd= send_job.format(queue, dump, sub_script)
