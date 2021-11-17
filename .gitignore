@@ -11,3 +11,6 @@
 **/scripts/root_macros/*.so
 **/scripts/root_macros/*.d
 **/scripts/root_macros/*.pcm
+
+#ignore visual studio files
+**/.vscode

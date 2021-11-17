@@ -7,19 +7,19 @@
 #include <utility> //pair
 #include <math.h> //round
 // Root headers
-#include "TFile.h"
-#include "TTree.h"
-#include "TCanvas.h"
-#include "TH1.h"
-#include "TH1D.h"
-#include "TH2.h"
-#include "TH2D.h"
-#include "TLatex.h"
-#include "TLegend.h"
-#include "TRatioPlot.h"
-#include "TStyle.h"
-#include "TGraph.h"
-#include "TMath.h"
+#include <TFile.h>
+#include <TTree.h>
+#include <TCanvas.h>
+#include <TH1.h>
+#include <TH1D.h>
+#include <TH2.h>
+#include <TH2D.h>
+#include <TLatex.h>
+#include <TLegend.h>
+#include <TRatioPlot.h>
+#include <TStyle.h>
+#include <TGraph.h>
+#include <TMath.h>
 //#include "TF1.h"
 using namespace std;
 //============================================================================//
@@ -94,7 +94,7 @@ typedef struct t2k_sk_radiative{
 //============================================================================//
 // cut step efficiency is a map (key, value), were key is the step index, i.e the order of the cut in the selection,
 // the value is a pair of cut name and the number of events that passed the cut
-typedef std::map<unsigned int, std::pair<std::string, unsigned int>> cut_step_efficiency;
+typedef std::map<unsigned int, std::pair<std::string, float>> cut_step_efficiency;
 //============================================================================//
 // structure for only the variables that needs to be compared in case of radiative muons and muon only
 typedef struct ana_results_hists{
@@ -102,7 +102,7 @@ typedef struct ana_results_hists{
   cut_step_efficiency ana_cut_step_eff;
   // Histograms
   // number of rings histograms
-  TH1I* nring_h;
+  TH1D* nring_h;
   TH1D * g_tr_mom_1r_h;
   TH1D * g_tr_mom_2r_h;
   TH1D * g_tr_mom_3mr_h;
@@ -305,7 +305,7 @@ void plot_eff_ratio_2(TH1* pass_hist, TH1* fail_hist, std::string title);
 void fill_particle_kin(t2k_sk_radiative & ana_struct);  
 void init_result_hists(ana_results_hists& res_h, bool is_radiative);
 void clear_result_hists(ana_results_hists& res_h);       
-ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative);
+ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative, bool is_weighted_file);
 ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de, fq_particle i_particle);
 
 void plot_results_hists(ana_results_hists& res_h1, ana_results_hists& res_h2); 
@@ -325,8 +325,8 @@ double calc_global_prob_corr_fact(TTree* mix_tree, fq_particle i_particle);
 float calc_lep_energy(t2k_sk_radiative& ana_struct, fq_particle i_particle);
 void init_root_global_settings(void);
 void radiative_ana(fq_particle i_particle);
-void analyze_nue(TTree* tr_rad_elec, TTree tr_norad_elec);
-void analyze_numu(TTree* tr_rad_elec, TTree tr_norad_elec);
+void analyze_nue(TTree* tr_rad_elec, TTree* tr_norad_elec);
+void analyze_numu(TTree* tr_rad_mu, TTree* tr_norad_mu);
 double calculate_event_weight(bool is_mixed_weighted, bool is_sim_gamma, t2k_sk_radiative& ana_struct);
 void check_ccnumu_event_loss_due_to_radiation(std::string mix_file);
 //============================================================================//

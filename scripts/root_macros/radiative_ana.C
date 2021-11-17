@@ -69,8 +69,8 @@ void analyze_nue(TTree* tr_rad_elec, TTree* tr_norad_elec){
 void analyze_numu(TTree* tr_rad_mu, TTree* tr_norad_mu){
 //============================================================================//  
   //numu analysis
-  ana_results_hists* res_1musel_mug = analyze_1mu(tr_rad_mu, true);
-  ana_results_hists* res_1musel_muonly = analyze_1mu(tr_norad_mu, false); 
+  ana_results_hists* res_1musel_mug = analyze_1mu(tr_rad_mu, true, LEP_GAMMA_WEIGHTS);
+  ana_results_hists* res_1musel_muonly = analyze_1mu(tr_norad_mu, false, false); 
   plot_results_hists(*res_1musel_mug, *res_1musel_muonly);
   // check the migration to the 1e or 1e1de samples
   ana_results_hists* res_1esel_mug = analyze_1e(tr_rad_mu, true, 0, MUON);
@@ -1136,10 +1136,10 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string fi
 
 }
 //============================================================================//
-ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma){
+ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weighted_file){
 //============================================================================//  
   t2k_sk_radiative ana_struct;
-  set_tree_addresses(ana_tree, ana_struct, false);
+  set_tree_addresses(ana_tree, ana_struct, is_weighted_file);
   ana_results_hists* res_h = new ana_results_hists;
   init_result_hists(*res_h, is_sim_gamma); 
 
@@ -1158,14 +1158,15 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma){
   float mu_mom_res;
   float mu_mom_res_g_added;
  //Main event loop
-  long int nb_ev = ana_tree->GetEntries(); 
-  unsigned int nb_evis_passed = 0;
-  unsigned int nb_fcfv_passed = 0;
-  unsigned int nb_1ring_passed = 0;
-  unsigned int nb_emu_pid_passed = 0;
-  unsigned int nb_mu_mom_passed = 0;
-  unsigned int nb_e_decay_passed = 0;
-  unsigned int nb_pimu_pid_passed = 0;
+  long int nb_ev = ana_tree->GetEntries();
+  float nb_before_cuts = 0;   
+  float nb_evis_passed = 0;
+  float nb_fcfv_passed = 0;
+  float nb_1ring_passed = 0;
+  float nb_emu_pid_passed = 0;
+  float nb_mu_mom_passed = 0;
+  float nb_e_decay_passed = 0;
+  float nb_pimu_pid_passed = 0;
 
 
   for (int i = 0; i < nb_ev; i++){
@@ -1174,6 +1175,12 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma){
     ana_tree->GetEntry(i);
     fill_particle_kin(ana_struct);
     double event_weight = calculate_event_weight(LEP_GAMMA_WEIGHTS, is_sim_gamma, ana_struct);
+
+    //fsamir debug start
+    // histograms look very strange => let us set te weight to 1
+    //event_weight = 1.0;
+    //fsamie debug end
+    nb_before_cuts+= event_weight;    
     res_h->nring_h->Fill(ana_struct.fqmrnring[0], event_weight);
 
     res_h->mu_mom_all_h->Fill(ana_struct.mu_mom, event_weight);    
@@ -1273,7 +1280,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma){
         res_h->g_mom_theta_2D_evis_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);     
       }
 
-      nb_evis_passed++;
+      nb_evis_passed+= event_weight;
     }else{
       //fail
       res_h->mu_mom_evis_fail_h->Fill(ana_struct.mu_mom, event_weight);
@@ -1299,7 +1306,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma){
         res_h->g_frac_en_fcfv_pass_h->Fill(g_frac_en, event_weight);
         res_h->g_mom_theta_2D_fcfv_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight); 
       }             
-      nb_fcfv_passed++;
+      nb_fcfv_passed+= event_weight;
     }else{
       //fail
       res_h->mu_mom_fcfv_fail_h->Fill(ana_struct.mu_mom, event_weight);
@@ -1325,7 +1332,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma){
         res_h->g_frac_en_1ring_pass_h->Fill(g_frac_en, event_weight);
         res_h->g_mom_theta_2D_1ring_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight); 
       }             
-      nb_1ring_passed++;
+      nb_1ring_passed+= event_weight;
     }else{
       //fail
       res_h->mu_mom_1ring_fail_h->Fill(ana_struct.mu_mom, event_weight);
@@ -1353,7 +1360,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma){
         res_h->theta_mu1r_emu_pid_pass_h->Fill(theta_mu_1r, event_weight);            
         res_h->theta_g1r_emu_pid_pass_h->Fill(theta_g_1r, event_weight);
       } 
-      nb_emu_pid_passed++;
+      nb_emu_pid_passed+= event_weight;
     }else{
       //fail
       res_h->mu_mom_emu_pid_fail_h->Fill(ana_struct.mu_mom, event_weight);      
@@ -1381,7 +1388,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma){
         res_h->g_frac_en_mu_mom_pass_h->Fill(g_frac_en, event_weight);
         res_h->g_mom_theta_2D_mu_mom_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);  
       }      
-      nb_mu_mom_passed++;
+      nb_mu_mom_passed+= event_weight;
     }else{
       //fail
       res_h->mu_mom_mu_mom_fail_h->Fill(ana_struct.mu_mom, event_weight);
@@ -1407,7 +1414,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma){
         res_h->g_frac_en_e_decay_pass_h->Fill(g_frac_en, event_weight);
         res_h->g_mom_theta_2D_e_decay_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);          
       }            
-      nb_e_decay_passed++;
+      nb_e_decay_passed+= event_weight;
     }else{
       //fail
       res_h->mu_mom_e_decay_pass_h->Fill(ana_struct.mu_mom, event_weight);      
@@ -1433,7 +1440,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma){
         res_h->g_frac_en_pimu_pid_pass_h->Fill(g_frac_en, event_weight);
         res_h->g_mom_theta_2D_pimu_pid_pass_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);
       }        
-      nb_pimu_pid_passed++;
+      nb_pimu_pid_passed+= event_weight;
     }else{
       //fail
       res_h->mu_mom_pimu_pid_fail_h->Fill(ana_struct.mu_mom, event_weight);
@@ -1452,7 +1459,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma){
   }//end of the tree event loop
 
   res_h->ana_cut_step_eff[0].first = "No cuts";
-  res_h->ana_cut_step_eff[0].second = nb_ev;
+  res_h->ana_cut_step_eff[0].second = nb_before_cuts;
   res_h->ana_cut_step_eff[1].first = "evis";
   res_h->ana_cut_step_eff[1].second = nb_evis_passed;
   res_h->ana_cut_step_eff[2].first = "fcfv";
@@ -1490,14 +1497,14 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
 
  //Main event loop
   long int nb_ev = ana_tree->GetEntries(); 
-  unsigned int nb_evis_passed = 0;
-  unsigned int nb_fcfv_passed = 0;
-  unsigned int nb_1ring_passed = 0;
-  unsigned int nb_emu_pid_passed = 0;
-  unsigned int nb_e_mom_passed = 0;
-  unsigned int nb_e_decay_passed = 0;
-  unsigned int nb_nu_en_rec_passed = 0;
-  unsigned int nb_epi0_pid_passed = 0;
+  float  nb_evis_passed = 0;
+  float nb_fcfv_passed = 0;
+  float nb_1ring_passed = 0;
+  float nb_emu_pid_passed = 0;
+  float nb_e_mom_passed = 0;
+  float nb_e_decay_passed = 0;
+  float nb_nu_en_rec_passed = 0;
+  float nb_epi0_pid_passed = 0;
   
   for (int i = 0; i < nb_ev; i++){
     //progress
@@ -1749,7 +1756,7 @@ void init_result_hists(ana_results_hists& res_h, bool is_sim_gamma){
   double * theta_bining_arr_2d = calculate_bin_arr(THETA_MAX_BIN, THETA_ROI_MAX_BIN, THETA_STEP_2D, theta_nb_bins_2d);
 
   // number of rings histograms
-  res_h.nring_h = new TH1I(Form("nring_%s", h_name_postfix.c_str()), Form("nring_%s", h_name_postfix.c_str()), 6, 0, 6);
+  res_h.nring_h = new TH1D(Form("nring_%s", h_name_postfix.c_str()), Form("nring_%s", h_name_postfix.c_str()), 6, 0, 6);
   res_h.g_tr_mom_1r_h = new TH1D("g_tr_mom_1r", "g_tr_mom_1r", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_tr_mom_2r_h = new TH1D("g_tr_mom_2r", "g_tr_mom_2r", g_mom_nb_bins,  g_mom_bining_arr);
   res_h.g_tr_mom_3mr_h = new TH1D("g_tr_mom_3mr", "g_tr_mom_3mr", g_mom_nb_bins,  g_mom_bining_arr);    
@@ -2935,22 +2942,25 @@ float calc_lep_energy(t2k_sk_radiative& ana_struct, fq_particle i_particle){
   return lep_en;
 }
 //============================================================================//
-double calculate_event_weight(bool is_mixed_weighted, bool is_sim_gamma, t2k_sk_radiative& ana_struct){
+double calculate_event_weight(bool is_mixed_weighted_comparison, bool is_sim_gamma, t2k_sk_radiative& ana_struct){
 //============================================================================//
   float nu_en = 0.0;
+  float lep_en = 0.0;
+
   double osc_weight = 1.0;
   double radiative_weight = 1.0;
   double radiative_correction_factor = 1.0;
   double event_weight = 1.0;
 
-  if(is_mixed_weighted == true){
+  if(is_mixed_weighted_comparison == true){
     if(is_sim_gamma == true){
       //input file has simulated gamma and include the weights
       nu_en = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, bool(ana_struct.is_rad));
       if(ana_struct.is_rad == true){
         radiative_weight = calc_photon_emission_weight(ana_struct.g_mom);
         // multiply by the necessary correction factor
-        radiative_correction_factor = TMath::Max(ana_struct.mu_mom + ana_struct.g_mom, MU_MASS+gamma_en_cutoff) - MU_MASS;
+        lep_en = calc_lep_energy(ana_struct, MUON);
+        radiative_correction_factor = TMath::Max(lep_en+ ana_struct.g_mom, MU_MASS+gamma_en_cutoff) - MU_MASS;
         radiative_weight *= radiative_correction_factor;
       }else{
         //Weighted file but that event is not radiative 
@@ -2970,9 +2980,10 @@ double calculate_event_weight(bool is_mixed_weighted, bool is_sim_gamma, t2k_sk_
     radiative_weight = 1.0;   
   }
  
+
   osc_weight =  calc_survival_osc_prob(nu_en);
   event_weight = osc_weight * radiative_weight;
-
+  //std::cout<<" nu_en = " << nu_en << " , osc_w = " << osc_weight << " total weight = " << event_weight << std::endl;
   return event_weight;
 }
 //============================================================================//
