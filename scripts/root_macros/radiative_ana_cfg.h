@@ -5,9 +5,9 @@
 //Input & output files
 //==============================================================================
 // mu and gamma 
-const bool LEP_GAMMA_WEIGHTS = false;// if the input lepton gamma file contains weights based on the oscillation and radiative proabilities
-//const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted.root";// 5e4 evt, full gamma phase space
-const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_ginft180.root";// 5e4 evt, full gamma phase space
+const bool LEP_GAMMA_WEIGHTS = true;// if the input lepton gamma file contains weights based on the oscillation and radiative proabilities
+const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted.root";// 5e4 evt, full gamma phase space
+//const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_ginft180.root";// 5e4 evt, full gamma phase space
 //const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/elec_g80t180.root";// 1e4 evt, g_mom <= 80 MeV, mu_g angle <= 50degree
 // mu kinematic before emmiting a gamma (mu only)
 const std::string lep_initialkin_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_only_init.root";// 5e4 evt, ccqe kinematics
@@ -37,11 +37,11 @@ const float gamma_en_cutoff = 5.0; //MeV, a photon below this energy will not af
 
 // maximum physically possible gamma momentum
 //const float GAMMA_MAX_MOM_BIN = 2000.0; //MeV (used to calculate last bin size)
-const float GAMMA_MAX_MOM_BIN = 500.0; //MeV (used to calculate last bin size)
+const float GAMMA_MAX_MOM_BIN = 1000.0; //MeV (used to calculate last bin size)
 // maximum gamma momentum of interest 
-const float GAMMA_ROI_MAX_MOM_BIN = 500.0; //MeV (used in fine binning)
+const float GAMMA_ROI_MAX_MOM_BIN = 1000.0; //MeV (used in fine binning)
 // gamma mom step size (for fine bining)
-const float GAMMA_MOM_STEP = 20.0; // MeV
+const float GAMMA_MOM_STEP = 25.0; // MeV
 // maximum physically possible mu momentum
 //const float MU_MAX_MOM_BIN = 2000; //MeV (used to calculate last bin size)
 const float MU_MAX_MOM_BIN = 1200; //MeV (used to calculate last bin size)

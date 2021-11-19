@@ -1155,8 +1155,10 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
   float delta_pos1r_vtx;
   float g_frac_en; // fraction energy carried by the photon = E_g/ (E_g + E_mu)
   float mu_en;
+  float mu_en_init;
   float mu_mom_res;
   float mu_mom_res_g_added;
+  bool is_fill_gamma;
  //Main event loop
   long int nb_ev = ana_tree->GetEntries();
   float nb_before_cuts = 0;   
@@ -1174,6 +1176,11 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     print_perc(i, nb_ev, 10);
     ana_tree->GetEntry(i);
     fill_particle_kin(ana_struct);
+    if(LEP_GAMMA_WEIGHTS){
+      is_fill_gamma = is_sim_gamma && bool(ana_struct.is_rad);
+    }else{
+      is_fill_gamma = is_sim_gamma;
+    }
     double event_weight = calculate_event_weight(LEP_GAMMA_WEIGHTS, is_sim_gamma, ana_struct);
 
     //fsamir debug start
@@ -1181,98 +1188,100 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     //event_weight = 1.0;
     //fsamie debug end
     nb_before_cuts+= event_weight;    
-    res_h->nring_h->Fill(ana_struct.fqmrnring[0], event_weight);
-
-    res_h->mu_mom_all_h->Fill(ana_struct.mu_mom, event_weight);    
-    if(is_sim_gamma) res_h->g_mom_all_h->Fill(ana_struct.g_mom, event_weight);
 
     cos_mu_g = ( ana_struct.g_dir[0] * ana_struct.mu_dir[0] ) + ( ana_struct.g_dir[1] * ana_struct.mu_dir[1] )
              + ( ana_struct.g_dir[2] * ana_struct.mu_dir[2] );
     theta_mu_g = TMath::ACos(cos_mu_g) * 180.0 / TMath::Pi();
-    if(is_sim_gamma) res_h->theta_mu_g_all_h->Fill(theta_mu_g, event_weight);
-
     // transverse momentum, i.e perpondicular to the mu direction = gamma_mom * sin_theta
     g_tr_mom = ana_struct.g_mom * sqrt(1- (cos_mu_g * cos_mu_g) ); 
     mu_en = sqrt( (ana_struct.mu_mom * ana_struct.mu_mom ) + (MU_MASS * MU_MASS) );
+    mu_en_init = mu_en + ana_struct.g_mom;
     g_frac_en = ana_struct.g_mom/ (ana_struct.g_mom +  mu_en);
-    
-    if(ana_struct.fqmrnring[0] == 1){
-      res_h->mu_mom_1r_h->Fill(ana_struct.mu_mom, event_weight);      
-      if(is_sim_gamma){
-        res_h->g_mom_1r_h->Fill(ana_struct.g_mom, event_weight);
-        res_h->theta_mu_g_1r_h->Fill(theta_mu_g, event_weight);
-        res_h->g_tr_mom_1r_h->Fill(g_tr_mom, event_weight);    
-      }   
-    }
-
-    if(ana_struct.fqmrnring[0] == 2){
-      res_h->mu_mom_2r_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
-        res_h->g_mom_2r_h->Fill(ana_struct.g_mom, event_weight);
-        res_h->theta_mu_g_2r_h->Fill(theta_mu_g, event_weight);
-        res_h->g_tr_mom_2r_h->Fill(g_tr_mom, event_weight);         
-      } 
-     
-    }
-
-    if(ana_struct.fqmrnring[0] >= 3){
-      res_h->mu_mom_3mr_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
-        res_h->g_mom_3mr_h->Fill(ana_struct.g_mom, event_weight);
-        res_h->theta_mu_g_3mr_h->Fill(theta_mu_g, event_weight);
-        res_h->g_tr_mom_3mr_h->Fill(g_tr_mom, event_weight);
-      }             
-    }
-
-    if(is_sim_gamma) res_h->g_tr_mom_nring_2D->Fill(ana_struct.fqmrnring[0], g_tr_mom, event_weight);
-
-    res_h->wall_h->Fill(ComputeWall(0, MUON, ana_struct), event_weight);    
-    res_h->towall_h->Fill(ComputeTowall(0, MUON, ana_struct), event_weight);
-
     cos_dir1r_mu = (ana_struct.mu_dir[0] * ana_struct.fq1rdir[0][MUON][0])
                   +(ana_struct.mu_dir[1] * ana_struct.fq1rdir[0][MUON][1])
                   +(ana_struct.mu_dir[2] * ana_struct.fq1rdir[0][MUON][2]);
     theta_mu_1r = TMath::ACos(cos_dir1r_mu) * 180.0 / TMath::Pi(); 
     
-    cos_dir1r_g = (ana_struct.g_dir[0] * ana_struct.fq1rdir[0][MUON][0])
+    cos_dir1r_g =  (ana_struct.g_dir[0] * ana_struct.fq1rdir[0][MUON][0])
                   +(ana_struct.g_dir[1] * ana_struct.fq1rdir[0][MUON][1])
                   +(ana_struct.g_dir[2] * ana_struct.fq1rdir[0][MUON][2]);
     theta_g_1r = TMath::ACos(cos_dir1r_g) * 180.0 / TMath::Pi(); 
 
     alpha_dir1r_mu = TMath::ACos(cos_dir1r_mu) * 180.0 / TMath::Pi();
-    if(pass_ccqe_numu_sample(ana_struct)) res_h->alpha_dir1r_mu_h->Fill(alpha_dir1r_mu, event_weight);
-    if( is_sim_gamma && pass_ccqe_numu_sample(ana_struct) ) res_h->g_tr_mom_cosalpha_2D->Fill(g_tr_mom, cos_dir1r_mu, event_weight);
     
     delta_pos1r_vtx = sqrt(
     ( (ana_struct.posv[0] - ana_struct.fq1rpos[0][MUON][0]) * (ana_struct.posv[0] - ana_struct.fq1rpos[0][MUON][0]) )+
     ( (ana_struct.posv[1] - ana_struct.fq1rpos[0][MUON][1]) * (ana_struct.posv[1] - ana_struct.fq1rpos[0][MUON][1]) )+
     ( (ana_struct.posv[2] - ana_struct.fq1rpos[0][MUON][2]) * (ana_struct.posv[2] - ana_struct.fq1rpos[0][MUON][2]) )
     );
-    if(pass_ccqe_numu_sample(ana_struct)) res_h->delta_pos1r_vtx_h->Fill(delta_pos1r_vtx, event_weight); 
-    if( is_sim_gamma && pass_ccqe_numu_sample(ana_struct) ) res_h->g_tr_mom_vtx_res_2D->Fill(g_tr_mom, delta_pos1r_vtx, event_weight);
 
     mu_mom_res = ana_struct.fq1rmom[0][MUON] - ana_struct.mu_mom;
-    mu_mom_res_g_added = ana_struct.fq1rmom[0][MUON] - ana_struct.mu_mom - ana_struct.g_mom;
+    mu_mom_res_g_added = ana_struct.fq1rmom[0][MUON] - sqrt( (mu_en_init*mu_en_init) - (MU_MASS*MU_MASS) );
+
+    res_h->nring_h->Fill(ana_struct.fqmrnring[0], event_weight);
+    res_h->mu_mom_all_h->Fill(ana_struct.mu_mom, event_weight);   
+
+    if(ana_struct.fqmrnring[0] == 1){
+      res_h->mu_mom_1r_h->Fill(ana_struct.mu_mom, event_weight);      
+      if(is_fill_gamma){
+        res_h->g_mom_1r_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->theta_mu_g_1r_h->Fill(theta_mu_g, event_weight);
+        res_h->g_tr_mom_1r_h->Fill(g_tr_mom, event_weight);    
+      }   
+    }else if(ana_struct.fqmrnring[0] == 2){
+      res_h->mu_mom_2r_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_fill_gamma){
+        res_h->g_mom_2r_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->theta_mu_g_2r_h->Fill(theta_mu_g, event_weight);
+        res_h->g_tr_mom_2r_h->Fill(g_tr_mom, event_weight);         
+      }      
+    }else if(ana_struct.fqmrnring[0] >= 3){
+      res_h->mu_mom_3mr_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_fill_gamma){
+        res_h->g_mom_3mr_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->theta_mu_g_3mr_h->Fill(theta_mu_g, event_weight);
+        res_h->g_tr_mom_3mr_h->Fill(g_tr_mom, event_weight);
+      }else{
+        // not simulating gamma
+        // do nothing, just to avoid confusion from the nested else if
+      }             
+    }else{
+      // 0 ring or an invalid number of rings
+      // do nothing!
+    }
+
+    res_h->wall_h->Fill(ComputeWall(0, MUON, ana_struct), event_weight);    
+    res_h->towall_h->Fill(ComputeTowall(0, MUON, ana_struct), event_weight);
+
     //fill the residual histogram for events that will pass all the selection cuts
     if(pass_ccqe_numu_sample(ana_struct)){
+      res_h->alpha_dir1r_mu_h->Fill(alpha_dir1r_mu, event_weight);
+      res_h->delta_pos1r_vtx_h->Fill(delta_pos1r_vtx, event_weight);           
       res_h->mu_mom_res_h->Fill(mu_mom_res, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
+        res_h->g_tr_mom_cosalpha_2D->Fill(g_tr_mom, cos_dir1r_mu, event_weight);  
+        res_h->g_tr_mom_vtx_res_2D->Fill(g_tr_mom, delta_pos1r_vtx, event_weight);            
         res_h->mu_mom_res_g_added_h->Fill(mu_mom_res_g_added, event_weight);
       }else{
         //non radiative the g_added shall be zero, i.e it shall be the same as mu_mom_res
         res_h->mu_mom_res_g_added_h->Fill(mu_mom_res, event_weight);
       }
       
+    }
+    if(is_fill_gamma){
+      res_h->g_mom_all_h->Fill(ana_struct.g_mom, event_weight);   
+      res_h->theta_mu_g_all_h->Fill(theta_mu_g, event_weight);       
+      res_h->g_tr_mom_nring_2D->Fill(ana_struct.fqmrnring[0], g_tr_mom, event_weight);
+      // Filling the total histogram      
+      res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);      
     } 
-    // Filling the total histogram
-    // Design choice: filling it before any cuts
-    if(is_sim_gamma) res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);
+
     //Applying the numu sample cuts
     // 0. EVIS
     if (pass_evis_cut(ana_struct, float(30.0)) == true){
       //pass
       res_h->mu_mom_evis_pass_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_evis_pass_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_evis_pass_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_evis_pass_h->Fill(theta_mu_g, event_weight);
@@ -1284,7 +1293,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     }else{
       //fail
       res_h->mu_mom_evis_fail_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_evis_fail_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_evis_fail_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_evis_fail_h->Fill(theta_mu_g, event_weight);
@@ -1299,7 +1308,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     if (pass_mu_FCFV(0, MUON, ana_struct) == true){
       //pass
       res_h->mu_mom_fcfv_pass_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_fcfv_pass_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_fcfv_pass_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_fcfv_pass_h->Fill(theta_mu_g, event_weight);
@@ -1310,7 +1319,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     }else{
       //fail
       res_h->mu_mom_fcfv_fail_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_fcfv_fail_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_fcfv_fail_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_fcfv_fail_h->Fill(theta_mu_g, event_weight);
@@ -1325,7 +1334,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     if (pass_1ring(ana_struct) == true){
       //pass
       res_h->mu_mom_1ring_pass_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_1ring_pass_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_1ring_pass_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_1ring_pass_h->Fill(theta_mu_g, event_weight);
@@ -1336,7 +1345,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     }else{
       //fail
       res_h->mu_mom_1ring_fail_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_1ring_fail_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_1ring_fail_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_1ring_fail_h->Fill(theta_mu_g, event_weight);
@@ -1351,7 +1360,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     if (pass_mu_e_nll_cut(ana_struct) == true){
       //pass
       res_h->mu_mom_emu_pid_pass_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_emu_pid_pass_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_emu_pid_pass_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_emu_pid_pass_h->Fill(theta_mu_g, event_weight);
@@ -1364,7 +1373,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     }else{
       //fail
       res_h->mu_mom_emu_pid_fail_h->Fill(ana_struct.mu_mom, event_weight);      
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_emu_pid_fail_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_emu_pid_fail_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_emu_pid_fail_h->Fill(theta_mu_g, event_weight);
@@ -1381,7 +1390,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     if (pass_mu_mom_cut(ana_struct, float(200.0)) == true){
       //pass
       res_h->mu_mom_mu_mom_pass_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_mu_mom_pass_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_mu_mom_pass_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_mu_mom_pass_h->Fill(theta_mu_g, event_weight);
@@ -1392,7 +1401,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     }else{
       //fail
       res_h->mu_mom_mu_mom_fail_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_mu_mom_fail_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_mu_mom_fail_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_mu_mom_fail_h->Fill(theta_mu_g, event_weight);
@@ -1407,7 +1416,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     if (pass_mu_nb_decay_e_cut(ana_struct) == true){
       //pass
       res_h->mu_mom_e_decay_pass_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_e_decay_pass_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_e_decay_pass_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_e_decay_pass_h->Fill(theta_mu_g, event_weight);
@@ -1418,7 +1427,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     }else{
       //fail
       res_h->mu_mom_e_decay_pass_h->Fill(ana_struct.mu_mom, event_weight);      
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_e_decay_fail_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_e_decay_fail_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_e_decay_fail_h->Fill(theta_mu_g, event_weight);
@@ -1433,7 +1442,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     if (pass_mu_pi_nll_cut(ana_struct) == true){
       //pass
       res_h->mu_mom_pimu_pid_pass_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_pimu_pid_pass_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_pimu_pid_pass_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_pimu_pid_pass_h->Fill(theta_mu_g, event_weight);
@@ -1444,7 +1453,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     }else{
       //fail
       res_h->mu_mom_pimu_pid_fail_h->Fill(ana_struct.mu_mom, event_weight);
-      if(is_sim_gamma){
+      if(is_fill_gamma){
         res_h->g_mom_pimu_pid_fail_h->Fill(ana_struct.g_mom, event_weight);
         res_h->g_tr_mom_pimu_pid_fail_h->Fill(g_tr_mom, event_weight);
         res_h->theta_mu_g_pimu_pid_fail_h->Fill(theta_mu_g, event_weight);
@@ -2965,7 +2974,8 @@ double calculate_event_weight(bool is_mixed_weighted_comparison, bool is_sim_gam
       }else{
         //Weighted file but that event is not radiative 
         radiative_weight = calc_no_photon_weight(ana_struct.mu_mom, MUON);
-      }    
+      }
+      std::cout<<" is radiative = " << ana_struct.is_rad << std::endl;    
     }else{
       // input files does not contain gamma but used to compare the mixed file
       nu_en = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, is_sim_gamma);
@@ -2983,7 +2993,7 @@ double calculate_event_weight(bool is_mixed_weighted_comparison, bool is_sim_gam
 
   osc_weight =  calc_survival_osc_prob(nu_en);
   event_weight = osc_weight * radiative_weight;
-  //std::cout<<" nu_en = " << nu_en << " , osc_w = " << osc_weight << " total weight = " << event_weight << std::endl;
+  std::cout<<" nu_en = " << nu_en << " , osc_w = " << osc_weight << " , radiative weight = "<< radiative_weight << " total weight = " << event_weight << std::endl;
   return event_weight;
 }
 //============================================================================//
