@@ -5,7 +5,7 @@
 //Input & output files
 //==============================================================================
 // mu and gamma 
-const bool LEP_GAMMA_WEIGHTS = true;// if the input lepton gamma file contains weights based on the oscillation and radiative proabilities
+const bool LEP_GAMMA_WEIGHTS_COMPARISON = true;// if the input lepton gamma file contains weights based on the oscillation and radiative proabilities
 const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted.root";// 5e4 evt, full gamma phase space
 //const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_ginft180.root";// 5e4 evt, full gamma phase space
 //const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/elec_g80t180.root";// 1e4 evt, g_mom <= 80 MeV, mu_g angle <= 50degree

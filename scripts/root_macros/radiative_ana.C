@@ -69,8 +69,8 @@ void analyze_nue(TTree* tr_rad_elec, TTree* tr_norad_elec){
 void analyze_numu(TTree* tr_rad_mu, TTree* tr_norad_mu){
 //============================================================================//  
   //numu analysis
-  ana_results_hists* res_1musel_mug = analyze_1mu(tr_rad_mu, true, LEP_GAMMA_WEIGHTS);
-  ana_results_hists* res_1musel_muonly = analyze_1mu(tr_norad_mu, false, false); 
+  ana_results_hists* res_1musel_mug = analyze_1mu(tr_rad_mu, true, LEP_GAMMA_WEIGHTS_COMPARISON);
+  ana_results_hists* res_1musel_muonly = analyze_1mu(tr_norad_mu, false, LEP_GAMMA_WEIGHTS_COMPARISON); 
   plot_results_hists(*res_1musel_mug, *res_1musel_muonly);
   // check the migration to the 1e or 1e1de samples
   ana_results_hists* res_1esel_mug = analyze_1e(tr_rad_mu, true, 0, MUON);
@@ -908,8 +908,17 @@ void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_op
   hist2->SetMinimum(0);// set it to 0 for now 
   hist1->GetYaxis()->SetTitleOffset(1.2);
   hist2->GetYaxis()->SetTitleOffset(1.2);
+  hist1->SetMarkerColor(hist1->GetLineColor());
+  hist2->SetMarkerColor(hist2->GetLineColor()); 
+  
+  hist1->SetBarOffset(1.0);
+  hist2->SetBarOffset(5.0); 
+
   hist1->Draw(draw_opt1.c_str());
   hist2->Draw(draw_opt2.c_str());
+
+
+
   TLegend* legend = new TLegend(0.8,0.7,1.0,0.9);
   legend->AddEntry(hist1->GetName(),hist1->GetName(),"l");
   legend->AddEntry(hist2->GetName(),hist2->GetName(),"l");
@@ -1136,10 +1145,10 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string fi
 
 }
 //============================================================================//
-ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weighted_file){
+ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weighted_file_comparison){
 //============================================================================//  
   t2k_sk_radiative ana_struct;
-  set_tree_addresses(ana_tree, ana_struct, is_weighted_file);
+  set_tree_addresses(ana_tree, ana_struct, is_weighted_file_comparison && is_sim_gamma);
   ana_results_hists* res_h = new ana_results_hists;
   init_result_hists(*res_h, is_sim_gamma); 
 
@@ -1176,12 +1185,12 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     print_perc(i, nb_ev, 10);
     ana_tree->GetEntry(i);
     fill_particle_kin(ana_struct);
-    if(LEP_GAMMA_WEIGHTS){
-      is_fill_gamma = is_sim_gamma && bool(ana_struct.is_rad);
+    if(is_weighted_file_comparison && is_sim_gamma){
+      is_fill_gamma = bool(ana_struct.is_rad);
     }else{
       is_fill_gamma = is_sim_gamma;
     }
-    double event_weight = calculate_event_weight(LEP_GAMMA_WEIGHTS, is_sim_gamma, ana_struct);
+    double event_weight = calculate_event_weight(is_weighted_file_comparison, is_sim_gamma, ana_struct);
 
     //fsamir debug start
     // histograms look very strange => let us set te weight to 1
