@@ -40,10 +40,10 @@ gStyle->SetStatH(0.2);
 void analyze_nue(TTree* tr_rad_elec, TTree* tr_norad_elec){
 //============================================================================//  
   // nue Analysis
-  ana_results_hists* res_1esel_elecg = analyze_1e(tr_rad_elec, true, 0, ELECTRON);
-  ana_results_hists* res_1e1desel_elecg = analyze_1e(tr_rad_elec, true, 1, ELECTRON);
-  ana_results_hists* res_1esel_eleconly = analyze_1e(tr_norad_elec, false, 0, ELECTRON);
-  ana_results_hists* res_1e1desel_eleconly = analyze_1e(tr_norad_elec, false, 1, ELECTRON);
+  ana_results_hists* res_1esel_elecg = analyze_1e(tr_rad_elec, true, LEP_GAMMA_WEIGHTS_COMPARISON, 0, ELECTRON);
+  ana_results_hists* res_1e1desel_elecg = analyze_1e(tr_rad_elec, true, LEP_GAMMA_WEIGHTS_COMPARISON, 1, ELECTRON);
+  ana_results_hists* res_1esel_eleconly = analyze_1e(tr_norad_elec, false, LEP_GAMMA_WEIGHTS_COMPARISON, 0, ELECTRON);
+  ana_results_hists* res_1e1desel_eleconly = analyze_1e(tr_norad_elec, false, LEP_GAMMA_WEIGHTS_COMPARISON, 1, ELECTRON);
   plot_efficency(res_1esel_elecg->ana_cut_step_eff, "e_step_eff_e_g");
   plot_efficency(res_1e1desel_elecg->ana_cut_step_eff, "e1de_step_eff_e_g");
   plot_efficency(res_1esel_eleconly->ana_cut_step_eff, "e_step_eff_e_only");
@@ -73,10 +73,10 @@ void analyze_numu(TTree* tr_rad_mu, TTree* tr_norad_mu){
   ana_results_hists* res_1musel_muonly = analyze_1mu(tr_norad_mu, false, LEP_GAMMA_WEIGHTS_COMPARISON); 
   plot_results_hists(*res_1musel_mug, *res_1musel_muonly);
   // check the migration to the 1e or 1e1de samples
-  ana_results_hists* res_1esel_mug = analyze_1e(tr_rad_mu, true, 0, MUON);
-  ana_results_hists* res_1e1desel_mug = analyze_1e(tr_rad_mu, true, 1, MUON);
-  ana_results_hists* res_1esel_muonly = analyze_1e(tr_norad_mu, false, 0, MUON);
-  ana_results_hists* res_1e1desel_muonly = analyze_1e(tr_norad_mu, false, 1, MUON);
+  ana_results_hists* res_1esel_mug = analyze_1e(tr_rad_mu, true, LEP_GAMMA_WEIGHTS_COMPARISON, 0, MUON);
+  ana_results_hists* res_1e1desel_mug = analyze_1e(tr_rad_mu, true, LEP_GAMMA_WEIGHTS_COMPARISON, 1, MUON);
+  ana_results_hists* res_1esel_muonly = analyze_1e(tr_norad_mu, false, LEP_GAMMA_WEIGHTS_COMPARISON, 0, MUON);
+  ana_results_hists* res_1e1desel_muonly = analyze_1e(tr_norad_mu, false, LEP_GAMMA_WEIGHTS_COMPARISON, 1, MUON);
   plot_efficency(res_1esel_mug->ana_cut_step_eff, "e_step_eff_e_g");
   plot_efficency(res_1e1desel_mug->ana_cut_step_eff, "e1de_step_eff_e_g");
   plot_efficency(res_1esel_muonly->ana_cut_step_eff, "e_step_eff_e_only");
@@ -294,7 +294,7 @@ void plot_selection_cuts(ana_results_hists& res_h, bool is_sim_gamma){
   //canv->cd(2);
   prep_draw_superimposed_hist1D(res_h.theta_g1r_emu_pid_pass_h, "", res_h.theta_g1r_emu_pid_pass_h->GetName(),
                                 res_h.theta_g1r_emu_pid_fail_h, "SAME", res_h.theta_g1r_emu_pid_fail_h->GetName());
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),"theta_g_1r"));
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),"theta_g_1r", plot_ext.c_str()));
   delete canv;
   }else{
     plot_efficency(res_h.ana_cut_step_eff, "mu_only_eff");   
@@ -761,7 +761,7 @@ void plot_hist1D(TH1* hist,  std::string filename, std::string title, int col , 
     hist->Draw(draw_opt.c_str());
   }
 
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),filename.c_str()));
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),filename.c_str(),plot_ext.c_str()));
   delete canv;
 }
 //============================================================================//
@@ -787,7 +787,7 @@ void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, st
   if(tex!= NULL) tex->Draw();
   //legend->Draw("SAME"); fsamir check if i remove same from legend
   legend->Draw();
-  canv->SaveAs(Form("%s%s_sup.eps",plot_dir.c_str(),filename.c_str()));
+  canv->SaveAs(Form("%s%s_sup%s",plot_dir.c_str(),filename.c_str(),plot_ext.c_str()));
   delete legend;
   delete canv;
 }
@@ -828,7 +828,7 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string
   pad->Update();
 
   canv->Update();
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),filename.c_str()));
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),filename.c_str(),plot_ext.c_str()));
   delete rp;
   delete legend;
   delete canv;
@@ -843,7 +843,7 @@ void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt){
   //hist->SetStats(0);
   gStyle->SetPalette(kInvertedDarkBodyRadiator);// kDeepSea=51, kDarkBodyRadiator=53, kInvertedDarkBodyRadiator (better if I had higher stats)
   hist->Draw(draw_opt.c_str());
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),hist->GetName()));
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),hist->GetName(),plot_ext.c_str()));
   delete canv;
 }
 //============================================================================// 
@@ -861,7 +861,7 @@ void plot_gr1D(TGraph* gr, std::string filename, std::string title, int marker_s
     // drawing option supplied
     gr->Draw(draw_opt.c_str());
   }
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),filename.c_str()));
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),filename.c_str(),plot_ext.c_str()));
   delete canv;  
 }
 //============================================================================//
@@ -892,7 +892,7 @@ void plot_cut(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* 
   prep_draw_superimposed_hist1D(gamma_tr_mom_pass, "", "pass", gamma_tr_mom_fail, "SAME", "fail");  
   canv->cd(5);
   prep_draw_superimposed_hist1D(gamma_frac_en_pass, "", "pass", gamma_frac_en_fail, "SAME", "fail");     
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),cut_name.c_str()));
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),cut_name.c_str(),plot_ext.c_str()));
   delete canv;
 }
 //============================================================================//
@@ -953,7 +953,7 @@ void plot_efficency(cut_step_efficiency steps_eff, std::string fname){
   h->SetMinimum(0); 
   format_hist1D(h, "Efficiency;cut;count", kBlue , 2, 1);
   h->Draw("TEXT");
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),fname.c_str()));
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),fname.c_str(),plot_ext.c_str()));
   delete canv;
 }
 //============================================================================//
@@ -984,7 +984,7 @@ void plot_efficency(cut_step_efficiency steps_eff_in1, cut_step_efficiency steps
   format_hist1D(h1, "Efficiency;cut;count", kBlue , 2, 1);
   format_hist1D(h2, "Efficiency;cut;count", kRed , 2, 1);
   prep_draw_superimposed_hist1D(h1, "SAME TEXT", h1->GetName(), h2, "SAME TEXT", h2->GetName());
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),fname.c_str()));
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),fname.c_str(),plot_ext.c_str()));
   delete canv;
 }
 //============================================================================//
@@ -1064,7 +1064,7 @@ void plot_cut_2(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D
   plot_eff_ratio_2(gamma_tr_mom_pass, gamma_tr_mom_fail,"Eff(p_{T_{#gamma}});p_{T_{#gamma}}[MeV];efficiency");
   canv->cd(5);
   plot_eff_ratio_2(gamma_frac_en_pass, gamma_frac_en_fail,"Eff(E_{#gamma}/ E_{#gamma} + E_{#mu}); energy fraction;efficiency");
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),cut_name.c_str()));
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),cut_name.c_str(),plot_ext.c_str()));
   delete canv;
 }
 //============================================================================//
@@ -1143,7 +1143,7 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option,std::string fi
   pad->Update();
 
   canv->Update();
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),filename.c_str()));
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),filename.c_str(),plot_ext.c_str()));
   delete rp;
   delete legend;
   delete canv;
@@ -1504,10 +1504,10 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
 
 }
 //============================================================================//
-ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_particle i_particle){
+ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, bool is_weighted_file_comparison, int nb_de, fq_particle i_particle){
 //============================================================================//  
   t2k_sk_radiative ana_struct;
-  set_tree_addresses(ana_tree, ana_struct, false);
+  set_tree_addresses(ana_tree, ana_struct, is_weighted_file_comparison && is_sim_gamma);
   ana_results_hists* res_h = new ana_results_hists;
   init_result_hists(*res_h, is_sim_gamma);
 
@@ -1521,7 +1521,9 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
   float lep_dir[3];
 
  //Main event loop
-  long int nb_ev = ana_tree->GetEntries(); 
+  bool is_fill_gamma;
+  long int nb_ev = ana_tree->GetEntries();
+  float nb_before_cuts = 0; 
   float  nb_evis_passed = 0;
   float nb_fcfv_passed = 0;
   float nb_1ring_passed = 0;
@@ -1535,7 +1537,14 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
     //progress
     print_perc(i, nb_ev, 10);
     ana_tree->GetEntry(i);
+    if(is_weighted_file_comparison && is_sim_gamma){
+      is_fill_gamma = bool(ana_struct.is_rad);
+    }else{
+      is_fill_gamma = is_sim_gamma;
+    }    
     fill_particle_kin(ana_struct);
+    double event_weight = calculate_event_weight(is_weighted_file_comparison, is_sim_gamma, ana_struct);  
+    nb_before_cuts+= event_weight;      
     if(i_particle == MUON){
       lep_mass = MU_MASS;    
       lep_mom = ana_struct.mu_mom;
@@ -1562,13 +1571,13 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
    
     // Filling the total histogram
     // Design choice: filling it before any cuts
-    if(is_sim_gamma) res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_lep_g);
+    if(is_fill_gamma) res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_lep_g, event_weight);
 
     //Applying the nu_e sample cuts
     // 0. EVIS
     if (pass_evis_cut(ana_struct, float(30.0)) == true){
       //pass
-      nb_evis_passed++;
+      nb_evis_passed+= event_weight;
     }else{
       //fail
       continue;      
@@ -1578,7 +1587,7 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
       // 1e ring analysis
       if (pass_1e_FCFV(0, ELECTRON, ana_struct) == true){
         //pass         
-        nb_fcfv_passed++;
+        nb_fcfv_passed+= event_weight;
       }else{
         //fail
         continue;    
@@ -1587,7 +1596,7 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
       //1e1de analysis
       if (pass_1e1de_FCFV(0, ELECTRON, ana_struct) == true){
         //pass         
-        nb_fcfv_passed++;
+        nb_fcfv_passed+=event_weight;
       }else{
         //fail
         continue;    
@@ -1599,7 +1608,7 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
     // 2. 1ring
     if (pass_1ring(ana_struct) == true){
       //pass             
-      nb_1ring_passed++;
+      nb_1ring_passed+= event_weight;
     }else{
       //fail
       continue;   
@@ -1607,7 +1616,7 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
     // 3. e/mu pid
     if (pass_e_mu_nll_cut(ana_struct) == true){
       //pass
-      nb_emu_pid_passed++;
+      nb_emu_pid_passed+= event_weight;
     }else{
       //fail
       continue;
@@ -1615,7 +1624,7 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
     // 4. mu mom 
     if (pass_e_mom_cut(ana_struct, float(100.0)) == true){
       //pass    
-      nb_e_mom_passed++;
+      nb_e_mom_passed+= event_weight;
     }else{
       //fail
       continue;
@@ -1625,7 +1634,7 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
       // 1e ring analysis  
       if (pass_1e_nb_decay_e_cut(ana_struct) == true){
         //pass   
-        nb_e_decay_passed++;
+        nb_e_decay_passed+= event_weight;
       }else{
         //fail
         continue;   
@@ -1634,7 +1643,7 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
       // 1e1de ring analysis  
       if (pass_1e1de_nb_decay_e_cut(ana_struct) == true){
         //pass   
-        nb_e_decay_passed++;
+        nb_e_decay_passed+= event_weight;
       }else{
         //fail
         continue;   
@@ -1647,7 +1656,7 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
     if(nb_de == 0){
       if (pass_nu_en_rec_CCQE_cut(0, ELECTRON, ana_struct, float(1250))== true){
         //pass   
-        nb_nu_en_rec_passed++;
+        nb_nu_en_rec_passed+= event_weight;
       }else{
         //fail
         continue;   
@@ -1655,7 +1664,7 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
     }else if(nb_de == 1){
       if (pass_nu_en_rec_RES_cut(0, ELECTRON, ana_struct, float(1250))== true){
         //pass   
-        nb_nu_en_rec_passed++;
+        nb_nu_en_rec_passed+= event_weight;
       }else{
         //fail
         continue;   
@@ -1667,28 +1676,32 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, int nb_de, fq_
     // 7. e/pi0 pid  
     if (pass_e_pi0_nll_cut(ana_struct) == true){
       //pass
-      res_h->lep_mom_epi0_pid_pass_h->Fill(ana_struct.mu_mom);
-      if(is_sim_gamma) res_h->g_mom_epi0_pid_pass_h->Fill(ana_struct.g_mom);
-      if(is_sim_gamma) res_h->g_tr_mom_epi0_pid_pass_h->Fill(g_tr_mom);
-      if(is_sim_gamma) res_h->theta_lep_g_epi0_pid_pass_h->Fill(theta_lep_g);
-      if(is_sim_gamma) res_h->g_frac_en_epi0_pid_pass_h->Fill(g_frac_en);
-      if(is_sim_gamma) res_h->g_mom_theta_2D_epi0_pid_pass_h->Fill(ana_struct.g_mom, theta_lep_g);       
-      nb_epi0_pid_passed++;
+      res_h->lep_mom_epi0_pid_pass_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_fill_gamma){
+        res_h->g_mom_epi0_pid_pass_h->Fill(ana_struct.g_mom, event_weight);
+        res_h->g_tr_mom_epi0_pid_pass_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_lep_g_epi0_pid_pass_h->Fill(theta_lep_g, event_weight);
+        res_h->g_frac_en_epi0_pid_pass_h->Fill(g_frac_en, event_weight);
+        res_h->g_mom_theta_2D_epi0_pid_pass_h->Fill(ana_struct.g_mom, theta_lep_g, event_weight);  
+      }      
+      nb_epi0_pid_passed+= event_weight;
     }else{
       //fail
-      res_h->lep_mom_epi0_pid_fail_h->Fill(ana_struct.mu_mom);
-      if(is_sim_gamma) res_h->g_mom_epi0_pid_fail_h->Fill(ana_struct.g_mom);
-      if(is_sim_gamma) res_h->g_tr_mom_epi0_pid_fail_h->Fill(g_tr_mom);
-      if(is_sim_gamma) res_h->theta_lep_g_epi0_pid_fail_h->Fill(theta_lep_g);
-      if(is_sim_gamma) res_h->g_frac_en_epi0_pid_fail_h->Fill(g_frac_en);
-      if(is_sim_gamma) res_h->g_mom_theta_2D_epi0_pid_fail_h->Fill(ana_struct.g_mom, theta_lep_g);       
+      res_h->lep_mom_epi0_pid_fail_h->Fill(ana_struct.mu_mom, event_weight);
+      if(is_fill_gamma){
+        res_h->g_mom_epi0_pid_fail_h->Fill(ana_struct.g_mom, event_weight);   
+        res_h->g_tr_mom_epi0_pid_fail_h->Fill(g_tr_mom, event_weight);
+        res_h->theta_lep_g_epi0_pid_fail_h->Fill(theta_lep_g, event_weight);
+        res_h->g_frac_en_epi0_pid_fail_h->Fill(g_frac_en, event_weight);
+        res_h->g_mom_theta_2D_epi0_pid_fail_h->Fill(ana_struct.g_mom, theta_lep_g, event_weight); 
+      }       
       continue;     
     }
 
   }//end of the tree event loop
 
   res_h->ana_cut_step_eff[0].first = "No cuts";
-  res_h->ana_cut_step_eff[0].second = nb_ev;
+  res_h->ana_cut_step_eff[0].second = nb_before_cuts;
   res_h->ana_cut_step_eff[1].first = "evis";
   res_h->ana_cut_step_eff[1].second = nb_evis_passed;
   res_h->ana_cut_step_eff[2].first = "fcfv";
@@ -2135,7 +2148,7 @@ void plot_2D_efficiency(TH2* pass_hist, TH2* fail_hist, std::string title, std::
   canv->cd(3);
   ratio_hist->SetTitle("efficiency");
   ratio_hist->Draw(draw_opt.c_str());
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),fname.c_str()));
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),fname.c_str(),plot_ext.c_str()));
   delete canv;
   delete sum_hist;
   delete ratio_hist;
@@ -2176,7 +2189,7 @@ void plot_2D_efficiency_tot(TH2* pass_hist, TH2* total_hist, std::string title, 
   ratio_hist->SetTitle("efficiency");
   ratio_hist->Draw(draw_opt.c_str());
   plot_hist2D(ratio_hist, "total efficiency;p_{#gamma} [MeV];#theta_{lep#gamma}^{#circ}", "colz"); 
-  canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),fname.c_str()));
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),fname.c_str(),plot_ext.c_str()));
   // Sanity check for debuging
   // integral of the bin content for all angles and low gamma mom shall be consistent with the mu only case
   std::cout<<" checking " << fname.c_str() << std::endl;

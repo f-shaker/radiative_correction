@@ -17,6 +17,7 @@ const std::string lep_initialkin_file = "/home/fshaker/t2k/radiative-correction/
 //const std::string mu_g_weighted_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted.root";
 //const std::string plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted/";
 const std::string plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/mu/ginft180/";
+const std::string plot_ext = ".png";
 //==============================================================================
 // Physics 
 //==============================================================================
@@ -34,7 +35,6 @@ const float gamma_en_cutoff = 5.0; //MeV, a photon below this energy will not af
 //==============================================================================
 //Binning
 //==============================================================================
-
 // maximum physically possible gamma momentum
 //const float GAMMA_MAX_MOM_BIN = 2000.0; //MeV (used to calculate last bin size)
 const float GAMMA_MAX_MOM_BIN = 1000.0; //MeV (used to calculate last bin size)
@@ -84,5 +84,5 @@ const float GAMMA_MOM_STEP_2D = 10.0; //MeV
 // opening angle step size (for coarse 2D bining)
 const float THETA_STEP_2D = 20.0; // degrees
 */
-//==============================================================================
+
 #endif

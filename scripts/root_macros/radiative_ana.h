@@ -306,8 +306,8 @@ void plot_eff_ratio_2(TH1* pass_hist, TH1* fail_hist, std::string title);
 void fill_particle_kin(t2k_sk_radiative & ana_struct);  
 void init_result_hists(ana_results_hists& res_h, bool is_radiative);
 void clear_result_hists(ana_results_hists& res_h);       
-ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative, bool is_weighted_file);
-ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, int nb_de, fq_particle i_particle);
+ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_radiative, bool is_weighted_file_comparison);
+ana_results_hists* analyze_1e(TTree* ana_tree, bool is_radiative, bool is_weighted_file_comparison, int nb_de, fq_particle i_particle);
 
 void plot_results_hists(ana_results_hists& res_h1, ana_results_hists& res_h2); 
 void plot_1_res_hists(ana_results_hists& res_h,  bool is_radiative); 
