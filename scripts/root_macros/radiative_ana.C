@@ -292,7 +292,8 @@ void plot_selection_cuts(ana_results_hists& res_h, bool is_sim_gamma){
   canv->cd();
   //prep_draw_superimposed_hist1D(res_h.theta_mu1r_emu_pid_pass_h, res_h.theta_mu1r_emu_pid_fail_h, "", "SAME");
   //canv->cd(2);
-  prep_draw_superimposed_hist1D(res_h.theta_g1r_emu_pid_pass_h, res_h.theta_g1r_emu_pid_fail_h, "", "SAME");
+  prep_draw_superimposed_hist1D(res_h.theta_g1r_emu_pid_pass_h, "", res_h.theta_g1r_emu_pid_pass_h->GetName(),
+                                res_h.theta_g1r_emu_pid_fail_h, "SAME", res_h.theta_g1r_emu_pid_fail_h->GetName());
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),"theta_g_1r"));
   delete canv;
   }else{
@@ -882,20 +883,21 @@ void plot_cut(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* 
   canv->SetTitle(cut_name.c_str()); 
   canv->Divide(3,2);
   canv->cd(1);
-  prep_draw_superimposed_hist1D(mu_mom_pass, mu_mom_fail, "", "SAME");
+  prep_draw_superimposed_hist1D(mu_mom_pass, "", "pass", mu_mom_fail, "SAME", "fail");
   canv->cd(2);
-  prep_draw_superimposed_hist1D(gamma_mom_pass, gamma_mom_fail, "", "SAME");
+  prep_draw_superimposed_hist1D(gamma_mom_pass, "", "pass", gamma_mom_fail, "SAME", "fail");
   canv->cd(3);
-  prep_draw_superimposed_hist1D(theta_pass, theta_fail, "", "SAME"); 
+  prep_draw_superimposed_hist1D(theta_pass, "", "pass", theta_fail, "SAME", "fail"); 
   canv->cd(4);
-  prep_draw_superimposed_hist1D(gamma_tr_mom_pass, gamma_tr_mom_fail, "", "SAME");  
+  prep_draw_superimposed_hist1D(gamma_tr_mom_pass, "", "pass", gamma_tr_mom_fail, "SAME", "fail");  
   canv->cd(5);
-  prep_draw_superimposed_hist1D(gamma_frac_en_pass, gamma_frac_en_fail, "", "SAME");     
+  prep_draw_superimposed_hist1D(gamma_frac_en_pass, "", "pass", gamma_frac_en_fail, "SAME", "fail");     
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),cut_name.c_str()));
   delete canv;
 }
 //============================================================================//
-void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_opt1, std::string draw_opt2){
+void prep_draw_superimposed_hist1D(TH1D* hist1, std::string draw_opt1, std::string hist1_legend,
+                                   TH1D* hist2, std::string draw_opt2, std::string hist2_legend){
 //============================================================================//
   hist1->SetStats(0);
   hist2->SetStats(0);
@@ -910,23 +912,28 @@ void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_op
   hist2->GetYaxis()->SetTitleOffset(1.2);
   hist1->SetMarkerColor(hist1->GetLineColor());
   hist2->SetMarkerColor(hist2->GetLineColor()); 
-  
-  hist1->SetBarOffset(1.0);
-  hist2->SetBarOffset(5.0); 
-
+  /*
+  hist1->SetBarWidth(5.0);
+  hist2->SetBarWidth(5.0);
+  hist1->SetBarOffset(-10.0);
+  hist2->SetBarOffset(10.0); 
+  */
   hist1->Draw(draw_opt1.c_str());
   hist2->Draw(draw_opt2.c_str());
 
 
 
   TLegend* legend = new TLegend(0.8,0.7,1.0,0.9);
-  legend->AddEntry(hist1->GetName(),hist1->GetName(),"l");
-  legend->AddEntry(hist2->GetName(),hist2->GetName(),"l");
+  legend->AddEntry(hist1->GetName(), hist1_legend.c_str(), "l");
+  legend->AddEntry(hist2->GetName(), hist2_legend.c_str(), "l");
   //legend->Draw("SAME"); fsamir check if i remove same from legend
   legend->Draw("SAME");
   
     std::cout << "integral of hist1 = "<< hist1->Integral()<<
                " integral of hist2 = "<< hist2->Integral() << std::endl;
+
+    std::cout << "bar offset of hist1 = "<< hist1->GetBarOffset()<<
+               " bar offset of hist2 = "<< hist2->GetBarOffset() << std::endl;               
 }
 //============================================================================//
 void plot_efficency(cut_step_efficiency steps_eff, std::string fname){
@@ -976,7 +983,7 @@ void plot_efficency(cut_step_efficiency steps_eff_in1, cut_step_efficiency steps
    }
   format_hist1D(h1, "Efficiency;cut;count", kBlue , 2, 1);
   format_hist1D(h2, "Efficiency;cut;count", kRed , 2, 1);
-  prep_draw_superimposed_hist1D(h1, h2, "TEXT", "TEXTSAME");
+  prep_draw_superimposed_hist1D(h1, "SAME TEXT", h1->GetName(), h2, "SAME TEXT", h2->GetName());
   canv->SaveAs(Form("%s%s.eps",plot_dir.c_str(),fname.c_str()));
   delete canv;
 }

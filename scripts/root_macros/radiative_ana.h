@@ -289,7 +289,8 @@ void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string
 void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option, std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title, bool is_pdf=false);
 void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt);
 void print_perc(size_t ientry, size_t total_entries, int perc_step);
-void prep_draw_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string draw_opt1, std::string draw_opt2);
+void prep_draw_superimposed_hist1D(TH1D* hist1, std::string draw_opt1, std::string hist1_legend,
+                                   TH1D* hist2, std::string draw_opt2, std::string hist2_legend);
 void plot_cut(TH1D* mu_mom_pass, TH1D* mu_mom_fail, TH1D* gamma_mom_pass, TH1D* gamma_mom_fail, TH1D* cos_theta_pass, TH1D* cos_theta_fail,
               TH1D* gamma_tr_mom_pass, TH1D* gamma_tr_mom_fail, TH1D* gamma_frac_en_pass, TH1D* gamma_frac_en_fail, std::string cut_name);
 void plot_efficency(cut_step_efficiency steps_eff, std::string fname);
