@@ -56,10 +56,17 @@ const float THETA_ROI_MAX_BIN = 180; //degrees (used in fine binning)
 // opening angle step size (for fine bining)
 const float THETA_STEP = 10; // degrees
 // gamma mom step size (for coarse 2D bining)
-const float GAMMA_MOM_STEP_2D = 20.0; //MeV
+const float GAMMA_MOM_STEP_2D = 50.0; //MeV
 // opening angle step size (for coarse 2D bining)
 const float THETA_STEP_2D = 20.0; // degrees
+//==============================================================================
+//Slicing 3D histograms
+//==============================================================================
+// used in slicing the total efficiency plots (opening angle vs gamma en) in neutrino energy slices
+const float EN_NU_1 = 400; // MeV
+const float EN_NU_2 = 700; // MeV
 
+//==============================================================================
 /*
 // maximum physically possible gamma momentum
 const float GAMMA_MAX_MOM_BIN = 80.0; //MeV (used to calculate last bin size)

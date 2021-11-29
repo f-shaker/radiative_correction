@@ -236,6 +236,16 @@ typedef struct ana_results_hists{
   TH1D * g_frac_en_epi0_pid_fail_h;
   TH2D * g_mom_theta_2D_epi0_pid_pass_h;
   TH2D * g_mom_theta_2D_epi0_pid_fail_h; 
+  // Total Efficieny sliced in neutrino energy
+  // 2D histograms: opening angle vs gamma energy for 3 different neutrino energy slices (enu1, enu2 and enu3)  => intervals = (0,400,700,inf)
+  // passing all selection cuts  
+  TH2D * g_en_theta_2D_allcuts_enu1_h;
+  TH2D * g_en_theta_2D_allcuts_enu2_h;
+  TH2D * g_en_theta_2D_allcuts_enu3_h;  
+  // simulated (before any cuts) = denominator for the efficiency
+  TH2D * g_en_theta_2D_sim_enu1_h;
+  TH2D * g_en_theta_2D_sim_enu2_h;
+  TH2D * g_en_theta_2D_sim_enu3_h; 
   //FV and reconstruction residuals histograms 
   TH1D* wall_h;
   TH1D* towall_h;

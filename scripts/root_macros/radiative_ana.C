@@ -278,6 +278,10 @@ void plot_selection_cuts(ana_results_hists& res_h, bool is_sim_gamma){
   plot_2D_efficiency_tot(res_h.g_mom_theta_2D_mu_mom_pass_h, res_h.g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{#mu#gamma}", "colz", "cut_mu_mom_2D_tot");
   plot_2D_efficiency_tot(res_h.g_mom_theta_2D_e_decay_pass_h, res_h.g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{#mu#gamma}", "colz", "cut_e_decay_2D_tot");
   plot_2D_efficiency_tot(res_h.g_mom_theta_2D_pimu_pid_pass_h, res_h.g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{#mu#gamma}", "colz", "cut_pimu_pid_2D_tot");
+  // efficinecy slices in neutrino energy
+  plot_2D_efficiency_tot(res_h.g_en_theta_2D_allcuts_enu1_h, res_h.g_en_theta_2D_sim_enu1_h, ";E_{#gamma} [MeV];#theta^{#circ}_{#mu#gamma}", "colz", "allcut_enu1_2D_tot");
+  plot_2D_efficiency_tot(res_h.g_en_theta_2D_allcuts_enu2_h, res_h.g_en_theta_2D_sim_enu2_h, ";E_{#gamma} [MeV];#theta^{#circ}_{#mu#gamma}", "colz", "allcut_enu2_2D_tot");
+  plot_2D_efficiency_tot(res_h.g_en_theta_2D_allcuts_enu3_h, res_h.g_en_theta_2D_sim_enu3_h, ";E_{#gamma} [MeV];#theta^{#circ}_{#mu#gamma}", "colz", "allcut_enu3_2D_tot");
 
   //NEEDS OPTIMIZATION
   format_hist1D(res_h.theta_mu1r_emu_pid_pass_h, "#theta_{#mu 1r};#theta^{#circ};count" , kBlue , 2, 1);
@@ -1174,6 +1178,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
   float mu_en_init;
   float mu_mom_res;
   float mu_mom_res_g_added;
+  float nu_en;
   bool is_fill_gamma;
  //Main event loop
   long int nb_ev = ana_tree->GetEntries();
@@ -1198,7 +1203,8 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
       is_fill_gamma = is_sim_gamma;
     }
     double event_weight = calculate_event_weight(is_weighted_file_comparison, is_sim_gamma, ana_struct);
-
+    //event_weight = 1; //overwrite the event weight for unoscillated flux and without radiation plots
+    nu_en = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, is_fill_gamma);
     //fsamir debug start
     // histograms look very strange => let us set te weight to 1
     //event_weight = 1.0;
@@ -1269,6 +1275,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     res_h->wall_h->Fill(ComputeWall(0, MUON, ana_struct), event_weight);    
     res_h->towall_h->Fill(ComputeTowall(0, MUON, ana_struct), event_weight);
 
+
     //fill the residual histogram for events that will pass all the selection cuts
     if(pass_ccqe_numu_sample(ana_struct)){
       res_h->alpha_dir1r_mu_h->Fill(alpha_dir1r_mu, event_weight);
@@ -1278,18 +1285,35 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
         res_h->g_tr_mom_cosalpha_2D->Fill(g_tr_mom, cos_dir1r_mu, event_weight);  
         res_h->g_tr_mom_vtx_res_2D->Fill(g_tr_mom, delta_pos1r_vtx, event_weight);            
         res_h->mu_mom_res_g_added_h->Fill(mu_mom_res_g_added, event_weight);
+          if(nu_en < EN_NU_1){
+            res_h->g_en_theta_2D_allcuts_enu1_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight); 
+          }else if(nu_en < EN_NU_2){
+            //nu_en > EN_NU_1 && nu_en < EN_NU_2
+            res_h->g_en_theta_2D_allcuts_enu2_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);         
+          }else{
+            // nu_en > EN_NU_2
+          res_h->g_en_theta_2D_allcuts_enu3_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight); 
+          }          
       }else{
         //non radiative the g_added shall be zero, i.e it shall be the same as mu_mom_res
         res_h->mu_mom_res_g_added_h->Fill(mu_mom_res, event_weight);
-      }
-      
+      }     
     }
     if(is_fill_gamma){
       res_h->g_mom_all_h->Fill(ana_struct.g_mom, event_weight);   
       res_h->theta_mu_g_all_h->Fill(theta_mu_g, event_weight);       
       res_h->g_tr_mom_nring_2D->Fill(ana_struct.fqmrnring[0], g_tr_mom, event_weight);
       // Filling the total histogram      
-      res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);      
+      res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);
+      if(nu_en < EN_NU_1){
+        res_h->g_en_theta_2D_sim_enu1_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight); 
+      }else if(nu_en < EN_NU_2){
+        //nu_en > EN_NU_1 && nu_en < EN_NU_2
+        res_h->g_en_theta_2D_sim_enu2_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight);         
+      }else{
+        // nu_en > EN_NU_2
+      res_h->g_en_theta_2D_sim_enu3_h->Fill(ana_struct.g_mom, theta_mu_g, event_weight); 
+      }    
     } 
 
     //Applying the numu sample cuts
@@ -1931,6 +1955,16 @@ void init_result_hists(ana_results_hists& res_h, bool is_sim_gamma){
   res_h.g_mom_theta_2D_epi0_pid_pass_h = new TH2D("g_mom_theta_epi0_pid_pass", "g_mom_theta_epi0_pid_pass", g_mom_nb_bins_2d, g_mom_bining_arr_2d, theta_nb_bins_2d, theta_bining_arr_2d); 
   res_h.g_mom_theta_2D_epi0_pid_fail_h = new TH2D("g_mom_theta_epi0_pid_fail", "g_mom_theta_epi0_pid_fail", g_mom_nb_bins_2d, g_mom_bining_arr_2d, theta_nb_bins_2d, theta_bining_arr_2d); 
 
+  // Total Efficieny sliced in neutrino energy
+  // 2D histograms: opening angle vs gamma energy for 3 different neutrino energy slices (enu1, enu2 and enu3)  => intervals = (0,400,700,inf)
+  // passing all selection cuts  
+  res_h.g_en_theta_2D_allcuts_enu1_h = new TH2D("g_en_theta_2D_allcuts_enu1", "g_en_theta_2D_allcuts_enu1", g_mom_nb_bins_2d, g_mom_bining_arr_2d, theta_nb_bins_2d, theta_bining_arr_2d); 
+  res_h.g_en_theta_2D_allcuts_enu2_h = new TH2D("g_en_theta_2D_allcuts_enu2", "g_en_theta_2D_allcuts_enu2", g_mom_nb_bins_2d, g_mom_bining_arr_2d, theta_nb_bins_2d, theta_bining_arr_2d); 
+  res_h.g_en_theta_2D_allcuts_enu3_h = new TH2D("g_en_theta_2D_allcuts_enu3", "g_en_theta_2D_allcuts_enu3", g_mom_nb_bins_2d, g_mom_bining_arr_2d, theta_nb_bins_2d, theta_bining_arr_2d); 
+  // simulated (before any cuts) = denominator for the efficiency
+  res_h.g_en_theta_2D_sim_enu1_h = new TH2D("g_en_theta_2D_sim_enu1", "g_en_theta_2D_sim_enu1", g_mom_nb_bins_2d, g_mom_bining_arr_2d, theta_nb_bins_2d, theta_bining_arr_2d); 
+  res_h.g_en_theta_2D_sim_enu2_h = new TH2D("g_en_theta_2D_sim_enu2", "g_en_theta_2D_sim_enu2", g_mom_nb_bins_2d, g_mom_bining_arr_2d, theta_nb_bins_2d, theta_bining_arr_2d); 
+  res_h.g_en_theta_2D_sim_enu3_h = new TH2D("g_en_theta_2D_sim_enu3", "g_en_theta_2D_sim_enu3", g_mom_nb_bins_2d, g_mom_bining_arr_2d, theta_nb_bins_2d, theta_bining_arr_2d); 
   //FV histograms
   res_h.wall_h = new TH1D(Form("wall_%s", h_name_postfix.c_str()), Form("wall_%s", h_name_postfix.c_str()), 36, 0., 1800.);
   res_h.towall_h = new TH1D(Form("towall_%s", h_name_postfix.c_str()), Form("towall_%s", h_name_postfix.c_str()), 36, 0., 1800.);
@@ -2081,6 +2115,15 @@ void clear_result_hists(ana_results_hists& res_h){
   delete res_h.g_tr_mom_epi0_pid_fail_h;
   delete res_h.g_frac_en_epi0_pid_pass_h;
   delete res_h.g_frac_en_epi0_pid_fail_h;
+  // Total efficiency slice plots
+  // passing all selection cuts  
+  delete res_h.g_en_theta_2D_allcuts_enu1_h;
+  delete res_h.g_en_theta_2D_allcuts_enu2_h;
+  delete res_h.g_en_theta_2D_allcuts_enu3_h;  
+  // simulated (before any cuts) = denominator for the efficiency
+  delete res_h.g_en_theta_2D_sim_enu1_h;
+  delete res_h.g_en_theta_2D_sim_enu2_h;
+  delete res_h.g_en_theta_2D_sim_enu3_h;  
   //FV and resconstruction residuals histograms
   delete res_h.wall_h;
   delete res_h.towall_h;
