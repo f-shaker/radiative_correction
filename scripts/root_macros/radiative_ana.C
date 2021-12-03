@@ -59,6 +59,15 @@ void analyze_nue(TTree* tr_rad_elec, TTree* tr_norad_elec){
   plot_2D_efficiency(res_1e1desel_elecg->g_mom_theta_2D_epi0_pid_pass_h, res_1e1desel_elecg->g_mom_theta_2D_epi0_pid_fail_h, ";p_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "cut_e1de_epi0_2D");
   plot_2D_efficiency_tot(res_1e1desel_elecg->g_mom_theta_2D_epi0_pid_pass_h, res_1e1desel_elecg->g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "cut_e1de_epi0_2D_tot");
   plot_2D_efficiency_tot(res_1esel_elecg->g_mom_theta_2D_epi0_pid_pass_h, res_1esel_elecg->g_mom_theta_2D_total_h, ";p_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "cut_e_epi0_2D_tot");
+  
+  plot_2D_efficiency_tot(res_1esel_elecg->g_en_theta_2D_allcuts_enu1_h, res_1esel_elecg->g_en_theta_2D_sim_enu1_h, ";E_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "sel1e_allcut_enu1_2D_tot");
+  plot_2D_efficiency_tot(res_1esel_elecg->g_en_theta_2D_allcuts_enu2_h, res_1esel_elecg->g_en_theta_2D_sim_enu2_h, ";E_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "sel1e_allcut_enu2_2D_tot");
+  plot_2D_efficiency_tot(res_1esel_elecg->g_en_theta_2D_allcuts_enu3_h, res_1esel_elecg->g_en_theta_2D_sim_enu3_h, ";E_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "sel1e_allcut_enu3_2D_tot");  
+
+  plot_2D_efficiency_tot(res_1e1desel_elecg->g_en_theta_2D_allcuts_enu1_h, res_1e1desel_elecg->g_en_theta_2D_sim_enu1_h, ";E_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "sel1e1de_allcut_enu1_2D_tot");
+  plot_2D_efficiency_tot(res_1e1desel_elecg->g_en_theta_2D_allcuts_enu2_h, res_1e1desel_elecg->g_en_theta_2D_sim_enu2_h, ";E_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "sel1e1de_allcut_enu2_2D_tot");
+  plot_2D_efficiency_tot(res_1e1desel_elecg->g_en_theta_2D_allcuts_enu3_h, res_1e1desel_elecg->g_en_theta_2D_sim_enu3_h, ";E_{#gamma} [MeV];#theta^{#circ}_{e#gamma}", "colz", "sel1e1de_allcut_enu3_2D_tot");  
+
   // free allocated dynamic memory
   clear_result_hists(*res_1esel_elecg);
   clear_result_hists(*res_1e1desel_elecg);
@@ -1543,9 +1552,11 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, bool is_weight
   float lep_mass; 
   float lep_mom;
   float lep_dir[3];
+  float nu_en;
 
  //Main event loop
   bool is_fill_gamma;
+  bool pass_selection;
   long int nb_ev = ana_tree->GetEntries();
   float nb_before_cuts = 0; 
   float  nb_evis_passed = 0;
@@ -1568,6 +1579,9 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, bool is_weight
     }    
     fill_particle_kin(ana_struct);
     double event_weight = calculate_event_weight(is_weighted_file_comparison, is_sim_gamma, ana_struct);  
+    event_weight = 1; // overwrite the event weight calculation for unoscillated and no radiative weights plots
+    nu_en = compute_nu_en_rec_CCQE_truth(ELECTRON, ana_struct, is_fill_gamma);
+
     nb_before_cuts+= event_weight;      
     if(i_particle == MUON){
       lep_mass = MU_MASS;    
@@ -1595,8 +1609,39 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, bool is_weight
    
     // Filling the total histogram
     // Design choice: filling it before any cuts
-    if(is_fill_gamma) res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_lep_g, event_weight);
-
+    if(is_fill_gamma){
+      res_h->g_mom_theta_2D_total_h->Fill(ana_struct.g_mom, theta_lep_g, event_weight);
+      if(nu_en < EN_NU_1){
+        res_h->g_en_theta_2D_sim_enu1_h->Fill(ana_struct.g_mom, theta_lep_g, event_weight); 
+      }else if(nu_en < EN_NU_2){
+        //nu_en > EN_NU_1 && nu_en < EN_NU_2
+        res_h->g_en_theta_2D_sim_enu2_h->Fill(ana_struct.g_mom, theta_lep_g, event_weight);         
+      }else{
+        // nu_en > EN_NU_2
+        res_h->g_en_theta_2D_sim_enu3_h->Fill(ana_struct.g_mom, theta_lep_g, event_weight); 
+      }    
+    }
+    if(nb_de == 0){
+      pass_selection = pass_1e_sample(ana_struct);
+    }else if(nb_de == 1){
+      pass_selection = pass_1e1de_sample(ana_struct);
+    }else{
+      std::cout<<"ERROR not an 1e or an 1e1de analysis!" << std::endl;
+      exit(-1);
+    }
+    if(pass_selection == true){
+      if(is_fill_gamma == true){
+        if(nu_en < EN_NU_1){
+          res_h->g_en_theta_2D_allcuts_enu1_h->Fill(ana_struct.g_mom, theta_lep_g, event_weight); 
+        }else if(nu_en < EN_NU_2){
+          //nu_en > EN_NU_1 && nu_en < EN_NU_2
+          res_h->g_en_theta_2D_allcuts_enu2_h->Fill(ana_struct.g_mom, theta_lep_g, event_weight);         
+        }else{
+          // nu_en > EN_NU_2
+          res_h->g_en_theta_2D_allcuts_enu3_h->Fill(ana_struct.g_mom, theta_lep_g, event_weight); 
+        }   
+      }
+    }
     //Applying the nu_e sample cuts
     // 0. EVIS
     if (pass_evis_cut(ana_struct, float(30.0)) == true){
@@ -1759,6 +1804,20 @@ bool pass_1e1de_sample(t2k_sk_radiative & ana_struct){
                   pass_e_pi0_nll_cut(ana_struct);
 
   return is_1e1de;  
+}
+//============================================================================//
+bool pass_1e_sample(t2k_sk_radiative & ana_struct){
+//============================================================================//
+  bool is_1e = pass_evis_cut(ana_struct, float(30.0)) &&
+               pass_1e_FCFV(0, ELECTRON, ana_struct) &&
+               pass_1ring(ana_struct) &&
+               pass_e_mu_nll_cut(ana_struct) &&
+               pass_e_mom_cut(ana_struct, float(100.0)) &&
+               pass_1e_nb_decay_e_cut(ana_struct) &&
+               pass_nu_en_rec_CCQE_cut(0, ELECTRON, ana_struct, float(1250)) &&
+               pass_e_pi0_nll_cut(ana_struct);
+
+  return is_1e;  
 }
 //============================================================================//
 void fill_particle_kin(t2k_sk_radiative & ana_struct){
@@ -2245,7 +2304,7 @@ void plot_2D_efficiency_tot(TH2* pass_hist, TH2* total_hist, std::string title, 
   delete ratio_hist;
 }
 //============================================================================// 
-float calc_survival_osc_prob(float nu_en){
+float calc_numu_survival_osc_prob(float nu_en){
 //============================================================================//
   double osc_angle = 1.27 * delta_m2_23 * baseline_len / (nu_en/1e3);//nu_en is passed in MeV and has to be convert to GeV
   //survival probability
@@ -2384,7 +2443,7 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
     br_is_rad->Fill();
     // Filling oscillation weight
     nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, is_sim_gamma);
-    w_osc = calc_survival_osc_prob(nu_en);
+    w_osc = calc_numu_survival_osc_prob(nu_en);
     br_w_osc->Fill();
     // Filling radiative weights
     if(is_sim_gamma == true){
@@ -2587,9 +2646,9 @@ void check_mixed_weights(std::string mix_file){
     tr_mw->GetEntry(i);
     fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
     nu_en_calc = compute_nu_en_rec_CCQE(0, MUON, ana_struct);
-    oscw_calc =  calc_survival_osc_prob(nu_en_calc);
+    oscw_calc =  calc_numu_survival_osc_prob(nu_en_calc);
     nu_en_corr = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, (bool)ana_struct.is_rad);
-    oscw_corr =  calc_survival_osc_prob(nu_en_corr);
+    oscw_corr =  calc_numu_survival_osc_prob(nu_en_corr);
     lep_en = calc_lep_energy(ana_struct, MUON);
     // fsamir debug start
     // trying to match radiative and non radiative events together
@@ -3063,7 +3122,7 @@ double calculate_event_weight(bool is_mixed_weighted_comparison, bool is_sim_gam
   }
  
 
-  osc_weight =  calc_survival_osc_prob(nu_en);
+  osc_weight =  calc_numu_survival_osc_prob(nu_en);
   event_weight = osc_weight * radiative_weight;
   std::cout<<" nu_en = " << nu_en << " , osc_w = " << osc_weight << " , radiative weight = "<< radiative_weight << " total weight = " << event_weight << std::endl;
   return event_weight;

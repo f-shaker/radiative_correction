@@ -5,19 +5,24 @@
 //Input & output files
 //==============================================================================
 // mu and gamma 
-const bool LEP_GAMMA_WEIGHTS_COMPARISON = true;// if the input lepton gamma file contains weights based on the oscillation and radiative proabilities
-const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted.root";// 5e4 evt, full gamma phase space
+const bool LEP_GAMMA_WEIGHTS_COMPARISON = false;// if the input lepton gamma file contains weights based on the oscillation and radiative proabilities
+//const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted.root";// 5e4 evt, full gamma phase space
 //const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_ginft180.root";// 5e4 evt, full gamma phase space
-//const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/elec_g80t180.root";// 1e4 evt, g_mom <= 80 MeV, mu_g angle <= 50degree
+const std::string lep_gamma_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/elec_ginft180_5e4.root";// 5e4 evt, full gamma phase space
 // mu kinematic before emmiting a gamma (mu only)
-const std::string lep_initialkin_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_only_init.root";// 5e4 evt, ccqe kinematics
+//const std::string lep_initialkin_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_only_init.root";// 5e4 evt, ccqe kinematics
+const std::string lep_initialkin_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/elec_init_5e4.root";// 5e4 evt, ccqe kinematics
 // mu kinematic after emmiting a gmma (mu only)
 //const std::string lep_finalkin_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/radiative_fin.root";// low stats (1e3 ev)
 //const std::string lep_finalkin_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/elec_no_g_fin.root";// 1e4 ev
 //const std::string mu_g_weighted_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted.root";
 //const std::string plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted/";
-const std::string plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/mu/ginft180/";
+const std::string plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/elec/ginft180/";
 const std::string plot_ext = ".png";
+//==============================================================================
+// Flux files
+//==============================================================================
+const std::string flux_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/";
 //==============================================================================
 // Physics 
 //==============================================================================

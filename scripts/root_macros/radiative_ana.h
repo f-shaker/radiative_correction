@@ -289,7 +289,7 @@ bool pass_1e1de_FCFV(int nsubevent, fq_particle i_particle, t2k_sk_radiative& ra
 bool pass_nu_en_rec_CCQE_cut(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct, float max_nu_en);
 bool pass_nu_en_rec_RES_cut(int nsubevent, fq_particle i_particle, t2k_sk_radiative& rad_struct, float max_nu_en);
 bool pass_1e1de_sample(t2k_sk_radiative & ana_struct);
-
+bool pass_1e_sample(t2k_sk_radiative & ana_struct);
 //supoorting functions
 void format_hist1D(TH1* hist, std::string title, int col , int width, int sty);
 void plot_hist1D(TH1* hist, std::string filename, std::string title, int col , int width, int sty, std::string draw_opt="");
@@ -324,7 +324,7 @@ void plot_1_res_hists(ana_results_hists& res_h,  bool is_radiative);
 void plot_2_res_comp_hists(ana_results_hists& res_h1, ana_results_hists& res_h2); 
 void plot_selection_cuts(ana_results_hists& res_h, bool is_radiative);
 double * calculate_bin_arr(double max_val, double max_roi_val, double fine_step_val, int& ret_nb_bins);
-float calc_survival_osc_prob(float nu_en);
+float calc_numu_survival_osc_prob(float nu_en);
 float calc_photon_emission_weight(float gamma_en);
 float calc_photon_emission_weight(float gamma_en, float lep_mom, fq_particle i_particle);
 float calc_no_photon_weight(float lep_mom, fq_particle i_particle);
