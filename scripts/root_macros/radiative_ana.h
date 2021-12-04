@@ -325,6 +325,9 @@ void plot_2_res_comp_hists(ana_results_hists& res_h1, ana_results_hists& res_h2)
 void plot_selection_cuts(ana_results_hists& res_h, bool is_radiative);
 double * calculate_bin_arr(double max_val, double max_roi_val, double fine_step_val, int& ret_nb_bins);
 float calc_numu_survival_osc_prob(float nu_en);
+float calc_nue_survival_osc_prob(float nu_en);
+float calc_numu_nue_osc_prob(float nu_en);
+float calc_nue_osc_weight(float nu_en, TH1D& flux_numu_h, TH1D& flux_nue_h);
 float calc_photon_emission_weight(float gamma_en);
 float calc_photon_emission_weight(float gamma_en, float lep_mom, fq_particle i_particle);
 float calc_no_photon_weight(float lep_mom, fq_particle i_particle);
@@ -340,5 +343,6 @@ void analyze_nue(TTree* tr_rad_elec, TTree* tr_norad_elec);
 void analyze_numu(TTree* tr_rad_mu, TTree* tr_norad_mu);
 double calculate_event_weight(bool is_mixed_weighted, bool is_sim_gamma, t2k_sk_radiative& ana_struct);
 void check_ccnumu_event_loss_due_to_radiation(std::string mix_file);
+void load_flux_hist(TH1D* flux_numu_h, TH1D* flux_nue_h);
 //============================================================================//
 #endif

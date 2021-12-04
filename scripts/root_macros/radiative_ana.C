@@ -2306,10 +2306,53 @@ void plot_2D_efficiency_tot(TH2* pass_hist, TH2* total_hist, std::string title, 
 //============================================================================// 
 float calc_numu_survival_osc_prob(float nu_en){
 //============================================================================//
-  double osc_angle = 1.27 * delta_m2_23 * baseline_len / (nu_en/1e3);//nu_en is passed in MeV and has to be convert to GeV
+  float osc_angle = 1.27 * delta_m2_23 * baseline_len / (nu_en/1e3);//nu_en is passed in MeV and has to be convert to GeV
   //survival probability
-  double prob_mumu = 1 - ( sin2_2theta_23 *  sin(osc_angle) * sin(osc_angle) );
+  float prob_mumu = 1 - ( sin2_2theta_23 *  sin(osc_angle) * sin(osc_angle) );
   return prob_mumu;
+}
+//============================================================================//
+float calc_nue_survival_osc_prob(float nu_en){
+//============================================================================//  
+  float prob_nue = 1.0;// A DUMMY function for now, will be implemented SOON!
+  return prob_nue;
+}
+//============================================================================//
+float calc_numu_nue_osc_prob(float nu_en){
+//============================================================================//  
+// Leading Order simplification of the 3 neutrino flavour oscillation
+// c.f. Observation of Electron Neutrino Appearance in a Muon Neutrino Beam (Publication)
+// and 3-flavour neutrino oscillations
+//https://indico.cern.ch/event/175304/contributions/1439328/attachments/225004/314883/Grant_IOP_2012.pdf
+// P(numu->nue) = sin^2(theta_23) sin^2(2*theta_13) sin^2(1.267 Delta_m^2_31 L/ E), 
+
+  float osc_angle = 1.27 * delta_m2_31 * baseline_len / (nu_en/1e3);//nu_en is passed in MeV and has to be convert to GeV
+  float prob_numu_nue = sin2_theta_23 * sin2_2theta_13 * sin(osc_angle) * sin(osc_angle);//
+
+  return prob_numu_nue;
+}
+//============================================================================// 
+float calc_nue_osc_weight(float nu_en, TH1D& flux_numu_h, TH1D& flux_nue_h){
+//============================================================================//
+  float nue_osc_w = 0.0;
+  int numu_bin = flux_numu_h.FindFixBin(nu_en);
+  int nue_bin = flux_nue_h.FindFixBin(nu_en);
+  if(nue_bin > 0 && numu_bin >0){
+    // FindFixBin will return -1 if it did not find the bin value (it will not try to interpolate intp the underflow or overflow bins)
+    double flux_numu = flux_numu_h.GetBinContent(numu_bin);
+    double flux_nue = flux_numu_h.GetBinContent(nue_bin);  
+    nue_osc_w = calc_nue_survival_osc_prob(nu_en) + ( (flux_numu/flux_nue) * calc_numu_nue_osc_prob(nu_en) );
+  }
+  return nue_osc_w;
+}
+//============================================================================// 
+void load_flux_hist(TH1D* flux_numu_h, TH1D* flux_nue_h){
+//============================================================================//   
+  // open the flux file
+  TFile* flux_f =  new TFile(flux_file.c_str(), "READ");
+  flux_numu_h = (TH1D*)( (flux_f->Get(numu_flux_histname.c_str()))->Clone("numu_flux_nd") );
+  flux_nue_h = (TH1D*)( (flux_f->Get(nue_flux_histname.c_str()))->Clone("nue_flux_nd") );  
+  flux_f->Close();
 }
 //============================================================================// 
 float calc_photon_emission_weight(float gamma_en){
@@ -2402,6 +2445,13 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
   float nu_en;
   float lep_mom;
 
+  // flux histograms needed to calculate the oscillation weights of nue
+  TH1D flux_numu_h;
+  TH1D flux_nue_h;
+  if(i_particle == ELECTRON){
+    //fill the flux histograms: cloning them from the flux file(s)
+    load_flux_hist(&flux_numu_h, &flux_nue_h);
+  }
    
   TFile *f_in = new TFile(in_file_name.c_str(),"update");
   TTree *tree_in = (TTree*)f_in->Get("h1");
@@ -2431,10 +2481,13 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
   for (Long64_t i=0;i<nentries;i++){
     tree_in->GetEntry(i);
     fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
+    nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, is_sim_gamma);    
     if(i_particle == ELECTRON){
       lep_mom = ana_struct.elec_mom;
+      w_osc = calc_nue_osc_weight(nu_en, flux_numu_h, flux_nue_h);
     }else if(i_particle == MUON){
       lep_mom = ana_struct.mu_mom;
+      w_osc = calc_numu_survival_osc_prob(nu_en);      
     }else{
       std::cout<<"Unsupported particle for energy calculation!" << std::endl;
       exit(-1);
@@ -2442,8 +2495,6 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
     // Filling is_radiative branch (same value for the whole file)
     br_is_rad->Fill();
     // Filling oscillation weight
-    nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, is_sim_gamma);
-    w_osc = calc_numu_survival_osc_prob(nu_en);
     br_w_osc->Fill();
     // Filling radiative weights
     if(is_sim_gamma == true){

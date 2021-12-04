@@ -22,7 +22,9 @@ const std::string plot_ext = ".png";
 //==============================================================================
 // Flux files
 //==============================================================================
-const std::string flux_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/";
+const std::string flux_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/flux/tuned13av7p1/run8/nd5_tuned13av7p1_13anom_run8_numode.root";
+const std::string nue_flux_histname = "enu_nd5_tuned13a_nue";
+const std::string numu_flux_histname = "enu_nd5_tuned13a_numu";
 //==============================================================================
 // Physics 
 //==============================================================================
@@ -30,7 +32,10 @@ const std::string flux_file = "/home/fshaker/t2k/radiative-correction/analysis/r
 static const double beamdir[3] = { 0.669764, -0.742179, 0.024223 };
 // Oscillation parameters
 static const double sin2_2theta_23 = 0.9996; //sin squared of 2* mixing angle theta_23, where sin^2(theta_23) = 0.51
-static const double delta_m2_23= 2.47e-3;//eV^2
+static const double sin2_theta_23 = 0.51;
+static const double sin2_2theta_13 = 0.0874; // sin squared of 2 * mising angle theta_13, where theta_13 =  8.6 deg (c.f pdg)
+static const double delta_m2_31 = 2.47e-3;//eV^2, taken equal to delta_m2_23
+static const double delta_m2_23 = 2.47e-3;//eV^2
 static const double baseline_len = 295.0;//km 
 // Particles masses
 const float MU_MASS = 105.6583755; //MeV
