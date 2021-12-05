@@ -327,7 +327,7 @@ double * calculate_bin_arr(double max_val, double max_roi_val, double fine_step_
 float calc_numu_survival_osc_prob(float nu_en);
 float calc_nue_survival_osc_prob(float nu_en);
 float calc_numu_nue_osc_prob(float nu_en);
-float calc_nue_osc_weight(float nu_en, TH1D& flux_numu_h, TH1D& flux_nue_h);
+float calc_nue_osc_weight(float nu_en, TH1D* flux_numu_h, TH1D* flux_nue_h);
 float calc_photon_emission_weight(float gamma_en);
 float calc_photon_emission_weight(float gamma_en, float lep_mom, fq_particle i_particle);
 float calc_no_photon_weight(float lep_mom, fq_particle i_particle);

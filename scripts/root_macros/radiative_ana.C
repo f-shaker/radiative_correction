@@ -2332,17 +2332,28 @@ float calc_numu_nue_osc_prob(float nu_en){
   return prob_numu_nue;
 }
 //============================================================================// 
-float calc_nue_osc_weight(float nu_en, TH1D& flux_numu_h, TH1D& flux_nue_h){
+float calc_nue_osc_weight(float nu_en, TH1D* flux_numu_h, TH1D* flux_nue_h){
 //============================================================================//
   float nue_osc_w = 0.0;
-  int numu_bin = flux_numu_h.FindFixBin(nu_en);
-  int nue_bin = flux_nue_h.FindFixBin(nu_en);
+  // NOTE: flux histograms are in GeV while the passed nu_en  is in MeV, that is why we shall convert it before finding the bin number
+  int numu_bin = flux_numu_h->FindFixBin(nu_en/1e3);
+  int nue_bin = flux_nue_h->FindFixBin(nu_en/1e3);
+  
   if(nue_bin > 0 && numu_bin >0){
-    // FindFixBin will return -1 if it did not find the bin value (it will not try to interpolate intp the underflow or overflow bins)
-    double flux_numu = flux_numu_h.GetBinContent(numu_bin);
-    double flux_nue = flux_numu_h.GetBinContent(nue_bin);  
-    nue_osc_w = calc_nue_survival_osc_prob(nu_en) + ( (flux_numu/flux_nue) * calc_numu_nue_osc_prob(nu_en) );
+    // FindFixBin will not try to interpolate intp the underflow or overflow bins
+    double flux_numu = flux_numu_h->GetBinContent(numu_bin);
+    double flux_nue = flux_nue_h->GetBinContent(nue_bin);
+    double numu_nue_osc_prob = calc_numu_nue_osc_prob(nu_en);
+    if(flux_numu > 0 && flux_nue > 0){
+      nue_osc_w = calc_nue_survival_osc_prob(nu_en) + ( (flux_numu/flux_nue) * numu_nue_osc_prob );
+      std::cout<<"DEBUG: nu_en = " << nu_en << " , nue_bin = " << nue_bin <<", numu_bin = " << numu_bin << ", flux_nue = " << flux_nue
+            << ", flux_numu = " << flux_numu << ", numu_nue_osc_prob = " << numu_nue_osc_prob << ", osc_w = "<< nue_osc_w << std::endl;       
+    }else{
+      std::cout<<"ERROR (invalid flux value) : nu_en = " << nu_en << " , nue_bin = " << nue_bin <<", numu_bin = " << numu_bin << ", flux_nue = " << flux_nue
+            << ", flux_numu = " << flux_numu << ", numu_nue_osc_prob = " << numu_nue_osc_prob << std::endl; 
+    }
   }
+
   return nue_osc_w;
 }
 //============================================================================// 
@@ -2351,7 +2362,7 @@ void load_flux_hist(TH1D* flux_numu_h, TH1D* flux_nue_h){
   // open the flux file
   TFile* flux_f =  new TFile(flux_file.c_str(), "READ");
   flux_numu_h = (TH1D*)( (flux_f->Get(numu_flux_histname.c_str()))->Clone("numu_flux_nd") );
-  flux_nue_h = (TH1D*)( (flux_f->Get(nue_flux_histname.c_str()))->Clone("nue_flux_nd") );  
+  flux_nue_h = (TH1D*)( (flux_f->Get(nue_flux_histname.c_str()))->Clone("nue_flux_nd") ); 
   flux_f->Close();
 }
 //============================================================================// 
@@ -2433,7 +2444,7 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
 // e.g hadd -f mu_g_weighted.root mu_ginft180.root mu_only_init.root
 // then we analyze the mixed file using:
 // check_mixed_weights(mu_g_weighted_file.c_str());
-  
+  //init_root_global_settings(); 
   // variables to add to the existing tree
   int is_rad; 
   float w_osc; 
@@ -2446,11 +2457,18 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
   float lep_mom;
 
   // flux histograms needed to calculate the oscillation weights of nue
-  TH1D flux_numu_h;
-  TH1D flux_nue_h;
+    TH1D* flux_numu_h = (TH1D*)NULL;
+    TH1D* flux_nue_h = (TH1D*)NULL; 
+
   if(i_particle == ELECTRON){
     //fill the flux histograms: cloning them from the flux file(s)
-    load_flux_hist(&flux_numu_h, &flux_nue_h);
+    
+    TFile* flux_f =  new TFile(flux_file.c_str(), "READ");
+    flux_numu_h = (TH1D*) flux_f->Get(numu_flux_histname.c_str())->Clone("numu_flux_nd") ;
+    flux_nue_h = (TH1D*) flux_f->Get(nue_flux_histname.c_str())->Clone("nue_flux_nd") ;     
+    std::cout<<" loading flux histograms" << std::endl;
+    
+    std::cout<< "numu flux mean =: " << flux_numu_h->GetMean() << ", nue flux mean = " << flux_nue_h->GetMean() << std::endl;
   }
    
   TFile *f_in = new TFile(in_file_name.c_str(),"update");
@@ -2481,7 +2499,8 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
   for (Long64_t i=0;i<nentries;i++){
     tree_in->GetEntry(i);
     fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
-    nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, is_sim_gamma);    
+    nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, is_sim_gamma);
+    std::cout<< " nu_en = " << nu_en << std::endl;    
     if(i_particle == ELECTRON){
       lep_mom = ana_struct.elec_mom;
       w_osc = calc_nue_osc_weight(nu_en, flux_numu_h, flux_nue_h);
