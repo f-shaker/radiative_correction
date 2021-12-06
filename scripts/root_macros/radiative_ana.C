@@ -1211,7 +1211,7 @@ ana_results_hists* analyze_1mu(TTree* ana_tree, bool is_sim_gamma, bool is_weigh
     }else{
       is_fill_gamma = is_sim_gamma;
     }
-    double event_weight = calculate_event_weight(is_weighted_file_comparison, is_sim_gamma, ana_struct);
+    double event_weight = calculate_event_weight(is_weighted_file_comparison, is_sim_gamma, ana_struct, MUON);
     //event_weight = 1; //overwrite the event weight for unoscillated flux and without radiation plots
     nu_en = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, is_fill_gamma);
     //fsamir debug start
@@ -1578,8 +1578,8 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, bool is_weight
       is_fill_gamma = is_sim_gamma;
     }    
     fill_particle_kin(ana_struct);
-    double event_weight = calculate_event_weight(is_weighted_file_comparison, is_sim_gamma, ana_struct);  
-    event_weight = 1; // overwrite the event weight calculation for unoscillated and no radiative weights plots
+    double event_weight = calculate_event_weight(is_weighted_file_comparison, is_sim_gamma, ana_struct, i_particle);  
+    //event_weight = 1; // overwrite the event weight calculation for unoscillated and no radiative weights plots
     nu_en = compute_nu_en_rec_CCQE_truth(ELECTRON, ana_struct, is_fill_gamma);
 
     nb_before_cuts+= event_weight;      
@@ -3152,7 +3152,7 @@ float calc_lep_energy(t2k_sk_radiative& ana_struct, fq_particle i_particle){
   return lep_en;
 }
 //============================================================================//
-double calculate_event_weight(bool is_mixed_weighted_comparison, bool is_sim_gamma, t2k_sk_radiative& ana_struct){
+double calculate_event_weight(bool is_mixed_weighted_comparison, bool is_sim_gamma, t2k_sk_radiative& ana_struct, fq_particle i_particle){
 //============================================================================//
   float nu_en = 0.0;
   float lep_en = 0.0;
@@ -3162,37 +3162,62 @@ double calculate_event_weight(bool is_mixed_weighted_comparison, bool is_sim_gam
   double radiative_correction_factor = 1.0;
   double event_weight = 1.0;
 
+  float lep_mass;
+  float lep_mom;
+  TH1D* flux_numu_h = (TH1D*)NULL;
+  TH1D* flux_nue_h = (TH1D*)NULL; 
+   
+
+  if(i_particle == MUON){
+    lep_mass = MU_MASS;    
+    lep_mom = ana_struct.mu_mom;
+  }else if(i_particle == ELECTRON){
+    lep_mass = ELEC_MASS;    
+    lep_mom = ana_struct.elec_mom;
+    TFile* flux_f =  new TFile(flux_file.c_str(), "READ");
+    flux_numu_h = (TH1D*) flux_f->Get(numu_flux_histname.c_str())->Clone("numu_flux_nd") ;
+    flux_nue_h = (TH1D*) flux_f->Get(nue_flux_histname.c_str())->Clone("nue_flux_nd") ;      
+  }else{
+    std::cout<<"Unknown Partilce!"<<std::endl;
+    std::exit(-1);
+  }
+
   if(is_mixed_weighted_comparison == true){
     if(is_sim_gamma == true){
       //input file has simulated gamma and include the weights
-      nu_en = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, bool(ana_struct.is_rad));
+      nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, bool(ana_struct.is_rad));
       if(ana_struct.is_rad == true){
         radiative_weight = calc_photon_emission_weight(ana_struct.g_mom);
         // multiply by the necessary correction factor
-        lep_en = calc_lep_energy(ana_struct, MUON);
-        radiative_correction_factor = TMath::Max(lep_en+ ana_struct.g_mom, MU_MASS+gamma_en_cutoff) - MU_MASS;
+        lep_en = calc_lep_energy(ana_struct, i_particle);
+        radiative_correction_factor = TMath::Max(lep_en+ ana_struct.g_mom, lep_mass+gamma_en_cutoff) - lep_mass;
         radiative_weight *= radiative_correction_factor;
       }else{
         //Weighted file but that event is not radiative 
-        radiative_weight = calc_no_photon_weight(ana_struct.mu_mom, MUON);
+        radiative_weight = calc_no_photon_weight(lep_mom, i_particle);
       }
       std::cout<<" is radiative = " << ana_struct.is_rad << std::endl;    
     }else{
       // input files does not contain gamma but used to compare the mixed file
-      nu_en = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, is_sim_gamma);
+      nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, is_sim_gamma);
       radiative_weight = 1.0;
     }
   }else{
     // input file does not contain gamma but used to compare a radiative file, or
     // input file is full of gammas (radiative file)
     // set oscillation weights correctly
-    nu_en = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, is_sim_gamma);     
+    nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, is_sim_gamma);     
     // set radiative weights to 1 for the comparison (i.e not taking radiation into consideration for all the above cases)
     radiative_weight = 1.0;   
   }
  
-
-  osc_weight =  calc_numu_survival_osc_prob(nu_en);
+  if(i_particle == MUON){
+    osc_weight = calc_numu_survival_osc_prob(nu_en);
+  }else{
+    // ELECTRON , since OTHER particles are checked at the top of the function
+    osc_weight = calc_nue_osc_weight(nu_en, flux_numu_h, flux_nue_h);
+  }
+  
   event_weight = osc_weight * radiative_weight;
   std::cout<<" nu_en = " << nu_en << " , osc_w = " << osc_weight << " , radiative weight = "<< radiative_weight << " total weight = " << event_weight << std::endl;
   return event_weight;

@@ -341,7 +341,7 @@ void init_root_global_settings(void);
 void radiative_ana(fq_particle i_particle);
 void analyze_nue(TTree* tr_rad_elec, TTree* tr_norad_elec);
 void analyze_numu(TTree* tr_rad_mu, TTree* tr_norad_mu);
-double calculate_event_weight(bool is_mixed_weighted, bool is_sim_gamma, t2k_sk_radiative& ana_struct);
+double calculate_event_weight(bool is_mixed_weighted, bool is_sim_gamma, t2k_sk_radiative& ana_struct, fq_particle i_particle);
 void check_ccnumu_event_loss_due_to_radiation(std::string mix_file);
 void load_flux_hist(TH1D* flux_numu_h, TH1D* flux_nue_h);
 //============================================================================//
