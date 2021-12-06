@@ -2467,7 +2467,7 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
     flux_numu_h = (TH1D*) flux_f->Get(numu_flux_histname.c_str())->Clone("numu_flux_nd") ;
     flux_nue_h = (TH1D*) flux_f->Get(nue_flux_histname.c_str())->Clone("nue_flux_nd") ;     
     std::cout<<" loading flux histograms" << std::endl;
-    
+    flux_f->Close();
     std::cout<< "numu flux mean =: " << flux_numu_h->GetMean() << ", nue flux mean = " << flux_nue_h->GetMean() << std::endl;
   }
    
@@ -3176,7 +3176,8 @@ double calculate_event_weight(bool is_mixed_weighted_comparison, bool is_sim_gam
     lep_mom = ana_struct.elec_mom;
     TFile* flux_f =  new TFile(flux_file.c_str(), "READ");
     flux_numu_h = (TH1D*) flux_f->Get(numu_flux_histname.c_str())->Clone("numu_flux_nd") ;
-    flux_nue_h = (TH1D*) flux_f->Get(nue_flux_histname.c_str())->Clone("nue_flux_nd") ;      
+    flux_nue_h = (TH1D*) flux_f->Get(nue_flux_histname.c_str())->Clone("nue_flux_nd") ;
+    flux_f->Close();      
   }else{
     std::cout<<"Unknown Partilce!"<<std::endl;
     std::exit(-1);
