@@ -30,7 +30,7 @@ void dump_particle_kinematics(int particle_pdg){
     break;
   default:
     std::cout<<"Unkown particle pdg!";
-    exit();
+    exit(-1);
     
   }
   float particle_true_total_en;
@@ -44,7 +44,7 @@ void dump_particle_kinematics(int particle_pdg){
   float vtx_pos[3];
 
   
-  tr->SetBranchAddress("mode", &neut_code); // Focus on CCQE (mode==1), and 2p2h (mode =2) for this kinematic study
+  tr->SetBranchAddress("mode", &neut_code); // Focus on CCQE (mode==1), and 2p2h (mode =2) for this kinematic study, neut code = -ve for antineutrino
   tr->SetBranchAddress("numnu", &nb_particles);
   tr->SetBranchAddress("ipnu", pdg_code);
   tr->SetBranchAddress("pnu", particle_mom);
@@ -57,7 +57,7 @@ void dump_particle_kinematics(int particle_pdg){
     // loop over the tree
     tr->GetEntry(i);
     int particle_idx = find_particle_idx(pdg_code, nb_particles, particle_pdg);
-    bool fill_ok = (particle_idx > 0) && ( (neut_code == 1) || (neut_code == 2) );
+    bool fill_ok = (particle_idx > 0) &&  abs(neut_code == 1) ;
     if(!fill_ok) continue;
     // E^2 = P^2 + m^2 [MeV] note the mom was given in GeV for pnu, while pmomv it is in MeV
     particle_true_total_en = sqrt( ( particle_mom[particle_idx]*1000 * particle_mom[particle_idx]*1000 ) + (particle_mass * particle_mass) ); 
