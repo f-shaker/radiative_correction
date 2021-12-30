@@ -14,3 +14,11 @@
 
 #ignore visual studio files
 **/.vscode
+
+#ignore auxilary output files
+**/*/*.pdf
+**/*/*.root
+**/*/*.eps
+**/*/*.jpg
+**/*/*.jpeg
+**/*/*.png
