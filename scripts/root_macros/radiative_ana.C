@@ -3810,6 +3810,7 @@ void check_elec_mixed_weights(std::string mix_file){
 //============================================================================//
 void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
 //============================================================================//
+  gStyle->SetOptFit(1111);
   TFile * f_mw = new TFile(mix_file.c_str(), "READ");  
   TTree *tr_mw = (TTree*)f_mw->Get("h1");
 
@@ -3820,16 +3821,22 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
   set_tree_addresses(tr_mw, ana_struct, true);
 
   TFile * f_op = new TFile("mu_ev_loss_weight.root", "RECREATE");  
+  // the ccnumu selection has a mu momentum cut of 200 MeV
+  double mu_mom_cut = 200; //200 MeV
+  double min_mu_en = sqrt(mu_mom_cut*mu_mom_cut + MU_MASS*MU_MASS); // ~ 225 MeV
+  // number of neutrino events < 250 MeV is tiny and division can create problems, set the min to 250 MeV
+  min_mu_en = 250;
+  double max_mu_en = 2000;
   // Events failing the CCnumu selection just because they have emitted a photon (become radiative)
   // mom and enregy histograms starts from 200 MeV as we have a mom cut on the mu candiate < 200 MeV
   //TH2D* h2d_failccnumu_radcont_pmuthetamug_now = new TH2D("h2d_failccnumu_radcont_pmuthetamug_now", "h2d_failccnumu_radcont_pmuthetamug_now", 18, 200, 2000, 20, 0, 180);
   //TH2D* h2d_failccnumu_radcont_pmuthetamug_totw = new TH2D("h2d_failccnumu_radcont_pmuthetamug_totw", "h2d_failccnumu_radcont_pmuthetamug_totw", 18, 200, 2000, 20, 0, 180);  
   //TH1D* h_failccnumu_radcont_Enu_now = new TH1D("h_failccnumu_radcont_Enu_now", "h_failccnumu_radcont_Enu_now", 90, 200, 2000);
-  TH1D* h_passccnumu_radcont_Enu_totw = new TH1D("h_passccnumu_radcont_Enu_totw", "h_passccnumu_radcont_Enu_totw", 90, 200, 2000);    
-  TH1D* h_passccnumu_radcont_Emuinit_totw = new TH1D("h_passccnumu_radcont_Emuinit_totw", "h_passccnumu_radcont_Emuinit_totw", 90, 200, 2000);    
+  TH1D* h_passccnumu_radcont_Enu_totw = new TH1D("h_passccnumu_radcont_Enu_totw", "h_passccnumu_radcont_Enu_totw", 100, min_mu_en, max_mu_en);    
+  TH1D* h_passccnumu_radcont_Emuinit_totw = new TH1D("h_passccnumu_radcont_Emuinit_totw", "h_passccnumu_radcont_Emuinit_totw", 100, min_mu_en, max_mu_en);    
   // denominator for the percentage histogram
-  TH1D* h_passccnumu_norad_Enu_oscw = new TH1D("h_passccnumu_norad_Enu_oscw", "h_passccnumu_norad_Enu_oscw", 90, 200, 2000); 
-  TH1D* h_passccnumu_norad_Emu_oscw = new TH1D("h_passccnumu_norad_Emu_oscw", "h_passccnumu_norad_Emu_oscw", 90, 200, 2000);   
+  TH1D* h_passccnumu_norad_Enu_oscw = new TH1D("h_passccnumu_norad_Enu_oscw", "h_passccnumu_norad_Enu_oscw", 100, min_mu_en, max_mu_en); 
+  TH1D* h_passccnumu_norad_Emu_oscw = new TH1D("h_passccnumu_norad_Emu_oscw", "h_passccnumu_norad_Emu_oscw", 100, min_mu_en, max_mu_en);   
   Long64_t nentries = tr_mw->GetEntries();
   // check who many events will be lost due to the radiative process
   for (Long64_t i=0;i<nentries;i++){
@@ -3885,15 +3892,28 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
 
   // produce effeiency as a fraction instead of total number of events
   TH1D*  h_passccnumu_noradtorad_Enu_fraction = (TH1D*)h_passccnumu_norad_Enu_oscw->Clone("h_passccnumu_noradtorad_Enu_fraction");
-  h_passccnumu_noradtorad_Enu_fraction->Divide(h_passccnumu_norad_Enu_oscw, h_passccnumu_radcont_Enu_totw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
+  h_passccnumu_noradtorad_Enu_fraction->Divide(h_passccnumu_radcont_Enu_totw, h_passccnumu_norad_Enu_oscw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
 
   TH1D*  h_passccnumu_noradtorad_Emuinit_fraction = (TH1D*)h_passccnumu_norad_Emu_oscw->Clone("h_passccnumu_noradtorad_Emuinit_fraction");
-  h_passccnumu_noradtorad_Emuinit_fraction->Divide(h_passccnumu_norad_Emu_oscw, h_passccnumu_radcont_Emuinit_totw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
+  h_passccnumu_noradtorad_Emuinit_fraction->Divide(h_passccnumu_radcont_Emuinit_totw, h_passccnumu_norad_Emu_oscw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
 
+  TF1* enu_func = new TF1("enu_func", "pol3(0)", min_mu_en, max_mu_en);
+  // initialize the fit parameters
+  enu_func->SetParameters(1.0, 0.0, 0.0, 0.0, 0.0);
+  TF1* emu_func = new TF1("emu_func", "pol3(0)", min_mu_en, max_mu_en);
+  // initialize the fit parameters
+  emu_func->SetParameters(1.0, 0.0, 0.0, 0.0, 0.0);
+
+  h_passccnumu_noradtorad_Enu_fraction->Fit("enu_func", "W", "", min_mu_en, max_mu_en );
+  h_passccnumu_noradtorad_Emuinit_fraction->Fit("emu_func", "W", "", min_mu_en, max_mu_en );
   //std::cout<<"Debug: radiative failing fraction integral percentage = " <<  h_failccnumu_radcont_Enu_totw_fraction->Integral() * 100
   //         << std::endl;
-  plot_hist1D(h_passccnumu_noradtorad_Enu_fraction,"h_passccnumu_noradtorad_Enu_fraction",  "Non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights)/ radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights);E_{#nu} [MeV];percentage", kBlue , 2, 1);           
-  plot_hist1D(h_passccnumu_noradtorad_Emuinit_fraction,"h_passccnumu_noradtorad_Emuinit_fraction",  "Non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights)/ radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights);E_{#mu_{init}} [MeV];percentage", kBlue , 2, 1);           
+  plot_hist1D(h_passccnumu_noradtorad_Enu_fraction,"h_passccnumu_noradtorad_Enu_fraction",
+              "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#nu} [MeV];ratio",
+              kBlue , 2, 1);           
+  plot_hist1D(h_passccnumu_noradtorad_Emuinit_fraction,"h_passccnumu_noradtorad_Emuinit_fraction",
+              "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#mu_{init}} [MeV];ratio",
+              kBlue , 2, 1);           
   
   f_op->Write();
   f_op->Close();
@@ -3909,6 +3929,8 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
 //============================================================================//
 void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
 //============================================================================//
+  gStyle->SetOptFit(1111);
+
   TFile * f_mw = new TFile(mix_file.c_str(), "READ");  
   TTree *tr_mw = (TTree*)f_mw->Get("h1");
 
@@ -3918,17 +3940,24 @@ void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
   t2k_sk_radiative ana_struct;
   set_tree_addresses(tr_mw, ana_struct, true);
 
-  TFile * f_op = new TFile("elec_ev_loss_weight.root", "RECREATE");  
+  TFile * f_op = new TFile("elec_ev_loss_weight.root", "RECREATE"); 
+  // the ccnue selection has an electron momentum cut of 100 MeV
+  double elec_mom_cut = 100; //100 MeV
+  double min_elec_en = sqrt(elec_mom_cut*elec_mom_cut + ELEC_MASS*ELEC_MASS); // ~ 100 MeV
+  // number of neutrino events < 100 MeV is tiny and division can create problems, set the min to 150 MeV
+  min_elec_en = 150;
+  // there is also a cut on the max reconstructed neutrino energy to be < 1250 MeV
+  double max_nu_en = 1250;   
   // Events failing the CCnumu selection just because they have emitted a photon (become radiative)
   // mom and enregy histograms starts from 200 MeV as we have a mom cut on the mu candiate < 200 MeV
   //TH2D* h2d_failccnumu_radcont_pmuthetamug_now = new TH2D("h2d_failccnumu_radcont_pmuthetamug_now", "h2d_failccnumu_radcont_pmuthetamug_now", 18, 200, 2000, 20, 0, 180);
   //TH2D* h2d_failccnumu_radcont_pmuthetamug_totw = new TH2D("h2d_failccnumu_radcont_pmuthetamug_totw", "h2d_failccnumu_radcont_pmuthetamug_totw", 18, 200, 2000, 20, 0, 180);  
   //TH1D* h_failccnumu_radcont_Enu_now = new TH1D("h_failccnumu_radcont_Enu_now", "h_failccnumu_radcont_Enu_now", 90, 200, 2000);
-  TH1D* h_passccnue_radcont_Enu_totw = new TH1D("h_passccnue_radcont_Enu_totw", "h_passccnue_radcont_Enu_totw", 90, 200, 2000);    
-  TH1D* h_passccnue_radcont_Eelecinit_totw = new TH1D("h_passccnue_radcont_Eelecinit_totw", "h_passccnue_radcont_Eelecinit_totw", 90, 200, 2000);    
+  TH1D* h_passccnue_radcont_Enu_totw = new TH1D("h_passccnue_radcont_Enu_totw", "h_passccnue_radcont_Enu_totw", 100, min_elec_en, max_nu_en);    
+  TH1D* h_passccnue_radcont_Eelecinit_totw = new TH1D("h_passccnue_radcont_Eelecinit_totw", "h_passccnue_radcont_Eelecinit_totw", 100, min_elec_en, max_nu_en);    
   // denominator for the percentage histogram
-  TH1D* h_passccnue_norad_Enu_oscw = new TH1D("h_passccnue_norad_Enu_oscw", "h_passccnue_norad_Enu_oscw", 90, 200, 2000); 
-  TH1D* h_passccnue_norad_Eelec_oscw = new TH1D("h_passccnue_norad_Eelec_oscw", "h_passccnue_norad_Eelec_oscw", 90, 200, 2000);   
+  TH1D* h_passccnue_norad_Enu_oscw = new TH1D("h_passccnue_norad_Enu_oscw", "h_passccnue_norad_Enu_oscw", 100, min_elec_en, max_nu_en); 
+  TH1D* h_passccnue_norad_Eelec_oscw = new TH1D("h_passccnue_norad_Eelec_oscw", "h_passccnue_norad_Eelec_oscw", 100, min_elec_en, max_nu_en);   
   Long64_t nentries = tr_mw->GetEntries();
   // check who many events will be lost due to the radiative process
   for (Long64_t i=0;i<nentries;i++){
@@ -3984,15 +4013,30 @@ void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
 
   // produce effeiency as a fraction instead of total number of events
   TH1D*  h_passccnue_noradtorad_Enu_fraction = (TH1D*)h_passccnue_norad_Enu_oscw->Clone("h_passccnue_noradtorad_Enu_fraction");
-  h_passccnue_noradtorad_Enu_fraction->Divide(h_passccnue_norad_Enu_oscw, h_passccnue_radcont_Enu_totw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
+  h_passccnue_noradtorad_Enu_fraction->Divide(h_passccnue_radcont_Enu_totw, h_passccnue_norad_Enu_oscw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
 
   TH1D*  h_passccnue_noradtorad_Eelecinit_fraction = (TH1D*)h_passccnue_norad_Eelec_oscw->Clone("h_passccnue_noradtorad_Eelecinit_fraction");
-  h_passccnue_noradtorad_Eelecinit_fraction->Divide(h_passccnue_norad_Eelec_oscw, h_passccnue_radcont_Eelecinit_totw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
+  h_passccnue_noradtorad_Eelecinit_fraction->Divide(h_passccnue_radcont_Eelecinit_totw, h_passccnue_norad_Eelec_oscw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
 
+ //TF1* enu_func = new TF1("enu_func", "pol1(0)+expo(2)", 200, 2000);
+  
+  TF1* enu_func = new TF1("enu_func", "pol3(0)", min_elec_en, max_nu_en);
+  // initialize the fit parameters
+  enu_func->SetParameters(1.0, 0.0, 0.0, 0.0, 0.0);
+  TF1* eelec_func = new TF1("eelec_func", "pol3(0)", min_elec_en, max_nu_en);
+  // initialize the fit parameters
+  eelec_func->SetParameters(1.0, 0.0, 0.0, 0.0, 0.0);
+
+  h_passccnue_noradtorad_Enu_fraction->Fit("enu_func", "W", "", min_elec_en, max_nu_en );
+  h_passccnue_noradtorad_Eelecinit_fraction->Fit("eelec_func", "W", "", min_elec_en, max_nu_en );
   //std::cout<<"Debug: radiative failing fraction integral percentage = " <<  h_failccnumu_radcont_Enu_totw_fraction->Integral() * 100
   //         << std::endl;
-  plot_hist1D(h_passccnue_noradtorad_Enu_fraction,"h_passccnue_noradtorad_Enu_fraction",  "Non-radiative ev passing the CC#nu_{e} Selection (oscillation weights)/ radiative + non-radiative ev passing the CC#nu_{e} Selection (total weights);E_{#nu} [MeV];ratio", kBlue , 2, 1);           
-  plot_hist1D(h_passccnue_noradtorad_Eelecinit_fraction,"h_passccnue_noradtorad_Eelecinit_fraction",  "Non-radiative ev passing the CC#nu_{e} Selection (oscillation weights)/ radiative + non-radiative ev passing the CC#nu_{e} Selection (total weights);E_{e_{init}} [MeV];ratio", kBlue , 2, 1);           
+  plot_hist1D(h_passccnue_noradtorad_Enu_fraction,"h_passccnue_noradtorad_Enu_fraction",
+              "radiative + non-radiative ev passing the CC#nu_{e} Selection (total weights)/non-radiative ev passing the CC#nu_{e} Selection (oscillation weights);E_{#nu} [MeV];ratio",
+              kBlue , 2, 1);           
+  plot_hist1D(h_passccnue_noradtorad_Eelecinit_fraction,"h_passccnue_noradtorad_Eelecinit_fraction",
+              "radiative + non-radiative ev passing the CC#nu_{e} Selection (total weights)/non-radiative ev passing the CC#nu_{e} Selection (oscillation weights);E_{e_{init}} [MeV];ratio",
+              kBlue , 2, 1);           
   
   f_op->Write();
   f_op->Close();
