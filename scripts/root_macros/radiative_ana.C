@@ -3814,8 +3814,8 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
   TFile * f_mw = new TFile(mix_file.c_str(), "READ");  
   TTree *tr_mw = (TTree*)f_mw->Get("h1");
 
-  double global_wrad_corr = calc_global_prob_corr_fact(tr_mw, MUON);
-  std::cout<<"global radiative weight correction factor = " << global_wrad_corr <<std::endl;  
+  //double global_wrad_corr = calc_global_prob_corr_fact(tr_mw, MUON);
+  //std::cout<<"global radiative weight correction factor = " << global_wrad_corr <<std::endl;  
   // the calc_global_prob_corr_fact calls the set_tree_address to a local variable we have to recall the set_tree_address here 
   t2k_sk_radiative ana_struct;
   set_tree_addresses(tr_mw, ana_struct, true);
@@ -3872,9 +3872,12 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
       }else{
         // radiative contribution
         lep_en =  calc_lep_energy(ana_struct, MUON) + ana_struct.g_mom;
-
-        h_passccnumu_radcont_Enu_totw->Fill(nu_en_corr, ana_struct.w_osc * ana_struct.w_rad * global_wrad_corr);
-        h_passccnumu_radcont_Emuinit_totw->Fill(lep_en, ana_struct.w_osc * ana_struct.w_rad* global_wrad_corr); 
+        //Kevin's method to correct for sampling a single photon at a specific ELECTRON energy
+        //define the thrown weight 
+        double w_thr_k = 1.0/( std::max(static_cast<const float>(lep_en), MU_MASS+gamma_en_cutoff) - MU_MASS);
+        double w_rad_k = ana_struct.w_rad/w_thr_k;
+        h_passccnumu_radcont_Enu_totw->Fill(nu_en_corr, ana_struct.w_osc *w_rad_k);
+        h_passccnumu_radcont_Emuinit_totw->Fill(lep_en, ana_struct.w_osc * w_rad_k); 
       }// radiative          
     }// pass ccnumu selection
   }// tree entry
@@ -3897,12 +3900,12 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
   TH1D*  h_passccnumu_noradtorad_Emuinit_fraction = (TH1D*)h_passccnumu_norad_Emu_oscw->Clone("h_passccnumu_noradtorad_Emuinit_fraction");
   h_passccnumu_noradtorad_Emuinit_fraction->Divide(h_passccnumu_radcont_Emuinit_totw, h_passccnumu_norad_Emu_oscw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
 
-  TF1* enu_func = new TF1("enu_func", "pol3(0)", min_mu_en, max_mu_en);
+  TF1* enu_func = new TF1("enu_func", "pol2(0)", min_mu_en, max_mu_en);
   // initialize the fit parameters
-  enu_func->SetParameters(1.0, 0.0, 0.0, 0.0, 0.0);
-  TF1* emu_func = new TF1("emu_func", "pol3(0)", min_mu_en, max_mu_en);
+  enu_func->SetParameters(1.0, 0.0, 0.0, 0.0);
+  TF1* emu_func = new TF1("emu_func", "pol2(0)", min_mu_en, max_mu_en);
   // initialize the fit parameters
-  emu_func->SetParameters(1.0, 0.0, 0.0, 0.0, 0.0);
+  emu_func->SetParameters(1.0, 0.0, 0.0, 0.0);
 
   h_passccnumu_noradtorad_Enu_fraction->Fit("enu_func", "W", "", min_mu_en, max_mu_en );
   h_passccnumu_noradtorad_Emuinit_fraction->Fit("emu_func", "W", "", min_mu_en, max_mu_en );
@@ -3934,8 +3937,8 @@ void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
   TFile * f_mw = new TFile(mix_file.c_str(), "READ");  
   TTree *tr_mw = (TTree*)f_mw->Get("h1");
 
-  double global_wrad_corr = calc_global_prob_corr_fact(tr_mw, ELECTRON);
-  std::cout<<"global radiative weight correction factor = " << global_wrad_corr <<std::endl;  
+  //double global_wrad_corr = calc_global_prob_corr_fact(tr_mw, ELECTRON);
+  //std::cout<<"global radiative weight correction factor = " << global_wrad_corr <<std::endl;  
   // the calc_global_prob_corr_fact calls the set_tree_address to a local variable we have to recall the set_tree_address here 
   t2k_sk_radiative ana_struct;
   set_tree_addresses(tr_mw, ana_struct, true);
@@ -3947,7 +3950,7 @@ void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
   // number of neutrino events < 100 MeV is tiny and division can create problems, set the min to 150 MeV
   min_elec_en = 150;
   // there is also a cut on the max reconstructed neutrino energy to be < 1250 MeV
-  double max_nu_en = 1250;   
+  double max_nu_en = 1200;   
   // Events failing the CCnumu selection just because they have emitted a photon (become radiative)
   // mom and enregy histograms starts from 200 MeV as we have a mom cut on the mu candiate < 200 MeV
   //TH2D* h2d_failccnumu_radcont_pmuthetamug_now = new TH2D("h2d_failccnumu_radcont_pmuthetamug_now", "h2d_failccnumu_radcont_pmuthetamug_now", 18, 200, 2000, 20, 0, 180);
@@ -3993,9 +3996,12 @@ void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
       }else{
         // radiative contribution
         lep_en =  calc_lep_energy(ana_struct, ELECTRON) + ana_struct.g_mom;
-
-        h_passccnue_radcont_Enu_totw->Fill(nu_en_corr, ana_struct.w_osc * ana_struct.w_rad * global_wrad_corr);
-        h_passccnue_radcont_Eelecinit_totw->Fill(lep_en, ana_struct.w_osc * ana_struct.w_rad* global_wrad_corr); 
+        //Kevin's method to correct for sampling a single photon at a specific ELECTRON energy
+        //define the thrown weight 
+        double w_thr_k = 1.0/( std::max(static_cast<const float>(lep_en), ELEC_MASS+gamma_en_cutoff) - ELEC_MASS);
+        double w_rad_k = ana_struct.w_rad/w_thr_k;
+        h_passccnue_radcont_Enu_totw->Fill(nu_en_corr, ana_struct.w_osc * w_rad_k);
+        h_passccnue_radcont_Eelecinit_totw->Fill(lep_en, ana_struct.w_osc * w_rad_k); 
       }// radiative          
     }// pass ccnumu selection
   }// tree entry
@@ -4020,12 +4026,12 @@ void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
 
  //TF1* enu_func = new TF1("enu_func", "pol1(0)+expo(2)", 200, 2000);
   
-  TF1* enu_func = new TF1("enu_func", "pol3(0)", min_elec_en, max_nu_en);
+  TF1* enu_func = new TF1("enu_func", "pol2(0)", min_elec_en, max_nu_en);
   // initialize the fit parameters
-  enu_func->SetParameters(1.0, 0.0, 0.0, 0.0, 0.0);
-  TF1* eelec_func = new TF1("eelec_func", "pol3(0)", min_elec_en, max_nu_en);
+  enu_func->SetParameters(1.0, 0.0, 0.0, 0.0);
+  TF1* eelec_func = new TF1("eelec_func", "pol2(0)", min_elec_en, max_nu_en);
   // initialize the fit parameters
-  eelec_func->SetParameters(1.0, 0.0, 0.0, 0.0, 0.0);
+  eelec_func->SetParameters(1.0, 0.0, 0.0, 0.0);
 
   h_passccnue_noradtorad_Enu_fraction->Fit("enu_func", "W", "", min_elec_en, max_nu_en );
   h_passccnue_noradtorad_Eelecinit_fraction->Fit("eelec_func", "W", "", min_elec_en, max_nu_en );

@@ -7,6 +7,7 @@
 #include <utility> //pair
 #include <math.h> //round
 // Root headers
+#include "TF1.h"
 #include <TFile.h>
 #include <TTree.h>
 #include <TCanvas.h>
@@ -20,7 +21,7 @@
 #include <TStyle.h>
 #include <TGraph.h>
 #include <TMath.h>
-#include "TF1.h"
+
 using namespace std;
 //============================================================================//
 // Types Declaration
