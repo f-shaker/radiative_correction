@@ -3810,6 +3810,7 @@ void check_elec_mixed_weights(std::string mix_file){
 //============================================================================//
 void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
 //============================================================================//
+  TH1::SetDefaultSumw2(kTRUE); 
   gStyle->SetOptFit(1111);
   TFile * f_mw = new TFile(mix_file.c_str(), "READ");  
   TTree *tr_mw = (TTree*)f_mw->Get("h1");
@@ -3894,21 +3895,21 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
  //          << " , non-radiative passing integral = " << h_passccnumu_norad_Enu_oscw ->Integral() << std::endl;
 
   // produce effeiency as a fraction instead of total number of events
-  TH1D*  h_passccnumu_noradtorad_Enu_fraction = (TH1D*)h_passccnumu_norad_Enu_oscw->Clone("h_passccnumu_noradtorad_Enu_fraction");
-  h_passccnumu_noradtorad_Enu_fraction->Divide(h_passccnumu_radcont_Enu_totw, h_passccnumu_norad_Enu_oscw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
+  TH1D*  h_passccnumu_noradtorad_Enu_fraction = (TH1D*)h_passccnumu_radcont_Enu_totw->Clone("h_passccnumu_noradtorad_Enu_fraction");
+  h_passccnumu_noradtorad_Enu_fraction->Divide(h_passccnumu_radcont_Enu_totw, h_passccnumu_norad_Enu_oscw, 1, 1, "B"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
 
-  TH1D*  h_passccnumu_noradtorad_Emuinit_fraction = (TH1D*)h_passccnumu_norad_Emu_oscw->Clone("h_passccnumu_noradtorad_Emuinit_fraction");
-  h_passccnumu_noradtorad_Emuinit_fraction->Divide(h_passccnumu_radcont_Emuinit_totw, h_passccnumu_norad_Emu_oscw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
+  TH1D*  h_passccnumu_noradtorad_Emuinit_fraction = (TH1D*)h_passccnumu_radcont_Emuinit_totw->Clone("h_passccnumu_noradtorad_Emuinit_fraction");
+  h_passccnumu_noradtorad_Emuinit_fraction->Divide(h_passccnumu_radcont_Emuinit_totw, h_passccnumu_norad_Emu_oscw, 1, 1, "B"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
 
-  TF1* enu_func = new TF1("enu_func", "pol2(0)", min_mu_en, max_mu_en);
+  TF1* enu_func = new TF1("enu_func", "pol1(0)", min_mu_en, max_mu_en);
   // initialize the fit parameters
-  enu_func->SetParameters(1.0, 0.0, 0.0, 0.0);
-  TF1* emu_func = new TF1("emu_func", "pol2(0)", min_mu_en, max_mu_en);
+  enu_func->SetParameters(1.0, 0.0);
+  TF1* emu_func = new TF1("emu_func", "pol1(0)", min_mu_en, max_mu_en);
   // initialize the fit parameters
-  emu_func->SetParameters(1.0, 0.0, 0.0, 0.0);
+  emu_func->SetParameters(1.0, 0.0);
 
-  h_passccnumu_noradtorad_Enu_fraction->Fit("enu_func", "W", "", min_mu_en, max_mu_en );
-  h_passccnumu_noradtorad_Emuinit_fraction->Fit("emu_func", "W", "", min_mu_en, max_mu_en );
+  h_passccnumu_noradtorad_Enu_fraction->Fit("enu_func", "WL", "", min_mu_en, max_mu_en );
+  h_passccnumu_noradtorad_Emuinit_fraction->Fit("emu_func", "WL", "", min_mu_en, max_mu_en );
   //std::cout<<"Debug: radiative failing fraction integral percentage = " <<  h_failccnumu_radcont_Enu_totw_fraction->Integral() * 100
   //         << std::endl;
   plot_hist1D(h_passccnumu_noradtorad_Enu_fraction,"h_passccnumu_noradtorad_Enu_fraction",
@@ -3932,6 +3933,7 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
 //============================================================================//
 void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
 //============================================================================//
+  TH1::SetDefaultSumw2(kTRUE); 	
   gStyle->SetOptFit(1111);
 
   TFile * f_mw = new TFile(mix_file.c_str(), "READ");  
@@ -4018,23 +4020,23 @@ void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
  //          << " , non-radiative passing integral = " << h_passccnumu_norad_Enu_oscw ->Integral() << std::endl;
 
   // produce effeiency as a fraction instead of total number of events
-  TH1D*  h_passccnue_noradtorad_Enu_fraction = (TH1D*)h_passccnue_norad_Enu_oscw->Clone("h_passccnue_noradtorad_Enu_fraction");
-  h_passccnue_noradtorad_Enu_fraction->Divide(h_passccnue_radcont_Enu_totw, h_passccnue_norad_Enu_oscw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
+  TH1D*  h_passccnue_noradtorad_Enu_fraction = (TH1D*)h_passccnue_radcont_Enu_totw->Clone("h_passccnue_noradtorad_Enu_fraction");
+  h_passccnue_noradtorad_Enu_fraction->Divide(h_passccnue_radcont_Enu_totw, h_passccnue_norad_Enu_oscw, 1, 1, "B"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
 
-  TH1D*  h_passccnue_noradtorad_Eelecinit_fraction = (TH1D*)h_passccnue_norad_Eelec_oscw->Clone("h_passccnue_noradtorad_Eelecinit_fraction");
-  h_passccnue_noradtorad_Eelecinit_fraction->Divide(h_passccnue_radcont_Eelecinit_totw, h_passccnue_norad_Eelec_oscw, 1, 1, "b(1,1) mode"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
+  TH1D*  h_passccnue_noradtorad_Eelecinit_fraction = (TH1D*)h_passccnue_radcont_Eelecinit_totw->Clone("h_passccnue_noradtorad_Eelecinit_fraction");
+  h_passccnue_noradtorad_Eelecinit_fraction->Divide(h_passccnue_radcont_Eelecinit_totw, h_passccnue_norad_Eelec_oscw, 1, 1, "B"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
 
  //TF1* enu_func = new TF1("enu_func", "pol1(0)+expo(2)", 200, 2000);
   
-  TF1* enu_func = new TF1("enu_func", "pol2(0)", min_elec_en, max_nu_en);
+  TF1* enu_func = new TF1("enu_func", "pol1(0)", min_elec_en, max_nu_en);
   // initialize the fit parameters
-  enu_func->SetParameters(1.0, 0.0, 0.0, 0.0);
-  TF1* eelec_func = new TF1("eelec_func", "pol2(0)", min_elec_en, max_nu_en);
+  enu_func->SetParameters(1.0, 0.0);
+  TF1* eelec_func = new TF1("eelec_func", "pol1(0)", min_elec_en, max_nu_en);
   // initialize the fit parameters
-  eelec_func->SetParameters(1.0, 0.0, 0.0, 0.0);
+  eelec_func->SetParameters(1.0, 0.0);
 
-  h_passccnue_noradtorad_Enu_fraction->Fit("enu_func", "W", "", min_elec_en, max_nu_en );
-  h_passccnue_noradtorad_Eelecinit_fraction->Fit("eelec_func", "W", "", min_elec_en, max_nu_en );
+  h_passccnue_noradtorad_Enu_fraction->Fit("enu_func", "WL", "", min_elec_en, max_nu_en );
+  h_passccnue_noradtorad_Eelecinit_fraction->Fit("eelec_func", "WL", "", min_elec_en, max_nu_en );
   //std::cout<<"Debug: radiative failing fraction integral percentage = " <<  h_failccnumu_radcont_Enu_totw_fraction->Integral() * 100
   //         << std::endl;
   plot_hist1D(h_passccnue_noradtorad_Enu_fraction,"h_passccnue_noradtorad_Enu_fraction",

@@ -8,6 +8,7 @@
 #include <math.h> //round
 // Root headers
 #include "TF1.h"
+//#include "TBinomialEfficiencyFitter.h" //cannot work with weighted histograms
 #include <TFile.h>
 #include <TTree.h>
 #include <TCanvas.h>
