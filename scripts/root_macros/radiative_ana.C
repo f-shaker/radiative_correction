@@ -3901,6 +3901,14 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
   TH1D*  h_passccnumu_noradtorad_Emuinit_fraction = (TH1D*)h_passccnumu_radcont_Emuinit_totw->Clone("h_passccnumu_noradtorad_Emuinit_fraction");
   h_passccnumu_noradtorad_Emuinit_fraction->Divide(h_passccnumu_radcont_Emuinit_totw, h_passccnumu_norad_Emu_oscw, 1, 1, "B"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
 
+  int enu_err_ok= calc_eff_errors(static_cast<const TH1D*>(h_passccnumu_radcont_Enu_totw),
+                                 static_cast<const TH1D*>(h_passccnumu_norad_Enu_oscw),
+                                 *h_passccnumu_noradtorad_Enu_fraction);
+  int emu_err_ok= calc_eff_errors(static_cast<const TH1D*>(h_passccnumu_radcont_Emuinit_totw),
+                                 static_cast<const TH1D*>(h_passccnumu_norad_Emu_oscw),
+                                 *h_passccnumu_noradtorad_Emuinit_fraction);                                 
+  std::cout<<"enu_err_ok = " << enu_err_ok << std::endl;   
+  std::cout<<"emu_err_ok = " << emu_err_ok << std::endl;                                 
   TF1* enu_func = new TF1("enu_func", "pol1(0)", min_mu_en, max_mu_en);
   // initialize the fit parameters
   enu_func->SetParameters(1.0, 0.0);
@@ -4027,7 +4035,15 @@ void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
   h_passccnue_noradtorad_Eelecinit_fraction->Divide(h_passccnue_radcont_Eelecinit_totw, h_passccnue_norad_Eelec_oscw, 1, 1, "B"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
 
  //TF1* enu_func = new TF1("enu_func", "pol1(0)+expo(2)", 200, 2000);
-  
+  int enu_err_ok= calc_eff_errors(static_cast<const TH1D*>(h_passccnue_radcont_Enu_totw),
+                                 static_cast<const TH1D*>(h_passccnue_norad_Enu_oscw),
+                                 *h_passccnue_noradtorad_Enu_fraction);
+  int emu_err_ok= calc_eff_errors(static_cast<const TH1D*>(h_passccnue_radcont_Eelecinit_totw),
+                                 static_cast<const TH1D*>(h_passccnue_norad_Eelec_oscw),
+                                 *h_passccnue_noradtorad_Eelecinit_fraction);                                 
+  std::cout<<"enu_err_ok = " << enu_err_ok << std::endl;   
+  std::cout<<"emu_err_ok = " << emu_err_ok << std::endl; 
+
   TF1* enu_func = new TF1("enu_func", "pol1(0)", min_elec_en, max_nu_en);
   // initialize the fit parameters
   enu_func->SetParameters(1.0, 0.0);
@@ -4056,6 +4072,31 @@ void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
   delete  h_failccnumu_radcont_Enu_totw;
   delete  h_passccnumu_norad_Enu_oscw;
   */
+}
+//============================================================================// 
+int calc_eff_errors(const TH1D* num, const TH1D* den, TH1D& ratio){
+//============================================================================// 
+  double nx = num->Integral();
+  double nt = den->Integral();
+  int ok = 1;
+
+  for(int i = 1; i < ratio.GetNbinsX()+1; i++){
+    double ri = ratio.GetBinContent(i);
+    double ti = den->GetBinContent(i);
+    //covariance diagonal element values check analytical calculation paper
+    double erri2 = (ri/ti) * (1-ri) - (ri*ri*((1.0/nx) - (1.0/nt)));
+    if(ri < 1.0 && erri2 > 0){
+      ratio.SetBinError(i, sqrt(erri2));
+    }else{
+      ratio.SetBinError(i, sqrt(ri));
+      ok = 0;
+    }
+    std::cout<<"bin " << i << " , err = " <<  ratio.GetBinError(i) << std::endl;
+  }
+  ratio.SetMaximum(1.0);
+  ratio.SetMinimum(0.9);  
+  return ok;
+
 }
 //============================================================================// 
 // Debbie's Method 

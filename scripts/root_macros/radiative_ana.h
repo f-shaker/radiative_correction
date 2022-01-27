@@ -350,5 +350,6 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file);
 void check_ccnue_event_loss_due_to_radiation(std::string mix_file);
 void check_ccnue_event_loss_due_to_radiation2(std::string mix_file);
 void load_flux_hist(TH1D* flux_numu_h, TH1D* flux_nue_h);
+int calc_eff_errors(const TH1D* num, const TH1D* den, TH1D& ratio);
 //============================================================================//
 #endif
