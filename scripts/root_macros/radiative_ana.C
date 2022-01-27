@@ -3908,13 +3908,21 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
                                  static_cast<const TH1D*>(h_passccnumu_norad_Emu_oscw),
                                  *h_passccnumu_noradtorad_Emuinit_fraction);                                 
   std::cout<<"enu_err_ok = " << enu_err_ok << std::endl;   
-  std::cout<<"emu_err_ok = " << emu_err_ok << std::endl;                                 
+  std::cout<<"emu_err_ok = " << emu_err_ok << std::endl;  
+
   TF1* enu_func = new TF1("enu_func", "pol1(0)", min_mu_en, max_mu_en);
   // initialize the fit parameters
   enu_func->SetParameters(1.0, 0.0);
   TF1* emu_func = new TF1("emu_func", "pol1(0)", min_mu_en, max_mu_en);
   // initialize the fit parameters
   emu_func->SetParameters(1.0, 0.0);
+
+  TF1* enu_func_const = new TF1("enu_func_const", "pol0(0)", min_mu_en, max_mu_en);
+  // initialize the fit parameters
+  enu_func_const->SetParameter(0, 1.0);
+  TF1* emu_func_const = new TF1("emu_func_const", "pol0(0)", min_mu_en, max_mu_en);
+  // initialize the fit parameters
+  emu_func_const->SetParameter(0, 1.0);
 
   h_passccnumu_noradtorad_Enu_fraction->Fit("enu_func", "WL", "", min_mu_en, max_mu_en );
   h_passccnumu_noradtorad_Emuinit_fraction->Fit("emu_func", "WL", "", min_mu_en, max_mu_en );
@@ -3927,6 +3935,17 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
               "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#mu_{init}} [MeV];ratio",
               kBlue , 2, 1);           
   
+  h_passccnumu_noradtorad_Enu_fraction->Fit("enu_func_const", "WL", "", min_mu_en, max_mu_en );
+  h_passccnumu_noradtorad_Emuinit_fraction->Fit("emu_func_const", "WL", "", min_mu_en, max_mu_en );
+  //std::cout<<"Debug: radiative failing fraction integral percentage = " <<  h_failccnumu_radcont_Enu_totw_fraction->Integral() * 100
+  //         << std::endl;
+  plot_hist1D(h_passccnumu_noradtorad_Enu_fraction,"h_passccnumu_noradtorad_Enu_fraction_const",
+              "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#nu} [MeV];ratio",
+              kBlue , 2, 1);           
+  plot_hist1D(h_passccnumu_noradtorad_Emuinit_fraction,"h_passccnumu_noradtorad_Emuinit_fraction_const",
+              "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#mu_{init}} [MeV];ratio",
+              kBlue , 2, 1); 
+
   f_op->Write();
   f_op->Close();
   // free allocated memory
@@ -4051,6 +4070,13 @@ void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
   // initialize the fit parameters
   eelec_func->SetParameters(1.0, 0.0);
 
+  TF1* enu_func_const = new TF1("enu_func_const", "pol0(0)", min_elec_en, max_nu_en);
+  // initialize the fit parameters
+  enu_func->SetParameter(0, 1.0);
+  TF1* eelec_func_const = new TF1("eelec_func_const", "pol0(0)", min_elec_en, max_nu_en);
+  // initialize the fit parameters
+  eelec_func->SetParameter(0, 1.0);
+
   h_passccnue_noradtorad_Enu_fraction->Fit("enu_func", "WL", "", min_elec_en, max_nu_en );
   h_passccnue_noradtorad_Eelecinit_fraction->Fit("eelec_func", "WL", "", min_elec_en, max_nu_en );
   //std::cout<<"Debug: radiative failing fraction integral percentage = " <<  h_failccnumu_radcont_Enu_totw_fraction->Integral() * 100
@@ -4062,6 +4088,17 @@ void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
               "radiative + non-radiative ev passing the CC#nu_{e} Selection (total weights)/non-radiative ev passing the CC#nu_{e} Selection (oscillation weights);E_{e_{init}} [MeV];ratio",
               kBlue , 2, 1);           
   
+  h_passccnue_noradtorad_Enu_fraction->Fit("enu_func_const", "WL", "", min_elec_en, max_nu_en );
+  h_passccnue_noradtorad_Eelecinit_fraction->Fit("eelec_func_const", "WL", "", min_elec_en, max_nu_en );
+  //std::cout<<"Debug: radiative failing fraction integral percentage = " <<  h_failccnumu_radcont_Enu_totw_fraction->Integral() * 100
+  //         << std::endl;
+  plot_hist1D(h_passccnue_noradtorad_Enu_fraction,"h_passccnue_noradtorad_Enu_fraction_const",
+              "radiative + non-radiative ev passing the CC#nu_{e} Selection (total weights)/non-radiative ev passing the CC#nu_{e} Selection (oscillation weights);E_{#nu} [MeV];ratio",
+              kBlue , 2, 1);           
+  plot_hist1D(h_passccnue_noradtorad_Eelecinit_fraction,"h_passccnue_noradtorad_Eelecinit_fraction_const",
+              "radiative + non-radiative ev passing the CC#nu_{e} Selection (total weights)/non-radiative ev passing the CC#nu_{e} Selection (oscillation weights);E_{e_{init}} [MeV];ratio",
+              kBlue , 2, 1);
+
   f_op->Write();
   f_op->Close();
   // free allocated memory
