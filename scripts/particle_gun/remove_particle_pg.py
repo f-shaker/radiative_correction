@@ -1,7 +1,7 @@
 #----------Parameters Definition---------------
-input_pg = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/elec/pg_elec_ginft180_5e4.txt'
-output_pg_fin = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/elec/pg_elec_ginft180_5e4_no_g_fin.txt'
-output_pg_init = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/elec/pg_elec_ginft180_5e4_no_g_init.txt'
+input_pg = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/eplus/pg_eplus_ginft180_5e4.txt'
+output_pg_fin = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/eplus/pg_eplus_ginft180_5e4_no_g_fin.txt'
+output_pg_init = '/home/fshaker/t2k/radiative-correction/analysis/temp_output/eplus/pg_eplus_init_5e4.txt'
 #------------------------------------------------------------------------------
 def remove_gamma_fin():
 #------------------------------------------------------------------------------
@@ -29,9 +29,15 @@ def remove_gamma_init(particle = 'mu-'):
     if particle == 'mu-':
         # muon particle
         str_lep = "$ track 13"
+    if particle == 'mu+':
+        # muon particle
+        str_lep = "$ track -13"        
     elif particle == 'e-':
         #electron particle
         str_lep = "$ track 11"
+    elif particle == 'e+':
+        #electron particle
+        str_lep = "$ track -11"        
     else:
         print('Please specify a valid lepton to calculate its initial energy before radiation and to remove the associated gamma')
         exit()
@@ -56,4 +62,4 @@ def remove_gamma_init(particle = 'mu-'):
 
 
 remove_gamma_fin()
-remove_gamma_init('e-')
+remove_gamma_init('e+')

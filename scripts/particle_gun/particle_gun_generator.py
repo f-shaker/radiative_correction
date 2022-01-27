@@ -31,8 +31,8 @@ MAX_GAMMA_OPENING_ANGLE = 180.0 #degree (0 to 180 degree)
 NB_SAMPLES = 50000# was 10000
 np.random.seed(20140489) # a 8-digits prime number
 #----------Parameters Definition END----------
-plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/elec/ginft180/"
-temp_output_dir = "/home/fshaker/t2k/radiative-correction/analysis/temp_output/elec/"
+plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/eplus/eplus_ginft180/"
+temp_output_dir = "/home/fshaker/t2k/radiative-correction/analysis/temp_output/eplus/"
 plot_extension=".png"
 #------------------------------------------------------------------------------
 #plotting functionality
@@ -421,9 +421,15 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_ki
     if particle == 'mu-':
         lep_pdg = mu_pdg
         lep_mass = MU_REST_MASS
+    elif particle == 'mu+':
+        lep_pdg = -1*mu_pdg
+        lep_mass = MU_REST_MASS
     elif particle == 'e-':
         lep_pdg = elec_pdg
         lep_mass = ELEC_REST_MASS
+    elif particle == 'e+':
+        lep_pdg = -1*elec_pdg
+        lep_mass = ELEC_REST_MASS        
     else:
         print('Please specify a valid lepton for the radiative process')
         exit()
@@ -496,6 +502,8 @@ def generate_radiative_corr_particle_gun(particle= 'mu-', nb_events=1, ip_lep_ki
         
 #------------------------------------------------------------------------------ 
 # Test generate_radiative_corr_particle_gun
-generate_radiative_corr_particle_gun(particle='e-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'elec_kinematics_vtx.txt' ,\
-                                     file_name=temp_output_dir+'pg_elec_ginft180_5e4.txt', plot_dist=True)
+#generate_radiative_corr_particle_gun(particle='e-', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'elec_kinematics_vtx.txt' ,\
+#                                     file_name=temp_output_dir+'pg_elec_ginft180_5e4.txt', plot_dist=True)
+generate_radiative_corr_particle_gun(particle='e+', nb_events=NB_SAMPLES, ip_lep_kinematics_file=temp_output_dir+'eplus_kinematics.txt' ,\
+                                     file_name=temp_output_dir+'pg_eplus_ginft180_5e4.txt', plot_dist=True)
 #test_gamma_dir()
