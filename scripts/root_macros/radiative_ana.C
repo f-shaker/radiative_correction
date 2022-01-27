@@ -1581,7 +1581,7 @@ ana_results_hists* analyze_1e(TTree* ana_tree, bool is_sim_gamma, bool is_weight
     fill_particle_kin(ana_struct);
     double event_weight = calculate_event_weight(is_weighted_file_comparison, is_sim_gamma, ana_struct, i_particle);  
     //event_weight = 1; // overwrite the event weight calculation for unoscillated and no radiative weights plots
-    nu_en = compute_nu_en_rec_CCQE_truth(ELECTRON, ana_struct, is_fill_gamma);
+    nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, is_fill_gamma);
 
     nb_before_cuts+= event_weight;      
     if(i_particle == MUON){
