@@ -860,6 +860,18 @@ void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt){
   canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),hist->GetName(),plot_ext.c_str()));
   delete canv;
 }
+//============================================================================//
+void plot_hist2D(TH2D* hist, std::string file_name, std::string title, std::string draw_opt){
+//============================================================================//
+  hist->SetTitle(title.c_str());
+  TCanvas * canv = new TCanvas(Form("canv_%s",hist->GetName()), Form("canv_%s",hist->GetName()), 1200, 800);   
+  canv->cd();
+  //hist->SetStats(0);
+  gStyle->SetPalette(kInvertedDarkBodyRadiator);// kDeepSea=51, kDarkBodyRadiator=53, kInvertedDarkBodyRadiator (better if I had higher stats)
+  hist->Draw(draw_opt.c_str());
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),file_name.c_str(),plot_ext.c_str()));
+  delete canv;
+}
 //============================================================================// 
 void plot_gr1D(TGraph* gr, std::string filename, std::string title, int marker_style, int marker_size, int marker_col, std::string draw_opt){
 //============================================================================//  
@@ -4135,6 +4147,142 @@ int calc_eff_errors(const TH1D* num, const TH1D* den, TH1D& ratio){
   return ok;
 
 }
+//============================================================================// 
+// Efficiency maps for Till (a separte code untill refactoring the original one)
+//============================================================================// 
+void eff_map(std::string ip_file_name, fq_particle i_particle, std::string op_file_name){
+//============================================================================// 
+  gStyle->SetOptStat("ne");
+  gStyle->SetPaintTextFormat("0.2f");
+  TFile * f_ip = new TFile(ip_file_name.c_str(), "READ");  
+  TTree * tr = (TTree*)f_ip->Get("h1");
+
+  t2k_sk_radiative ana_struct;
+  set_tree_addresses(tr, ana_struct, true);
+
+  double min_nu_en;
+  double max_nu_en;
+  std::string nu_type;
+  std::string nu_eff_plot_title;
+  std::string lep_type;
+  std::string lep_angle_eff_plot_title;
+  std::string cos_angle_eff_plot_title;  
+  std::string enu_lepangle_eff_plot_title;  
+  // function pointer
+  bool (*pass_selection_fn) (t2k_sk_radiative& rad_struct) = NULL;
+
+  if(i_particle == MUON){
+    min_nu_en = 250; // MeV needed to create a muon that will pass mom cut of 200 MeV, extra margin added to avoid very low statistics
+    max_nu_en = 2000; // MeV to avoid low statistics
+    nu_type = "numu";
+    lep_type = "mu";
+    pass_selection_fn = pass_ccqe_numu_sample;
+    nu_eff_plot_title = Form("CC#nu_{%s} Selection;E_{#nu_{%s}}[MeV];Efficiency", "#mu", "#mu");
+    lep_angle_eff_plot_title = Form("CC#nu_{%s} Selection;#theta_{beam-%s}[#circ];Efficiency", "#mu", "#mu");
+    cos_angle_eff_plot_title = Form("CC#nu_{%s} Selection;Cos(#theta_{beam-%s});Efficiency", "#mu", "#mu"); 
+    enu_lepangle_eff_plot_title = Form("CC#nu_{%s} Selection;E_{#nu_{%s}}[MeV];#theta_{beam-%s}[#circ]", "#mu", "#mu", "#mu");           
+  }else if(i_particle == ELECTRON){
+    min_nu_en = 150; // MeV needed to create an electron that will pass mom cut of 100 MeV, extra margin is added to avoid very low statistics
+    max_nu_en = 1200; // MeV Reco nu en cut < 1250 MeV and to avoid very low statistics
+    nu_type = "nue";
+    lep_type = "e";
+    pass_selection_fn = pass_1e_sample;
+    nu_eff_plot_title = Form("CC#nu_{%s} 1e Selection;E_{#nu_{%s}}[MeV];Efficiency", "e", "e");
+    lep_angle_eff_plot_title = Form("CC#nu_{%s} Selection;#theta_{beam-%s}[#circ];Efficiency", "e", "e"); 
+    cos_angle_eff_plot_title = Form("CC#nu_{%s} Selection;Cos(#theta_{beam-%s});Efficiency", "e", "e");
+    enu_lepangle_eff_plot_title = Form("CC#nu_{%s} Selection;E_{#nu_{%s}}[MeV];#theta_{beam-%s}[#circ]", "e", "e", "e");             
+  }
+  else{
+    std::cout<<"UNKNOWM particle to analyze! Please pass either ELECTRON or MUON" <<std::endl;
+    exit(-1);    
+  }
+
+  TFile * f_op = new TFile(op_file_name.c_str(), "RECREATE");
+  // neutrino energy
+  TH1D* enu_before_cuts = new TH1D(Form("en_%s_before_cuts", nu_type.c_str()), Form("en_%s_before_cuts", nu_type.c_str()), 100, min_nu_en, max_nu_en);
+  TH1D* enu_pass_allcuts = new TH1D(Form("en_%s_pass_allcuts", nu_type.c_str()), Form("en_%s_pass_allcuts", nu_type.c_str()), 100, min_nu_en, max_nu_en);  
+  TH1D* enu_eff = new TH1D(Form("en_%s_eff", nu_type.c_str()), Form("en_%s_eff", nu_type.c_str()), 100, min_nu_en, max_nu_en); 
+  // output lepton direction
+  TH1D* lep_angle_before_cuts = new TH1D(Form("theta_beam_%s_before_cuts", lep_type.c_str()), Form("theta_beam_%s_before_cuts", lep_type.c_str()), 100, 0, 180);
+  TH1D* lep_angle_pass_allcuts = new TH1D(Form("theta_beam_%s_pass_allcuts", lep_type.c_str()), Form("theta_beam_%s_pass_allcuts", lep_type.c_str()), 100, 0, 180);  
+  TH1D* lep_angle_eff = new TH1D(Form("theta_beam_%s_eff", lep_type.c_str()), Form("theta_beam_%s_eff", lep_type.c_str()), 100, 0, 180);   
+  
+  TH1D* cos_angle_before_cuts = new TH1D(Form("cos_theta_beam_%s_before_cuts", lep_type.c_str()), Form("cos_theta_beam_%s_before_cuts", lep_type.c_str()), 100, -1.0, 1.0);
+  TH1D* cos_angle_pass_allcuts = new TH1D(Form("cos_theta_beam_%s_pass_allcuts", lep_type.c_str()), Form("cos_theta_beam_%s_pass_allcuts", lep_type.c_str()), 100, -1.0, 1.0);  
+  TH1D* cos_angle_eff = new TH1D(Form("cos_theta_beam_%s_eff", lep_type.c_str()), Form("cos_theta_beam_%s_eff", lep_type.c_str()), 100, -1.0, 1.0);   
+  // 2D histograms
+  TH2D* enu_lepangle_before_cuts = new TH2D("enu_lepangle_before_cuts", "enu_lepangle_before_cuts", 100, min_nu_en, max_nu_en, 100, 0, 180); 
+  TH2D* enu_lepangle_after_cuts = new TH2D("enu_lepangle_after_cuts", "enu_lepangle_after_cuts", 100, min_nu_en, max_nu_en, 100, 0, 180); 
+  TH2D* enu_lepangle_eff = new TH2D("enu_lepangle_eff", "enu_lepangle_eff", 100, min_nu_en, max_nu_en, 100, 0, 180);      
+
+  TH2D* enu_lepangle_before_cuts_coarse = new TH2D("enu_lepangle_before_cuts", "enu_lepangle_before_cuts", 20, min_nu_en, max_nu_en, 10, 0, 180); 
+  TH2D* enu_lepangle_after_cuts_coarse = new TH2D("enu_lepangle_after_cuts", "enu_lepangle_after_cuts", 20, min_nu_en, max_nu_en, 10, 0, 180); 
+  TH2D* enu_lepangle_eff_coarse = new TH2D("enu_lepangle_eff", "enu_lepangle_eff", 20, min_nu_en, max_nu_en, 10, 0, 180); 
+
+  double nu_en;
+  double lep_dir[3];
+  double cos_beam_lep;
+  double angle_beam_lep;  
+  Long64_t nentries = tr->GetEntries();
+  // check who many events will be lost due to the radiative process
+  for (Long64_t i=0;i<nentries;i++){
+
+    tr->GetEntry(i);
+    //progress
+    print_perc(i, nentries, 10);
+    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions 
+    if(i_particle == MUON){   
+      lep_dir[0] = ana_struct.mu_dir[0];
+      lep_dir[1] = ana_struct.mu_dir[1];
+      lep_dir[2] = ana_struct.mu_dir[2];      
+    }else if(i_particle == ELECTRON){
+      lep_dir[0] = ana_struct.elec_dir[0];
+      lep_dir[1] = ana_struct.elec_dir[1];
+      lep_dir[2] = ana_struct.elec_dir[2];   
+    }else{
+      std::cout<<"Unknown Partilce!"<<std::endl;
+      std::exit(-1);
+    }
+    cos_beam_lep = lep_dir[0] * beamdir[0] + lep_dir[1] * beamdir[1] + lep_dir[2] * beamdir[2] ;
+    angle_beam_lep = TMath::ACos(cos_beam_lep) * 180.0 / TMath::Pi();      
+    nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, (bool)ana_struct.is_rad);
+    enu_before_cuts->Fill(nu_en, ana_struct.w_osc);
+    lep_angle_before_cuts->Fill(angle_beam_lep, ana_struct.w_osc);
+    cos_angle_before_cuts->Fill(cos_beam_lep, ana_struct.w_osc);
+    enu_lepangle_before_cuts->Fill(nu_en, angle_beam_lep, ana_struct.w_osc);
+    enu_lepangle_before_cuts_coarse->Fill(nu_en, angle_beam_lep, ana_struct.w_osc);
+    if(pass_selection_fn(ana_struct) == true){
+      enu_pass_allcuts->Fill(nu_en, ana_struct.w_osc);
+      lep_angle_pass_allcuts->Fill(angle_beam_lep, ana_struct.w_osc);
+      cos_angle_pass_allcuts->Fill(cos_beam_lep, ana_struct.w_osc);  
+      enu_lepangle_after_cuts->Fill(nu_en, angle_beam_lep, ana_struct.w_osc);  
+      enu_lepangle_after_cuts_coarse->Fill(nu_en, angle_beam_lep, ana_struct.w_osc);                
+    }           
+  }// tree entry
+  // create the efficency plots
+  // neutrino energy
+  enu_eff->Divide(enu_pass_allcuts, enu_before_cuts, 1, 1, "B"); 
+  plot_hist1D(enu_eff,Form("en_%s_eff", nu_type.c_str()), nu_eff_plot_title.c_str(), kBlue , 2, 1);
+  //lep direction
+  lep_angle_eff->Divide(lep_angle_pass_allcuts, lep_angle_before_cuts, 1, 1, "B"); 
+  plot_hist1D(lep_angle_eff,Form("angle_beam_%s_eff", lep_type.c_str()), lep_angle_eff_plot_title.c_str(), kBlue , 2, 1);
+
+  cos_angle_eff->Divide(cos_angle_pass_allcuts, cos_angle_before_cuts, 1, 1, "B"); 
+  plot_hist1D(cos_angle_eff,Form("cos_beam_%s_eff", lep_type.c_str()), cos_angle_eff_plot_title.c_str(), kBlue , 2, 1); 
+
+  enu_lepangle_eff->Divide(enu_lepangle_after_cuts, enu_lepangle_before_cuts, 1, 1, "B");
+  plot_hist2D(enu_lepangle_eff, Form("enu_%s_angle_eff", lep_type.c_str()), enu_lepangle_eff_plot_title.c_str(), "colz");
+  plot_hist2D(enu_lepangle_before_cuts, Form("enu_%s_angle_beforecuts", lep_type.c_str()), enu_lepangle_eff_plot_title.c_str(), "colz");
+  plot_hist2D(enu_lepangle_after_cuts, Form("enu_%s_angle_aftercuts", lep_type.c_str()), enu_lepangle_eff_plot_title.c_str(), "colz");  
+
+  enu_lepangle_eff_coarse->Divide(enu_lepangle_after_cuts_coarse, enu_lepangle_before_cuts_coarse, 1, 1, "B");
+  plot_hist2D(enu_lepangle_eff_coarse, Form("enu_%s_angle_eff_coarse", lep_type.c_str()), enu_lepangle_eff_plot_title.c_str(), "colz TEXT");
+  plot_hist2D(enu_lepangle_before_cuts_coarse, Form("enu_%s_angle_beforecuts_coarse", lep_type.c_str()), enu_lepangle_eff_plot_title.c_str(), "Colz");
+  plot_hist2D(enu_lepangle_after_cuts_coarse, Form("enu_%s_angle_aftercuts_coarse", lep_type.c_str()), enu_lepangle_eff_plot_title.c_str(), "colz");  
+  f_op->Write();
+  f_op->Close();
+}
+
 //============================================================================// 
 // Debbie's Method 
 #if 0

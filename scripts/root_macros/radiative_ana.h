@@ -238,6 +238,11 @@ typedef struct ana_results_hists{
   TH1D * g_frac_en_epi0_pid_fail_h;
   TH2D * g_mom_theta_2D_epi0_pid_pass_h;
   TH2D * g_mom_theta_2D_epi0_pid_fail_h; 
+  // Neutrino histograms
+  // passing all cuts
+  TH1D * en_nu_allcuts_h;
+  // initially simulated
+  TH1D * en_nu_sim_h;
   // Total Efficieny sliced in neutrino energy
   // 2D histograms: opening angle vs gamma energy for 3 different neutrino energy slices (enu1, enu2 and enu3)  => intervals = (0,400,700,inf)
   // passing all selection cuts  
@@ -300,6 +305,7 @@ void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, st
 void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title);
 void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string option, std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title, bool is_pdf=false);
 void plot_hist2D(TH2D* hist, std::string title, std::string draw_opt);
+void plot_hist2D(TH2D* hist,  std::string filename, std::string title, std::string draw_opt);
 void print_perc(size_t ientry, size_t total_entries, int perc_step);
 void prep_draw_superimposed_hist1D(TH1D* hist1, std::string draw_opt1, std::string hist1_legend,
                                    TH1D* hist2, std::string draw_opt2, std::string hist2_legend);
