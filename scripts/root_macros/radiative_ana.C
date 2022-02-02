@@ -1,12 +1,12 @@
 #include "radiative_ana.h"
 #include "radiative_ana_cfg.h"
 //============================================================================//
-void init_root_global_settings(){
+void init_root_global_settings(bool b_add_directory = false, bool b_sumw2 = true, std::string gstyle_optstat="i"){
 //============================================================================//
-  TH1::AddDirectory(kFALSE);
-  TH2::AddDirectory(kFALSE);
-  TH1::SetDefaultSumw2(kTRUE); 	
-  TH2::SetDefaultSumw2(kTRUE);
+  TH1::AddDirectory(b_add_directory);
+  TH2::AddDirectory(b_add_directory);
+  TH1::SetDefaultSumw2(b_sumw2); 	
+  TH2::SetDefaultSumw2(b_sumw2);
   /*
 k = 1;  kurtosis printed
 k = 2;  kurtosis and kurtosis error printed
@@ -23,7 +23,7 @@ e = 1;  number of entries printed
 n = 1;  name of histogram is printed
   */
   //gStyle->SetOptStat("emruoi");
-  gStyle->SetOptStat("i");
+  gStyle->SetOptStat(gstyle_optstat.c_str());
  // gStyle->SetTitleSize(0.1,"x");	
 /*
 // Set stat options
@@ -3972,6 +3972,7 @@ void check_ccnumu_event_loss_due_to_radiation2(std::string mix_file){
 //============================================================================//
 void check_ccnue_event_loss_due_to_radiation2(std::string mix_file){
 //============================================================================//
+
   TH1::SetDefaultSumw2(kTRUE); 	
   gStyle->SetOptFit(1111);
 
@@ -4152,7 +4153,7 @@ int calc_eff_errors(const TH1D* num, const TH1D* den, TH1D& ratio){
 //============================================================================// 
 void eff_map(std::string ip_file_name, fq_particle i_particle, std::string op_file_name){
 //============================================================================// 
-  gStyle->SetOptStat("ne");
+  init_root_global_settings(true, true, "ne");
   gStyle->SetPaintTextFormat("0.2f");
   TFile * f_ip = new TFile(ip_file_name.c_str(), "READ");  
   TTree * tr = (TTree*)f_ip->Get("h1");
@@ -4286,7 +4287,8 @@ void eff_map(std::string ip_file_name, fq_particle i_particle, std::string op_fi
 //============================================================================// 
 void check_migration(std::string ip_file_name){
 //============================================================================// 
-  gStyle->SetOptStat("neimr");
+  init_root_global_settings(false, true, "neimr");
+
   TFile * f_ip = new TFile(ip_file_name.c_str(), "READ");  
   TTree * tr = (TTree*)f_ip->Get("h1");
 
@@ -4296,7 +4298,7 @@ void check_migration(std::string ip_file_name){
   // neutrino energy
   TH1D* enu_no_w = new TH1D("enu_no_w", "enu_no_w", 100, 0, 2000);
   TH1D* enu_osc_w = new TH1D("enu_osc_w", "enu_osc_w", 100, 0, 2000);
-  TH1D* enu_rad_w = new TH1D("enu_rad_now", "enu_rad_now", 100, 0, 2000);
+  TH1D* enu_rad_w = new TH1D("enu_rad_w", "enu_rad_w", 100, 0, 2000);
   TH1D* enu_tot_w = new TH1D("enu_tot_w", "enu_tot_w", 100, 0, 2000);      
 
   double nu_en;
@@ -4313,7 +4315,7 @@ void check_migration(std::string ip_file_name){
       double init_mu_en =  calc_lep_energy(ana_struct, MUON) + ana_struct.g_mom;
       double w_thr_k = 1.0/( TMath::Max(init_mu_en, static_cast<double>(MU_MASS+gamma_en_cutoff) ) - MU_MASS);
       double w_rad_k = ana_struct.w_rad/w_thr_k;            
-      enu_no_w->Fill(nu_en, 1.0);
+      enu_no_w->Fill(nu_en);
       enu_osc_w->Fill(nu_en, ana_struct.w_osc);
       enu_rad_w->Fill(nu_en, w_rad_k);
       enu_tot_w->Fill(nu_en, ana_struct.w_osc * w_rad_k);

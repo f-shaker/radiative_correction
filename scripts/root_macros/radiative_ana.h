@@ -346,7 +346,7 @@ void check_elec_mixed_weights(std::string mix_file);
 float compute_nu_en_rec_CCQE_truth(fq_particle i_particle, t2k_sk_radiative& rad_struct, bool is_radiative);
 double calc_global_prob_corr_fact(TTree* mix_tree, fq_particle i_particle);
 float calc_lep_energy(t2k_sk_radiative& ana_struct, fq_particle i_particle);
-void init_root_global_settings(void);
+void init_root_global_settings(bool add_directory, bool sumw2, std::string gstyle_optstat);
 void radiative_ana(fq_particle i_particle);
 void analyze_nue(TTree* tr_rad_elec, TTree* tr_norad_elec);
 void analyze_numu(TTree* tr_rad_mu, TTree* tr_norad_mu);
