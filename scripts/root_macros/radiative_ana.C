@@ -4284,6 +4284,49 @@ void eff_map(std::string ip_file_name, fq_particle i_particle, std::string op_fi
 }
 
 //============================================================================// 
+void check_migration(std::string ip_file_name){
+//============================================================================// 
+  gStyle->SetOptStat("neimr");
+  TFile * f_ip = new TFile(ip_file_name.c_str(), "READ");  
+  TTree * tr = (TTree*)f_ip->Get("h1");
+
+  t2k_sk_radiative ana_struct;
+  set_tree_addresses(tr, ana_struct, true);
+
+  // neutrino energy
+  TH1D* enu_no_w = new TH1D("enu_no_w", "enu_no_w", 100, 0, 2000);
+  TH1D* enu_osc_w = new TH1D("enu_osc_w", "enu_osc_w", 100, 0, 2000);
+  TH1D* enu_rad_w = new TH1D("enu_rad_now", "enu_rad_now", 100, 0, 2000);
+  TH1D* enu_tot_w = new TH1D("enu_tot_w", "enu_tot_w", 100, 0, 2000);      
+
+  double nu_en;
+
+  Long64_t nentries = tr->GetEntries();
+  // check who many events will be lost due to the radiative process
+  for (Long64_t i=0;i<nentries;i++){
+
+    tr->GetEntry(i);
+    //progress
+    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions     
+    if(pass_1e1de_sample(ana_struct) == true){
+      nu_en = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, (bool)ana_struct.is_rad);
+      double init_mu_en =  calc_lep_energy(ana_struct, MUON) + ana_struct.g_mom;
+      double w_thr_k = 1.0/( TMath::Max(init_mu_en, static_cast<double>(MU_MASS+gamma_en_cutoff) ) - MU_MASS);
+      double w_rad_k = ana_struct.w_rad/w_thr_k;            
+      enu_no_w->Fill(nu_en, 1.0);
+      enu_osc_w->Fill(nu_en, ana_struct.w_osc);
+      enu_rad_w->Fill(nu_en, w_rad_k);
+      enu_tot_w->Fill(nu_en, ana_struct.w_osc * w_rad_k);
+    }           
+  }// tree entry
+  // neutrino energy
+  plot_hist1D(enu_no_w,"mu_e1de_enu_no_w", "mu_e1de_enu_no_w; E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_osc_w,"mu_e1de_enu_osc_w", "mu_e1de_enu_osc_w; E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_rad_w,"mu_e1de_enu_rad_w", "mu_e1de_enu_rad_w; E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_tot_w,"mu_e1de_enu_tot_w", "mu_e1de_enu_tot_w; E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+}
+
+//============================================================================// 
 // Debbie's Method 
 #if 0
   // Debbies histograms
