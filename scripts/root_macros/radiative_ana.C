@@ -4301,6 +4301,18 @@ void check_migration(std::string ip_file_name){
   TH1D* enu_true_osc_w = new TH1D("enu_true_osc_w", "enu_true_osc_w", 100, 0, 2000);
   TH1D* enu_true_rad_w = new TH1D("enu_true_rad_w", "enu_true_rad_w", 100, 0, 2000);
   TH1D* enu_true_tot_w = new TH1D("enu_true_tot_w", "enu_true_tot_w", 100, 0, 2000);     
+  //checking radiative and non radiative contribution
+  // motivation strange large error bars => assumption due to the tiny non-radiative contribution to the migration
+  TH1D* enu_true_radcont_no_w = new TH1D("enu_true_radcont_no_w", "enu_true_radcont_no_w", 100, 0, 2000);
+  TH1D* enu_true_radcont_osc_w = new TH1D("enu_true_radcont_osc_w", "enu_true_radcont_osc_w", 100, 0, 2000);
+  TH1D* enu_true_radcont_rad_w = new TH1D("enu_true_radcont_rad_w", "enu_true_radcont_rad_w", 100, 0, 2000);
+  TH1D* enu_true_radcont_tot_w = new TH1D("enu_true_radcont_tot_w", "enu_true_radcont_tot_w", 100, 0, 2000);   
+
+  TH1D* enu_true_noradcont_no_w = new TH1D("enu_true_noradcont_no_w", "enu_true_noradcont_no_w", 100, 0, 2000);
+  TH1D* enu_true_noradcont_osc_w = new TH1D("enu_true_noradcont_osc_w", "enu_true_noradcont_osc_w", 100, 0, 2000);
+  TH1D* enu_true_noradcont_rad_w = new TH1D("enu_true_noradcont_rad_w", "enu_true_noradcont_rad_w", 100, 0, 2000);
+  TH1D* enu_true_noradcont_tot_w = new TH1D("enu_true_noradcont_tot_w", "enu_true_noradcont_tot_w", 100, 0, 2000);   
+
   //Reconstructed neutrino energy
   // calculated using the CCQE formula for the reconstructed fitqun ring properties
   // (migration = under the wrong hypothesis of being an electron ring)
@@ -4337,11 +4349,19 @@ void check_migration(std::string ip_file_name){
       if(ana_struct.is_rad == 0){
         // non radiative entry, do not apply the correction factor
         w_rad = ana_struct.w_rad;
+        enu_true_noradcont_no_w->Fill(nu_en_truth);
+        enu_true_noradcont_osc_w->Fill(nu_en_truth, ana_struct.w_osc);      
+        enu_true_noradcont_rad_w->Fill(nu_en_truth, w_rad);
+        enu_true_noradcont_tot_w->Fill(nu_en_truth, ana_struct.w_osc * w_rad);        
       }else{
         // radiative entry, we MUST apply the weight correction factor
         double w_thr_k = 1.0/( TMath::Max(init_mu_en, static_cast<double>(MU_MASS+gamma_en_cutoff) ) - MU_MASS);      
         double w_rad_k = ana_struct.w_rad/w_thr_k;        
         w_rad = w_rad_k;
+        enu_true_radcont_no_w->Fill(nu_en_truth);
+        enu_true_radcont_osc_w->Fill(nu_en_truth, ana_struct.w_osc);      
+        enu_true_radcont_rad_w->Fill(nu_en_truth, w_rad);
+        enu_true_radcont_tot_w->Fill(nu_en_truth, ana_struct.w_osc * w_rad);               
       }            
       enu_true_no_w->Fill(nu_en_truth);
       enu_true_osc_w->Fill(nu_en_truth, ana_struct.w_osc);      
@@ -4365,12 +4385,23 @@ void check_migration(std::string ip_file_name){
   plot_hist1D(enu_true_osc_w,"mu_e1de_enu_true_osc_w", "Muons Migrating to 1e1de Selection (oscillation weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
   plot_hist1D(enu_true_rad_w,"mu_e1de_enu_true_rad_w", "Muons Migrating to 1e1de Selection (rad/no rad weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
   plot_hist1D(enu_true_tot_w,"mu_e1de_enu_true_tot_w", "Muons Migrating to 1e1de Selection (oscillation * radiation(non-radiation) weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+
+  plot_hist1D(enu_true_noradcont_no_w,"mu_e1de_enu_true_noradcont_no_w", "Muons Migrating to 1e1de Selection non-radiative contribution (no weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_true_noradcont_osc_w,"mu_e1de_enu_true_noradcont_osc_w", "Muons Migrating to 1e1de Selection non-radiative contribution (oscillation weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_true_noradcont_rad_w,"mu_e1de_enu_true_noradcont_rad_w", "Muons Migrating to 1e1de Selection non-radiative contribution (non-radiative weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_true_noradcont_tot_w,"mu_e1de_enu_true_noradcont_tot_w", "Muons Migrating to 1e1de Selection non-radiative contribution (oscillation * non-radiation weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+
+  plot_hist1D(enu_true_radcont_no_w,"mu_e1de_enu_true_radcont_no_w", "Muons Migrating to 1e1de Selection radiative contribution (no weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_true_radcont_osc_w,"mu_e1de_enu_true_radcont_osc_w", "Muons Migrating to 1e1de Selection radiative contribution (oscillation weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_true_radcont_rad_w,"mu_e1de_enu_true_radcont_rad_w", "Muons Migrating to 1e1de Selection radiative contribution (radiative weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_true_radcont_tot_w,"mu_e1de_enu_true_radcont_tot_w", "Muons Migrating to 1e1de Selection radiative contribution (oscillation * radiation weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+
   // wrongly reconstructed neutrino energy
   plot_hist1D(enu_rec_no_w,"mu_e1de_enu_rec_no_w", "Muons Migrating to 1e1de Selection (no weights); reco E_{#nu_{e}}[MeV];count", kBlue , 2, 1); 
   plot_hist1D(enu_rec_osc_w,"mu_e1de_enu_rec_osc_w", "Muons Migrating to 1e1de Selection (oscillation weights); reco E_{#nu_{e}}[MeV];count", kBlue , 2, 1); 
   plot_hist1D(enu_rec_rad_w,"mu_e1de_enu_rec_rad_w", "Muons Migrating to 1e1de Selection (rad/no rad weights); reco E_{#nu_{e}}[MeV];count", kBlue , 2, 1); 
   plot_hist1D(enu_rec_tot_w,"mu_e1de_enu_rec_tot_w", "Muons Migrating to 1e1de Selection (oscillation * radiation(non-radiation) weights); reco E_{#nu_{e}}[MeV];count", kBlue , 2, 1); 
-
+  // muon 
   plot_hist1D(emu_no_w,"mu_e1de_emu_no_w", "Muons Migrating to 1e1de Selection (no weights); E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
   plot_hist1D(emu_osc_w,"mu_e1de_emu_osc_w", "Muons Migrating to 1e1de Selection (oscillation weights); E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
   plot_hist1D(emu_rad_w,"mu_e1de_emu_rad_w", "Muons Migrating to 1e1de Selection (rad/no rad weights); E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
