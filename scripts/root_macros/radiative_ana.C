@@ -4295,11 +4295,19 @@ void check_migration(std::string ip_file_name){
   t2k_sk_radiative ana_struct;
   set_tree_addresses(tr, ana_struct, true);
 
-  // neutrino energy
-  TH1D* enu_no_w = new TH1D("enu_no_w", "enu_no_w", 100, 0, 2000);
-  TH1D* enu_osc_w = new TH1D("enu_osc_w", "enu_osc_w", 100, 0, 2000);
-  TH1D* enu_rad_w = new TH1D("enu_rad_w", "enu_rad_w", 100, 0, 2000);
-  TH1D* enu_tot_w = new TH1D("enu_tot_w", "enu_tot_w", 100, 0, 2000);      
+  // Truth neutrino energy
+  // calculated using the CCQE formula for the true particle (MUON) and true kinematics
+  TH1D* enu_true_no_w = new TH1D("enu_true_no_w", "enu_true_no_w", 100, 0, 2000);
+  TH1D* enu_true_osc_w = new TH1D("enu_true_osc_w", "enu_true_osc_w", 100, 0, 2000);
+  TH1D* enu_true_rad_w = new TH1D("enu_true_rad_w", "enu_true_rad_w", 100, 0, 2000);
+  TH1D* enu_true_tot_w = new TH1D("enu_true_tot_w", "enu_true_tot_w", 100, 0, 2000);     
+  //Reconstructed neutrino energy
+  // calculated using the CCQE formula for the reconstructed fitqun ring properties
+  // (migration = under the wrong hypothesis of being an electron ring)
+  TH1D* enu_rec_no_w = new TH1D("enu_rec_no_w", "enu_rec_no_w", 100, 0, 2000);
+  TH1D* enu_rec_osc_w = new TH1D("enu_rec_osc_w", "enu_rec_osc_w", 100, 0, 2000);
+  TH1D* enu_rec_rad_w = new TH1D("enu_rec_rad_w", "enu_rec_rad_w", 100, 0, 2000);
+  TH1D* enu_rec_tot_w = new TH1D("enu_rec_tot_w", "enu_rec_tot_w", 100, 0, 2000);     
   // muon energy
   TH1D* emu_no_w = new TH1D("emu_no_w", "emu_no_w", 100, 0, 2000);
   TH1D* emu_osc_w = new TH1D("emu_osc_w", "emu_osc_w", 100, 0, 2000);
@@ -4307,7 +4315,8 @@ void check_migration(std::string ip_file_name){
   TH1D* emu_tot_w = new TH1D("emu_tot_w", "emu_tot_w", 100, 0, 2000);      
 
 
-  double nu_en;
+  double nu_en_truth;
+  double nu_en_rec;
 
   Long64_t nentries = tr->GetEntries();
   // check who many events will be lost due to the radiative process
@@ -4318,7 +4327,9 @@ void check_migration(std::string ip_file_name){
     fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
     double w_rad = 0;     
     if(pass_1e1de_sample(ana_struct) == true){
-      nu_en = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, (bool)ana_struct.is_rad);
+      nu_en_truth = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, (bool)ana_struct.is_rad);
+      // the reconstructed energy of the 1e1de selection will be under the assumption of an eLectron ring 
+      nu_en_rec = compute_nu_en_rec_RES(0, ELECTRON, ana_struct);
       double mu_en =  calc_lep_energy(ana_struct, MUON);      
       double init_mu_en =  calc_lep_energy(ana_struct, MUON) + ana_struct.g_mom;
 
@@ -4332,10 +4343,16 @@ void check_migration(std::string ip_file_name){
         double w_rad_k = ana_struct.w_rad/w_thr_k;        
         w_rad = w_rad_k;
       }            
-      enu_no_w->Fill(nu_en);
-      enu_osc_w->Fill(nu_en, ana_struct.w_osc);      
-      enu_rad_w->Fill(nu_en, w_rad);
-      enu_tot_w->Fill(nu_en, ana_struct.w_osc * w_rad);
+      enu_true_no_w->Fill(nu_en_truth);
+      enu_true_osc_w->Fill(nu_en_truth, ana_struct.w_osc);      
+      enu_true_rad_w->Fill(nu_en_truth, w_rad);
+      enu_true_tot_w->Fill(nu_en_truth, ana_struct.w_osc * w_rad);
+      // note: the oscillation and radiative weights fo the wrongly reconstructed electron rings where calculated from the correct
+      // particle type (muon) and correct oscillation weights based on the correct numu energy
+      enu_rec_no_w->Fill(nu_en_rec);
+      enu_rec_osc_w->Fill(nu_en_rec, ana_struct.w_osc);      
+      enu_rec_rad_w->Fill(nu_en_rec, w_rad);
+      enu_rec_tot_w->Fill(nu_en_rec, ana_struct.w_osc * w_rad);
 
       emu_no_w->Fill(init_mu_en);
       emu_osc_w->Fill(init_mu_en, ana_struct.w_osc);
@@ -4343,16 +4360,21 @@ void check_migration(std::string ip_file_name){
       emu_tot_w->Fill(init_mu_en, ana_struct.w_osc * w_rad);
     }           
   }// tree entry
-  // neutrino energy
-  plot_hist1D(enu_no_w,"mu_e1de_enu_no_w", "mu_e1de_enu_no_w; E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
-  plot_hist1D(enu_osc_w,"mu_e1de_enu_osc_w", "mu_e1de_enu_osc_w; E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
-  plot_hist1D(enu_rad_w,"mu_e1de_enu_rad_w", "mu_e1de_enu_rad_w; E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
-  plot_hist1D(enu_tot_w,"mu_e1de_enu_tot_w", "mu_e1de_enu_tot_w; E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  // truth neutrino energy
+  plot_hist1D(enu_true_no_w,"mu_e1de_enu_true_no_w", "Muons Migrating to 1e1de Selection (no weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_true_osc_w,"mu_e1de_enu_true_osc_w", "Muons Migrating to 1e1de Selection (oscillation weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_true_rad_w,"mu_e1de_enu_true_rad_w", "Muons Migrating to 1e1de Selection (rad/no rad weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_true_tot_w,"mu_e1de_enu_true_tot_w", "Muons Migrating to 1e1de Selection (oscillation * radiation(non-radiation) weights); E_{#nu_{#mu}}[MeV];count", kBlue , 2, 1); 
+  // wrongly reconstructed neutrino energy
+  plot_hist1D(enu_rec_no_w,"mu_e1de_enu_rec_no_w", "Muons Migrating to 1e1de Selection (no weights); reco E_{#nu_{e}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_rec_osc_w,"mu_e1de_enu_rec_osc_w", "Muons Migrating to 1e1de Selection (oscillation weights); reco E_{#nu_{e}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_rec_rad_w,"mu_e1de_enu_rec_rad_w", "Muons Migrating to 1e1de Selection (rad/no rad weights); reco E_{#nu_{e}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_rec_tot_w,"mu_e1de_enu_rec_tot_w", "Muons Migrating to 1e1de Selection (oscillation * radiation(non-radiation) weights); reco E_{#nu_{e}}[MeV];count", kBlue , 2, 1); 
 
-  plot_hist1D(emu_no_w,"mu_e1de_emu_no_w", "mu_e1de_emu_no_w; E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
-  plot_hist1D(emu_osc_w,"mu_e1de_emu_osc_w", "mu_e1de_emu_osc_w; E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
-  plot_hist1D(emu_rad_w,"mu_e1de_emu_rad_w", "mu_e1de_emu_rad_w; E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
-  plot_hist1D(emu_tot_w,"mu_e1de_emu_tot_w", "mu_e1de_emu_tot_w; E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(emu_no_w,"mu_e1de_emu_no_w", "Muons Migrating to 1e1de Selection (no weights); E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(emu_osc_w,"mu_e1de_emu_osc_w", "Muons Migrating to 1e1de Selection (oscillation weights); E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(emu_rad_w,"mu_e1de_emu_rad_w", "Muons Migrating to 1e1de Selection (rad/no rad weights); E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(emu_tot_w,"mu_e1de_emu_tot_w", "Muons Migrating to 1e1de Selection (oscillation * radiation(non-radiation) weights); E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
 }
 
 //============================================================================// 

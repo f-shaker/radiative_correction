@@ -18,7 +18,7 @@ const std::string lep_initialkin_file = "/home/fshaker/t2k/radiative-correction/
 //const std::string lep_finalkin_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/elec_no_g_fin.root";// 1e4 ev
 //const std::string mu_g_weighted_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted.root";
 //const std::string plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_g_weighted/";
-const std::string plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/mu/feb02/";
+const std::string plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/mu/feb04/";
 //const std::string plot_dir = "/home/fshaker/t2k/radiative-correction/analysis/plots/elec/test/";
 const std::string plot_ext = ".eps";
 //==============================================================================
