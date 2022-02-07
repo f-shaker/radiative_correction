@@ -4319,7 +4319,11 @@ void check_migration(std::string ip_file_name){
   TH1D* enu_rec_no_w = new TH1D("enu_rec_no_w", "enu_rec_no_w", 100, 0, 2000);
   TH1D* enu_rec_osc_w = new TH1D("enu_rec_osc_w", "enu_rec_osc_w", 100, 0, 2000);
   TH1D* enu_rec_rad_w = new TH1D("enu_rec_rad_w", "enu_rec_rad_w", 100, 0, 2000);
-  TH1D* enu_rec_tot_w = new TH1D("enu_rec_tot_w", "enu_rec_tot_w", 100, 0, 2000);     
+  TH1D* enu_rec_tot_w = new TH1D("enu_rec_tot_w", "enu_rec_tot_w", 100, 0, 2000); 
+  // The error bars on the rec enu at some places are higher than usual.
+  // This is coming from non-radiative events with very low stats passing the selection but with higher weights
+  // (non-radiative weights >> radiative weights) also these events happened to be away from the oscillation minima
+  TH1D* enu_rec_radcont_tot_w = new TH1D("enu_rec_radcont_tot_w", "enu_rec_radcont_tot_w", 100, 0, 2000);     
   // muon energy
   TH1D* emu_no_w = new TH1D("emu_no_w", "emu_no_w", 100, 0, 2000);
   TH1D* emu_osc_w = new TH1D("emu_osc_w", "emu_osc_w", 100, 0, 2000);
@@ -4361,7 +4365,9 @@ void check_migration(std::string ip_file_name){
         enu_true_radcont_no_w->Fill(nu_en_truth);
         enu_true_radcont_osc_w->Fill(nu_en_truth, ana_struct.w_osc);      
         enu_true_radcont_rad_w->Fill(nu_en_truth, w_rad);
-        enu_true_radcont_tot_w->Fill(nu_en_truth, ana_struct.w_osc * w_rad);               
+        enu_true_radcont_tot_w->Fill(nu_en_truth, ana_struct.w_osc * w_rad); 
+        // rec nu energy for radiative contribution
+        enu_rec_radcont_tot_w->Fill(nu_en_rec, ana_struct.w_osc * w_rad);             
       }            
       enu_true_no_w->Fill(nu_en_truth);
       enu_true_osc_w->Fill(nu_en_truth, ana_struct.w_osc);      
@@ -4401,6 +4407,7 @@ void check_migration(std::string ip_file_name){
   plot_hist1D(enu_rec_osc_w,"mu_e1de_enu_rec_osc_w", "Muons Migrating to 1e1de Selection (oscillation weights); reco E_{#nu_{e}}[MeV];count", kBlue , 2, 1); 
   plot_hist1D(enu_rec_rad_w,"mu_e1de_enu_rec_rad_w", "Muons Migrating to 1e1de Selection (rad/no rad weights); reco E_{#nu_{e}}[MeV];count", kBlue , 2, 1); 
   plot_hist1D(enu_rec_tot_w,"mu_e1de_enu_rec_tot_w", "Muons Migrating to 1e1de Selection (oscillation * radiation(non-radiation) weights); reco E_{#nu_{e}}[MeV];count", kBlue , 2, 1); 
+  plot_hist1D(enu_rec_radcont_tot_w,"mu_e1de_enu_rec_radcont_tot_w", "Muons Migrating to 1e1de Selection Radiation Contribution (oscillation * radiation weights); reco E_{#nu_{e}}[MeV];count", kBlue , 2, 1); 
   // muon 
   plot_hist1D(emu_no_w,"mu_e1de_emu_no_w", "Muons Migrating to 1e1de Selection (no weights); E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
   plot_hist1D(emu_osc_w,"mu_e1de_emu_osc_w", "Muons Migrating to 1e1de Selection (oscillation weights); E_{#mu_{init}}[MeV];count", kBlue , 2, 1); 
@@ -4409,6 +4416,198 @@ void check_migration(std::string ip_file_name){
 }
 
 //============================================================================// 
+// JUST FOR DEBUGGING MUST BE REMOVED LATER ON.
+//============================================================================//
+void check_ccnumu_event_loss_due_to_radiation3(std::string mix_file){
+//============================================================================//
+  TH1::SetDefaultSumw2(kTRUE); 
+  gStyle->SetOptFit(1111);
+  TFile * f_mw = new TFile(mix_file.c_str(), "READ");  
+  TTree *tr_mw = (TTree*)f_mw->Get("h1");
+
+  t2k_sk_radiative ana_struct;
+  set_tree_addresses(tr_mw, ana_struct, true);
+
+  std::string op_f_name = plot_dir + std::string("mu_ev_loss_weight.root");
+  TFile * f_op = new TFile(op_f_name.c_str(), "RECREATE"); 
+
+  // the ccnumu selection has a mu momentum cut of 200 MeV
+  double mu_mom_cut = 200; //200 MeV
+  double min_mu_en = sqrt(mu_mom_cut*mu_mom_cut + MU_MASS*MU_MASS); // ~ 225 MeV
+  // number of neutrino events < 250 MeV is tiny and division can create problems, set the min to 250 MeV
+  min_mu_en = 250;
+  double max_mu_en = 2000;
+  Int_t nb_bins = 25;
+
+  // Enu for radiative and non radiative contributions
+  TH1D* h_passccnumu_radnoradcont_Enu_totw = new TH1D("h_passccnumu_radnoradcont_Enu_totw", "h_passccnumu_radnoradcont_Enu_totw", nb_bins, min_mu_en, max_mu_en);  
+  TH1D* h_passccnumu_noradcont_Enu_totw = new TH1D("h_passccnumu_noradcont_Enu_totw", "h_passccnumu_noradcont_Enu_totw", nb_bins, min_mu_en, max_mu_en); 
+  TH1D* h_passccnumu_radcont_Enu_totw = new TH1D("h_passccnumu_radcont_Enu_totw", "h_passccnumu_radcont_Enu_totw", nb_bins, min_mu_en, max_mu_en);  
+  // neglecting the oscillation weights
+  TH1D* h_passccnumu_radcont_Enu_radw = new TH1D("h_passccnumu_radcont_Enu_radw", "h_passccnumu_radcont_Enu_radw", nb_bins, min_mu_en, max_mu_en);  
+  TH1D* h_passccnumu_noradcont_Enu_radw = new TH1D("h_passccnumu_noradcont_Enu_radw", "h_passccnumu_noradcont_Enu_radw", nb_bins, min_mu_en, max_mu_en);  
+
+  //denominator for the Enu
+  TH1D* h_passccnumu_norad_Enu_oscw = new TH1D("h_passccnumu_norad_Enu_oscw", "h_passccnumu_norad_Enu_oscw", nb_bins, min_mu_en, max_mu_en); 
+  TH1D* h_passccnumu_norad_Enu_no_w = new TH1D("h_passccnumu_norad_Enu_no_w", "h_passccnumu_norad_Enu_no_w", nb_bins, min_mu_en, max_mu_en); 
+
+  // Emu histograms
+  TH1D* h_passccnumu_radcont_Emuinit_totw = new TH1D("h_passccnumu_radcont_Emuinit_totw", "h_passccnumu_radcont_Emuinit_totw", nb_bins, min_mu_en, max_mu_en);   
+  TH1D* h_passccnumu_norad_Emu_oscw = new TH1D("h_passccnumu_norad_Emu_oscw", "h_passccnumu_norad_Emu_oscw", nb_bins, min_mu_en, max_mu_en); 
+    
+  Long64_t nentries = tr_mw->GetEntries();
+  // check who many events will be lost due to the radiative process
+  for (Long64_t i=0;i<nentries;i++){
+    // ToDo needs OPTIMIZATION now we rely that we know that the mixed files has all entries of the radiative file first then all entries of the Non-Radiative
+    // that the 2 files are equal in size and are in order!!! too many assumptions that ONLY work for this specific file
+
+    double rad_lep_init_en = 0;
+    double nonrad_lep_en = 0;
+    bool rad_pass_ccnumu = false;
+    bool nonrad_pass_ccnumu = false;
+    double cos_mu_g = 0;
+    double theta_mu_g = 0;
+    double nu_en_corr = 0;
+    double lep_en = 0;
+    // check the non-radiative entry
+    tr_mw->GetEntry(i);
+    //std::cout<<"processing entry :" << nonrad_entry << std::endl;
+        //progress
+    print_perc(i, nentries, 10);
+    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions 
+    if(pass_ccqe_numu_sample(ana_struct) == true){
+      // non-radiative event will pass the ccnumu selection 
+      nu_en_corr = compute_nu_en_rec_CCQE_truth(MUON, ana_struct, (bool)ana_struct.is_rad);
+      if(ana_struct.is_rad == 0){
+        // non radiative contribution
+        lep_en = calc_lep_energy(ana_struct, MUON);
+
+        h_passccnumu_norad_Enu_oscw->Fill(nu_en_corr, ana_struct.w_osc);
+        h_passccnumu_norad_Emu_oscw->Fill(lep_en, ana_struct.w_osc); 
+        // fill the non-radiative contribution with the non-radiative weights
+        h_passccnumu_radnoradcont_Enu_totw->Fill(nu_en_corr, ana_struct.w_osc * ana_struct.w_rad);
+        h_passccnumu_radcont_Emuinit_totw->Fill(lep_en, ana_struct.w_osc * ana_struct.w_rad);  
+
+        h_passccnumu_norad_Enu_no_w->Fill(nu_en_corr);
+        h_passccnumu_noradcont_Enu_radw->Fill(nu_en_corr, ana_struct.w_rad); 
+        h_passccnumu_noradcont_Enu_totw->Fill(nu_en_corr, ana_struct.w_osc * ana_struct.w_rad);   
+      }else{
+        // radiative contribution
+        lep_en =  calc_lep_energy(ana_struct, MUON) + ana_struct.g_mom;
+        //Kevin's method to correct for sampling a single photon at a specific ELECTRON energy
+        //define the thrown weight 
+        double w_thr_k = 1.0/( std::max(static_cast<const float>(lep_en), MU_MASS+gamma_en_cutoff) - MU_MASS);
+        double w_rad_k = ana_struct.w_rad/w_thr_k;
+        h_passccnumu_radnoradcont_Enu_totw->Fill(nu_en_corr, ana_struct.w_osc *w_rad_k);
+        h_passccnumu_radcont_Emuinit_totw->Fill(lep_en, ana_struct.w_osc * w_rad_k); 
+
+        h_passccnumu_radcont_Enu_radw->Fill(nu_en_corr, w_rad_k);
+        h_passccnumu_radcont_Enu_totw->Fill(nu_en_corr, ana_struct.w_osc *w_rad_k);         
+      }// radiative          
+    }// pass ccnumu selection
+  }// tree entry
+  // fs
+  //events that fails the ccnumu due to the emitted photon
+  //plot_hist2D(h2d_failccnumu_radcont_pmuthetamug_now, "Radiative events failing the CC#nu_{#mu} Selection (non-radiative ev will pass) no weights;P_{#mu} [MeV];#theta_{#mu#gamma} [#circ]", "colz"); 
+  //plot_hist2D(h2d_failccnumu_radcont_pmuthetamug_totw, "Radiative events failing the CC#nu_{#mu} Selection (non-radiative ev will pass) total weights;P_{#mu} [MeV];#theta_{#mu#gamma} [#circ]", "colz");
+  plot_hist1D(h_passccnumu_norad_Enu_oscw,"h_passccnumu_norad_Enu_oscw",  "Non-radiative events passing the CC#nu_{#mu} Selection (oscilation weights);E_{#nu} [MeV];count", kBlue , 2, 1);
+  plot_hist1D(h_passccnumu_radnoradcont_Enu_totw,"h_passccnumu_radnoradcont_Enu_totw",  "Events (radiative + non-radiative) passing the CC#nu_{#mu} Selection (total weights);E_{#nu} [MeV];count", kBlue , 2, 1);  
+  plot_hist1D(h_passccnumu_norad_Emu_oscw,"h_passccnumu_norad_Emu_oscw",  "Non-radiative events passing the CC#nu_{#mu} Selection (oscillation weights);E_{#mu} [MeV];count", kBlue , 2, 1);    
+  plot_hist1D(h_passccnumu_radcont_Emuinit_totw,"h_passccnumu_radcont_Emuinit_totw",  "Events (radiative + non-radiative) passing the CC#nu_{#mu} Selection (total weights);E_{#mu_{init}} [MeV];count", kBlue , 2, 1);  
+
+ // std::cout<<"Debug: radiative failing integral = " <<  h_failccnumu_radcont_Enu_totw->Integral() 
+ //          << " , non-radiative passing integral = " << h_passccnumu_norad_Enu_oscw ->Integral() << std::endl;
+
+  // produce effeiency as a fraction instead of total number of events
+  TH1D*  h_passccnumu_noradtorad_Enu_fraction = (TH1D*)h_passccnumu_radnoradcont_Enu_totw->Clone("h_passccnumu_noradtorad_Enu_fraction");
+  h_passccnumu_noradtorad_Enu_fraction->Divide(h_passccnumu_radnoradcont_Enu_totw, h_passccnumu_norad_Enu_oscw, 1, 1, "B"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
+
+  TH1D*  h_passccnumu_noradtorad_Emuinit_fraction = (TH1D*)h_passccnumu_radcont_Emuinit_totw->Clone("h_passccnumu_noradtorad_Emuinit_fraction");
+  h_passccnumu_noradtorad_Emuinit_fraction->Divide(h_passccnumu_radcont_Emuinit_totw, h_passccnumu_norad_Emu_oscw, 1, 1, "B"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
+
+  int enu_err_ok= calc_eff_errors(static_cast<const TH1D*>(h_passccnumu_radnoradcont_Enu_totw),
+                                 static_cast<const TH1D*>(h_passccnumu_norad_Enu_oscw),
+                                 *h_passccnumu_noradtorad_Enu_fraction);
+  int emu_err_ok= calc_eff_errors(static_cast<const TH1D*>(h_passccnumu_radcont_Emuinit_totw),
+                                 static_cast<const TH1D*>(h_passccnumu_norad_Emu_oscw),
+                                 *h_passccnumu_noradtorad_Emuinit_fraction);                                 
+  std::cout<<"enu_err_ok = " << enu_err_ok << std::endl;   
+  std::cout<<"emu_err_ok = " << emu_err_ok << std::endl;  
+
+  TF1* enu_func = new TF1("enu_func", "pol1(0)", min_mu_en, max_mu_en);
+  // initialize the fit parameters
+  enu_func->SetParameters(1.0, 0.0);
+  TF1* emu_func = new TF1("emu_func", "pol1(0)", min_mu_en, max_mu_en);
+  // initialize the fit parameters
+  emu_func->SetParameters(1.0, 0.0);
+
+  TF1* enu_func_const = new TF1("enu_func_const", "pol0(0)", min_mu_en, max_mu_en);
+  // initialize the fit parameters
+  enu_func_const->SetParameter(0, 1.0);
+  TF1* emu_func_const = new TF1("emu_func_const", "pol0(0)", min_mu_en, max_mu_en);
+  // initialize the fit parameters
+  emu_func_const->SetParameter(0, 1.0);
+
+  h_passccnumu_noradtorad_Enu_fraction->Fit("enu_func", "WL", "", min_mu_en, max_mu_en );
+  h_passccnumu_noradtorad_Emuinit_fraction->Fit("emu_func", "WL", "", min_mu_en, max_mu_en );
+  //std::cout<<"Debug: radiative failing fraction integral percentage = " <<  h_failccnumu_radcont_Enu_totw_fraction->Integral() * 100
+  //         << std::endl;
+  plot_hist1D(h_passccnumu_noradtorad_Enu_fraction,"h_passccnumu_noradtorad_Enu_fraction",
+              "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#nu} [MeV];ratio",
+              kBlue , 2, 1);           
+  plot_hist1D(h_passccnumu_noradtorad_Emuinit_fraction,"h_passccnumu_noradtorad_Emuinit_fraction",
+              "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#mu_{init}} [MeV];ratio",
+              kBlue , 2, 1);           
+  
+  h_passccnumu_noradtorad_Enu_fraction->Fit("enu_func_const", "WL", "", min_mu_en, max_mu_en );
+  h_passccnumu_noradtorad_Emuinit_fraction->Fit("emu_func_const", "WL", "", min_mu_en, max_mu_en );
+  //std::cout<<"Debug: radiative failing fraction integral percentage = " <<  h_failccnumu_radcont_Enu_totw_fraction->Integral() * 100
+  //         << std::endl;
+  plot_hist1D(h_passccnumu_noradtorad_Enu_fraction,"h_passccnumu_noradtorad_Enu_fraction_const",
+              "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#nu} [MeV];ratio",
+              kBlue , 2, 1);           
+  plot_hist1D(h_passccnumu_noradtorad_Emuinit_fraction,"h_passccnumu_noradtorad_Emuinit_fraction_const",
+              "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#mu_{init}} [MeV];ratio",
+              kBlue , 2, 1); 
+
+
+// new part
+  TH1D*  h_passccnumu_norad_radw_frac = (TH1D*)h_passccnumu_noradcont_Enu_radw->Clone("h_passccnumu_norad_radw_frac");
+  h_passccnumu_norad_radw_frac->Divide(h_passccnumu_norad_radw_frac, h_passccnumu_norad_Enu_no_w, 1, 1, "B");
+  plot_hist1D(h_passccnumu_norad_radw_frac,"h_passccnumu_norad_radw_frac",
+              "non-radiative ev passing the CC#nu_{#mu} Selection (non-radiative weights)/non-radiative ev passing the CC#nu_{#mu} Selection (no weights);E_{#nu} [MeV];ratio",
+              kBlue , 2, 1);   
+
+  TH1D*  h_passccnumu_rad_radw_frac = (TH1D*)h_passccnumu_radcont_Enu_radw->Clone("h_passccnumu_rad_radw_frac");
+  h_passccnumu_rad_radw_frac->Divide(h_passccnumu_rad_radw_frac, h_passccnumu_norad_Enu_no_w, 1, 1, "B");
+  plot_hist1D(h_passccnumu_rad_radw_frac,"h_passccnumu_rad_radw_frac",
+              "radiative ev passing the CC#nu_{#mu} Selection (radiative weights)/non-radiative ev passing the CC#nu_{#mu} Selection (no weights);E_{#nu} [MeV];ratio",
+              kBlue , 2, 1); 
+
+  TH1D*  h_passccnumu_norad_totw_frac = (TH1D*)h_passccnumu_noradcont_Enu_totw->Clone("h_passccnumu_norad_totw_frac");
+  h_passccnumu_norad_totw_frac->Divide(h_passccnumu_norad_totw_frac, h_passccnumu_norad_Enu_oscw, 1, 1, "B");
+  plot_hist1D(h_passccnumu_norad_totw_frac,"h_passccnumu_norad_totw_frac",
+              "non-radiative ev passing the CC#nu_{#mu} Selection (non-radiative * osc weights)/non-radiative ev passing the CC#nu_{#mu} Selection (osc weights);E_{#nu} [MeV];ratio",
+              kBlue , 2, 1);                               
+
+  TH1D*  h_passccnumu_rad_totw_frac = (TH1D*)h_passccnumu_radcont_Enu_totw->Clone("h_passccnumu_rad_totw_frac");
+  h_passccnumu_rad_totw_frac->Divide(h_passccnumu_rad_totw_frac, h_passccnumu_norad_Enu_oscw, 1, 1, "B");
+  plot_hist1D(h_passccnumu_rad_totw_frac,"h_passccnumu_rad_totw_frac",
+              "radiative ev passing the CC#nu_{#mu} Selection (radiative * osc weights)/non-radiative ev passing the CC#nu_{#mu} Selection (osc weights);E_{#nu} [MeV];ratio",
+              kBlue , 2, 1);                               
+
+  f_op->Write();
+  f_op->Close();
+  // free allocated memory
+  /*
+  delete  h2d_failccnumu_radcont_pmuthetamug_now;
+  delete  h2d_failccnumu_radcont_pmuthetamug_totw;
+  delete  h_failccnumu_radcont_Enu_now;
+  delete  h_failccnumu_radcont_Enu_totw;
+  delete  h_passccnumu_norad_Enu_oscw;
+  */
+}
+//============================================================================//
 // Debbie's Method 
 #if 0
   // Debbies histograms
