@@ -73,10 +73,10 @@ typedef struct t2k_sk_radiative{
   unsigned short int nhitac;
 
   //Other introducetd (not in the TTree) analysis variables
-  float mu_mom;
-  float mu_dir[3];
   float g_mom;
   float g_dir[3];
+  float mu_mom;
+  float mu_dir[3];
   float elec_mom;
   float elec_dir[3];
   // ONLY for modified weighted input files (These variables does NOT exist in regular produced fitqun nutuple output)

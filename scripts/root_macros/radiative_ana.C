@@ -1835,10 +1835,12 @@ bool pass_1e_sample(t2k_sk_radiative & ana_struct){
 //============================================================================//
 void fill_particle_kin(t2k_sk_radiative & ana_struct){
 //============================================================================//
-  // in GEANT particle code 1 = gamma, 3 = e-, 6 = mu- 
+  // in GEANT particle code 1 = gamma, 3 = e-, 6 = mu-, 2 = e+ and 5 = mu+ 
   int g_idx = find_particle_idx(ana_struct.ipv, ana_struct.npar, 1);
   int e_idx = find_particle_idx(ana_struct.ipv, ana_struct.npar, 3);
   int mu_idx = find_particle_idx(ana_struct.ipv, ana_struct.npar, 6);
+  int eplus_idx = find_particle_idx(ana_struct.ipv, ana_struct.npar, 2);
+  int muplus_idx = find_particle_idx(ana_struct.ipv, ana_struct.npar, 5);
 
   //filling gamma and muon kinematics
   if(g_idx != -1){
@@ -1848,19 +1850,20 @@ void fill_particle_kin(t2k_sk_radiative & ana_struct){
       ana_struct.g_dir[ix] = ana_struct.dirv[g_idx][ix];    
     }    
   } 
-  if(mu_idx != -1){
+  // mu- and mu+ are treated the same way for fitqun fitters
+  if( (mu_idx != -1) || (muplus_idx!= -1) ){
     ana_struct.mu_mom = ana_struct.pmomv[mu_idx];
     for(int ix = 0 ; ix < 3; ix++){
       ana_struct.mu_dir[ix] = ana_struct.dirv[mu_idx][ix];    
     }     
-  }  
-  if(e_idx != -1){
+  }
+  // e- and e+ are treated the same way for fitqun fitters     
+  if( (e_idx != -1) || (eplus_idx != -1) ){
     ana_struct.elec_mom = ana_struct.pmomv[e_idx];
     for(int ix = 0 ; ix < 3; ix++){
       ana_struct.elec_dir[ix] = ana_struct.dirv[e_idx][ix];    
     }     
   }
-
 }
 //============================================================================//
 void init_result_hists(ana_results_hists& res_h, bool is_sim_gamma){

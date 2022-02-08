@@ -5,6 +5,15 @@
 \graphicspath{ {./include/} }
 \usepackage{float}
 \usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{%
+	\parbox{\textwidth}{\colorbox{gray}{\parbox{\textwidth}{#1#2#3}}\vskip-4pt}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+\lstset{frame=lrb,xleftmargin=\fboxsep,xrightmargin=-\fboxsep}
+
 %opening
 \title{Radiative Correction Framework\\ A Quick Start Guide}
 \author{Fady Shaker}
@@ -16,11 +25,11 @@
 \tableofcontents
 \newpage
 \section{Introduction}
-This document will walk you through how to use and modify the radiative correction framework starting from creating the particle guns till producing the efficiency ratios required for a fake data study.
-
+This document will walk you through how to use and modify the radiative correction framework starting from creating the particle guns till producing the efficiency ratios required for a fake data study.\\
 
 The full code is accessible at:\\
-\url{https://github.com/f-shaker/radiative_correction}
+\url{https://github.com/f-shaker/radiative_correction}\\
+and the generated root files for the analysis are available at:\\
 
 \subsection{Framework Overview}
 \begin{figure}[!ht]
@@ -29,6 +38,18 @@ The full code is accessible at:\\
 	\caption{Radiative Correction Framework}	
 	}
 \end{figure}
+
+\subsection{Creating the Weight Branches}
+The main idea is to merge the two root files: lepton kinematics with photons (radiative) and lepton kinematics without photon (non-radiative) to produce a realistic particle gun. The created mixed-weighted root file must, at least, has a new branch that indicate if this event is radiative or not. It can also calculate the correct radiative (non-radiative) weight as well as the oscillation probabilities. However this functionality is currently overwritten in the main code.
+To produce the mixed weight files, use the following function 
+\begin{lstlisting}[language=C++, caption=Creating Weight Branch Example]
+void create_weight_branches(std::string in_file_name,
+bool is_sim_gamma,
+fq_particle i_particle) 							
+\end{lstlisting} 
+
+
+
 \begin{thebibliography}{9}
 	\bibitem{Ko_phd} 
 	Konosuke Iwamoto. 
