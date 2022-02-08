@@ -22,3 +22,7 @@
 **/*/*.jpg
 **/*/*.jpeg
 **/*/*.png
+
+#do not ignore the following files related to the documentation
+!**/docs/include/*
+!**/docs/*.pdf
