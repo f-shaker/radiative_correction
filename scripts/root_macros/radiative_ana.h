@@ -339,7 +339,7 @@ float calc_nue_osc_weight(float nu_en, TH1D* flux_numu_h, TH1D* flux_nue_h);
 float calc_photon_emission_weight(float gamma_en);
 float calc_photon_emission_weight(float gamma_en, float lep_mom, fq_particle i_particle);
 float calc_no_photon_weight(float lep_mom, fq_particle i_particle);
-void create_weight_branches(std::string in_file_name, bool is_radiative, fq_particle i_particle);
+void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_particle i_particle, bool is_antiparticle);
 void analyze_weighted_branches(std::string raditive_file_name, bool is_radiative, fq_particle i_particle);
 void check_mu_mixed_weights(std::string mix_file);
 void check_elec_mixed_weights(std::string mix_file);

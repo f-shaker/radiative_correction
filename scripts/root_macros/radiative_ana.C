@@ -1851,7 +1851,10 @@ void fill_particle_kin(t2k_sk_radiative & ana_struct){
     }    
   } 
   // mu- and mu+ are treated the same way for fitqun fitters
+  // for this specific type of analysis, we only have a particle gun that is either mu- or mu+ with or without gamma
+  // mu- and mu+ are mutually exceclusive
   if( (mu_idx != -1) || (muplus_idx!= -1) ){
+    mu_idx = mu_idx > muplus_idx? mu_idx : muplus_idx;
     ana_struct.mu_mom = ana_struct.pmomv[mu_idx];
     for(int ix = 0 ; ix < 3; ix++){
       ana_struct.mu_dir[ix] = ana_struct.dirv[mu_idx][ix];    
@@ -1859,6 +1862,7 @@ void fill_particle_kin(t2k_sk_radiative & ana_struct){
   }
   // e- and e+ are treated the same way for fitqun fitters     
   if( (e_idx != -1) || (eplus_idx != -1) ){
+    e_idx = e_idx > eplus_idx? e_idx : eplus_idx;    
     ana_struct.elec_mom = ana_struct.pmomv[e_idx];
     for(int ix = 0 ; ix < 3; ix++){
       ana_struct.elec_dir[ix] = ana_struct.dirv[e_idx][ix];    
@@ -2451,7 +2455,7 @@ float calc_no_photon_weight(float lep_mom, fq_particle i_particle){
   return w;
 }
 //============================================================================//
-void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_particle i_particle){
+void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_particle i_particle, bool is_antiparticle=false){
 //============================================================================//
 // to build a mixed weighted file from 2 different particle guns:
 // create_weight_branches(lep_gamma_file, true, MUON);
@@ -2460,6 +2464,8 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
 // e.g hadd -f mu_g_weighted.root mu_ginft180.root mu_only_init.root
 // then we analyze the mixed file using:
 // check_mixed_weights(mu_g_weighted_file.c_str());
+// FitQun treats particle the same way as antiparticle, but we want to deferentiate when calculating the oscillation weights
+// (neglecting matter effect, oscillation proabability shall be the same) but the fluxes are different
   //init_root_global_settings(); 
   // variables to add to the existing tree
   int is_rad; 
@@ -2480,8 +2486,16 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
     //fill the flux histograms: cloning them from the flux file(s)
     
     TFile* flux_f =  new TFile(flux_file.c_str(), "READ");
-    flux_numu_h = (TH1D*) flux_f->Get(numu_flux_histname.c_str())->Clone("numu_flux_nd") ;
-    flux_nue_h = (TH1D*) flux_f->Get(nue_flux_histname.c_str())->Clone("nue_flux_nd") ;     
+    if(is_antiparticle == false){
+      //Electron neutrino flux
+      flux_numu_h = (TH1D*) flux_f->Get(numu_flux_histname.c_str())->Clone("numu_flux_nd") ;
+      flux_nue_h = (TH1D*) flux_f->Get(nue_flux_histname.c_str())->Clone("nue_flux_nd") ;        
+    }else{
+      // anti neutrino fluxes
+      flux_numu_h = (TH1D*) flux_f->Get(numub_flux_histname.c_str())->Clone("numub_flux_nd") ;
+      flux_nue_h = (TH1D*) flux_f->Get(nueb_flux_histname.c_str())->Clone("nueb_flux_nd") ;  
+    }
+   
     std::cout<<" loading flux histograms" << std::endl;
     flux_f->Close();
     std::cout<< "numu flux mean =: " << flux_numu_h->GetMean() << ", nue flux mean = " << flux_nue_h->GetMean() << std::endl;
@@ -2514,9 +2528,9 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
   Long64_t nentries = tree_in->GetEntries();
   for (Long64_t i=0;i<nentries;i++){
     tree_in->GetEntry(i);
-    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
-    nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, is_sim_gamma);
-    std::cout<< " nu_en = " << nu_en << std::endl;    
+    //Filling gamma, electron and muons mom and directions (note antiparticle are still filled into their particle counterpart)
+    fill_particle_kin(ana_struct);
+    nu_en = compute_nu_en_rec_CCQE_truth(i_particle, ana_struct, is_sim_gamma); 
     if(i_particle == ELECTRON){
       lep_mom = ana_struct.elec_mom;
       w_osc = calc_nue_osc_weight(nu_en, flux_numu_h, flux_nue_h);
@@ -2540,6 +2554,8 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
       // No photon emission
       w_rad = calc_no_photon_weight(lep_mom, i_particle);
     }
+    std::cout<<" entry: " << i << " , mu_mom = " << ana_struct.mu_mom << ", mu_dir = [" <<  ana_struct.mu_dir[0] << "," << ana_struct.mu_dir[1] << "," << ana_struct.mu_dir[2] << "," << std::endl;
+    std::cout<<" entry: " << i << " , nu_en = " << nu_en << ", w_osc = " <<  w_osc << " w_rad = " << w_rad << std::endl;
     br_w_rad->Fill();
     br_w_rad_sum1->Fill();
     // Filling total weight variable

@@ -27,6 +27,8 @@ const std::string plot_ext = ".eps";
 const std::string flux_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/flux/tuned13av7p1/run8/nd5_tuned13av7p1_13anom_run8_numode.root";
 const std::string nue_flux_histname = "enu_nd5_tuned13a_nue";
 const std::string numu_flux_histname = "enu_nd5_tuned13a_numu";
+const std::string nueb_flux_histname = "enu_nd5_tuned13a_nueb";
+const std::string numub_flux_histname = "enu_nd5_tuned13a_numub";
 //==============================================================================
 // Physics 
 //==============================================================================

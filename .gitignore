@@ -23,6 +23,13 @@
 **/*/*.jpeg
 **/*/*.png
 
+#latex auxilary outputs
+**/docs/*.gz
+**/docs/*.log
+**/docs/*.aux
+**/docs/*.out
+**/docs/*.toc
 #do not ignore the following files related to the documentation
 !**/docs/include/*
 !**/docs/*.pdf
+!**/docs/*.tex
