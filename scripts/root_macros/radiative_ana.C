@@ -2495,7 +2495,9 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
       flux_numu_h = (TH1D*) flux_f->Get(numub_flux_histname.c_str())->Clone("numub_flux_nd") ;
       flux_nue_h = (TH1D*) flux_f->Get(nueb_flux_histname.c_str())->Clone("nueb_flux_nd") ;  
     }
-   
+    // closing the file will delete the associated histograms. Therefore, we must set directory to zero before closing the file.
+    flux_numu_h->SetDirectory(0);
+    flux_nue_h->SetDirectory(0);
     std::cout<<" loading flux histograms" << std::endl;
     flux_f->Close();
     std::cout<< "numu flux mean =: " << flux_numu_h->GetMean() << ", nue flux mean = " << flux_nue_h->GetMean() << std::endl;
@@ -2554,8 +2556,8 @@ void create_weight_branches(std::string in_file_name, bool is_sim_gamma, fq_part
       // No photon emission
       w_rad = calc_no_photon_weight(lep_mom, i_particle);
     }
-    std::cout<<" entry: " << i << " , mu_mom = " << ana_struct.mu_mom << ", mu_dir = [" <<  ana_struct.mu_dir[0] << "," << ana_struct.mu_dir[1] << "," << ana_struct.mu_dir[2] << "," << std::endl;
-    std::cout<<" entry: " << i << " , nu_en = " << nu_en << ", w_osc = " <<  w_osc << " w_rad = " << w_rad << std::endl;
+    //std::cout<<" entry: " << i << " , e_mom = " << ana_struct.elec_mom << ", mu_dir = [" <<  ana_struct.elec_dir[0] << "," << ana_struct.elec_dir[1] << "," << ana_struct.elec_dir[2] << "," << std::endl;
+    //std::cout<<" entry: " << i << " , nu_en = " << nu_en << ", w_osc = " <<  w_osc << " w_rad = " << w_rad << std::endl;
     br_w_rad->Fill();
     br_w_rad_sum1->Fill();
     // Filling total weight variable
