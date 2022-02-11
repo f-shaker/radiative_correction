@@ -4289,7 +4289,7 @@ void check_migration(std::string ip_file_name){
 //============================================================================// 
 // JUST FOR DEBUGGING MUST BE REMOVED LATER ON.
 //============================================================================//
-void check_ccnumu_event_loss_due_to_radiation3(std::string mix_file){
+void check_ccnumu_event_loss_due_to_radiation3(std::string mix_file, std::string op_file_name){
 //============================================================================//
   TH1::SetDefaultSumw2(kTRUE); 
   gStyle->SetOptFit(1111);
@@ -4299,7 +4299,7 @@ void check_ccnumu_event_loss_due_to_radiation3(std::string mix_file){
   t2k_sk_radiative ana_struct;
   set_tree_addresses(tr_mw, ana_struct, true);
 
-  std::string op_f_name = plot_dir + std::string("mu_ev_loss_weight.root");
+  std::string op_f_name = plot_dir + op_file_name;
   TFile * f_op = new TFile(op_f_name.c_str(), "RECREATE"); 
 
   // the ccnumu selection has a mu momentum cut of 200 MeV
@@ -4329,21 +4329,11 @@ void check_ccnumu_event_loss_due_to_radiation3(std::string mix_file){
   Long64_t nentries = tr_mw->GetEntries();
   // check who many events will be lost due to the radiative process
   for (Long64_t i=0;i<nentries;i++){
-    // ToDo needs OPTIMIZATION now we rely that we know that the mixed files has all entries of the radiative file first then all entries of the Non-Radiative
-    // that the 2 files are equal in size and are in order!!! too many assumptions that ONLY work for this specific file
 
-    double rad_lep_init_en = 0;
-    double nonrad_lep_en = 0;
-    bool rad_pass_ccnumu = false;
-    bool nonrad_pass_ccnumu = false;
-    double cos_mu_g = 0;
-    double theta_mu_g = 0;
     double nu_en_corr = 0;
     double lep_en = 0;
-    // check the non-radiative entry
     tr_mw->GetEntry(i);
-    //std::cout<<"processing entry :" << nonrad_entry << std::endl;
-        //progress
+    //progress
     print_perc(i, nentries, 10);
     fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions 
     if(pass_ccqe_numu_sample(ana_struct) == true){
