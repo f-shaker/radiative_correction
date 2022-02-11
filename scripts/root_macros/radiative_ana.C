@@ -3933,7 +3933,7 @@ void check_ccnue_event_loss_due_to_radiation3(std::string mix_file, std::string 
   TH1D*  h_passccnue_noradtorad_Eelecinit_fraction = (TH1D*)h_passccnue_radnoradcont_Eelecinit_totw->Clone("h_passccnue_noradtorad_Eelecinit_fraction");
   h_passccnue_noradtorad_Eelecinit_fraction->Divide(h_passccnue_radnoradcont_Eelecinit_totw, h_passccnue_norad_Eelec_oscw, 1, 1, "B"); // try cl=0.683 b(1,1) mode i.e a Baeysian error with alpha =1, beta=1 around the mode (not the mean) 
 
-  int enu_err_ok= calc_eff_errors(static_cast<const TH1D*>(h_passccnue_radcont_Enu_totw),
+  int enu_err_ok= calc_eff_errors(static_cast<const TH1D*>(h_passccnue_radnoradcont_Enu_totw),
                                  static_cast<const TH1D*>(h_passccnue_norad_Enu_oscw),
                                  *h_passccnue_noradtorad_Enu_fraction);
   int eelec_err_ok= calc_eff_errors(static_cast<const TH1D*>(h_passccnue_radnoradcont_Eelecinit_totw),
