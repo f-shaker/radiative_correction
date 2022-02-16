@@ -774,9 +774,31 @@ void plot_hist1D(TH1* hist,  std::string filename, std::string title, int col , 
     // drawing option supplied
     hist->Draw(draw_opt.c_str());
   }
-
+  canv->Update();
   canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),filename.c_str(),plot_ext.c_str()));
   delete canv;
+}
+//============================================================================//
+void plot_hist1D(TH1* hist, std::string filename, std::string title, int col , int width, int sty, double ymin, double ymax, std::string draw_opt){
+//============================================================================//  
+
+  format_hist1D(hist, title, col , width, sty);
+  TCanvas * canv = new TCanvas(Form("canv_%s",hist->GetName()), Form("canv_%s",hist->GetName()), 1200, 800);
+  canv->cd();
+  if(draw_opt.empty()){
+    hist->Draw();
+  }else{
+    // drawing option supplied
+    hist->Draw(draw_opt.c_str());
+  }
+  // must be set inside the canvas!
+  hist->SetMinimum(ymin);
+  hist->SetMaximum(ymax);
+
+  canv->Update();
+  canv->SaveAs(Form("%s%s%s",plot_dir.c_str(),filename.c_str(),plot_ext.c_str()));
+  delete canv;
+
 }
 //============================================================================//
 void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, std::string title, std::string draw_opt1, std::string draw_opt2, TLatex* tex){
@@ -3958,23 +3980,24 @@ void check_ccnue_event_loss_due_to_radiation3(std::string mix_file, std::string 
 
   h_passccnue_noradtorad_Enu_fraction->Fit("enu_func", "WL", "", min_elec_en, max_nu_en );
   h_passccnue_noradtorad_Eelecinit_fraction->Fit("eelec_func", "WL", "", min_elec_en, max_nu_en );
-
+  
   plot_hist1D(h_passccnue_noradtorad_Enu_fraction,"h_passccnue_noradtorad_Enu_fraction",
               "radiative + non-radiative ev passing the CC#nu_{e} Selection (total weights)/non-radiative ev passing the CC#nu_{e} Selection (oscillation weights);E_{#nu} [MeV];ratio",
-              kBlue , 2, 1);           
+              kBlue , 2, 1, 0.95, 1.01);           
+
   plot_hist1D(h_passccnue_noradtorad_Eelecinit_fraction,"h_passccnue_noradtorad_Eelecinit_fraction",
               "radiative + non-radiative ev passing the CC#nu_{e} Selection (total weights)/non-radiative ev passing the CC#nu_{e} Selection (oscillation weights);E_{e_{init}} [MeV];ratio",
-              kBlue , 2, 1);           
+              kBlue , 2, 1, 0.95, 1.01);           
   
   h_passccnue_noradtorad_Enu_fraction->Fit("enu_func_const", "WL", "", min_elec_en, max_nu_en );
   h_passccnue_noradtorad_Eelecinit_fraction->Fit("eelec_func_const", "WL", "", min_elec_en, max_nu_en );
 
   plot_hist1D(h_passccnue_noradtorad_Enu_fraction,"h_passccnue_noradtorad_Enu_fraction_const",
               "radiative + non-radiative ev passing the CC#nu_{e} Selection (total weights)/non-radiative ev passing the CC#nu_{e} Selection (oscillation weights);E_{#nu} [MeV];ratio",
-              kBlue , 2, 1);           
+              kBlue , 2, 1, 0.95, 1.01);           
   plot_hist1D(h_passccnue_noradtorad_Eelecinit_fraction,"h_passccnue_noradtorad_Eelecinit_fraction_const",
               "radiative + non-radiative ev passing the CC#nu_{e} Selection (total weights)/non-radiative ev passing the CC#nu_{e} Selection (oscillation weights);E_{e_{init}} [MeV];ratio",
-              kBlue , 2, 1);
+              kBlue , 2, 1, 0.95, 1.01);
 
 
 
@@ -4027,8 +4050,7 @@ int calc_eff_errors(const TH1D* num, const TH1D* den, TH1D& ratio){
     }
     std::cout<<"bin " << i << " , err = " <<  ratio.GetBinError(i) << std::endl;
   }
-  ratio.SetMaximum(1.0);
-  ratio.SetMinimum(0.9);  
+
   return ok;
 
 }
@@ -4428,10 +4450,10 @@ void check_ccnumu_event_loss_due_to_radiation3(std::string mix_file, std::string
   //         << std::endl;
   plot_hist1D(h_passccnumu_noradtorad_Enu_fraction,"h_passccnumu_noradtorad_Enu_fraction",
               "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#nu} [MeV];ratio",
-              kBlue , 2, 1);           
+              kBlue , 2, 1, 0.93, 1.02);           
   plot_hist1D(h_passccnumu_noradtorad_Emuinit_fraction,"h_passccnumu_noradtorad_Emuinit_fraction",
               "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#mu_{init}} [MeV];ratio",
-              kBlue , 2, 1);           
+              kBlue , 2, 1, 0.93, 1.02);           
   
   h_passccnumu_noradtorad_Enu_fraction->Fit("enu_func_const", "WL", "", min_mu_en, max_mu_en );
   h_passccnumu_noradtorad_Emuinit_fraction->Fit("emu_func_const", "WL", "", min_mu_en, max_mu_en );
@@ -4439,10 +4461,10 @@ void check_ccnumu_event_loss_due_to_radiation3(std::string mix_file, std::string
   //         << std::endl;
   plot_hist1D(h_passccnumu_noradtorad_Enu_fraction,"h_passccnumu_noradtorad_Enu_fraction_const",
               "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#nu} [MeV];ratio",
-              kBlue , 2, 1);           
+              kBlue , 2, 1, 0.93, 1.02);           
   plot_hist1D(h_passccnumu_noradtorad_Emuinit_fraction,"h_passccnumu_noradtorad_Emuinit_fraction_const",
               "radiative + non-radiative ev passing the CC#nu_{#mu} Selection (total weights)/non-radiative ev passing the CC#nu_{#mu} Selection (oscillation weights);E_{#mu_{init}} [MeV];ratio",
-              kBlue , 2, 1); 
+              kBlue , 2, 1, 0.93, 1.02); 
 
 
 // new part

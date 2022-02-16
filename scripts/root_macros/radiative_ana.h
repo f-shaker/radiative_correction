@@ -300,6 +300,7 @@ bool pass_1e_sample(t2k_sk_radiative & ana_struct);
 //supoorting functions
 void format_hist1D(TH1* hist, std::string title, int col , int width, int sty);
 void plot_hist1D(TH1* hist, std::string filename, std::string title, int col , int width, int sty, std::string draw_opt="");
+void plot_hist1D(TH1* hist, std::string filename, std::string title, int col , int width, int sty, double ymin, double ymax, std::string draw_opt="");
 void plot_gr1D(TGraph* gr, std::string filename, std::string title, int marker_style, int marker_size, int marker_col, std::string draw_opt="");
 void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, std::string title, std::string draw_opt1, std::string draw_opt2, TLatex* tex = NULL);
 void plot_ratio_hist1D(TH1* hist1, TH1* hist2, std::string filename, std::string x_axis_title, std::string y_up_axis_title, std::string y_down_axis_title);
