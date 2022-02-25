@@ -801,7 +801,9 @@ void plot_hist1D(TH1* hist, std::string filename, std::string title, int col , i
 
 }
 //============================================================================//
-void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, std::string title, std::string draw_opt1, std::string draw_opt2, TLatex* tex){
+void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, std::string title,
+                              std::string draw_opt1, std::string draw_opt2, TLatex* tex,
+                              double leg_x1, double leg_y1, double leg_x2, double leg_y2){
 //============================================================================//
   hist1->SetTitle(title.c_str());
   TCanvas * canv = new TCanvas(Form("canv_%s",hist1->GetName()), Form("canv_%s",hist1->GetName()), 1200, 800);
@@ -817,9 +819,9 @@ void plot_superimposed_hist1D(TH1D* hist1, TH1D* hist2, std::string filename, st
   hist2->GetYaxis()->SetTitleOffset(1.2);
   hist1->Draw(draw_opt1.c_str());
   hist2->Draw(draw_opt2.c_str());
-  TLegend* legend = new TLegend(0.8,0.7,1.0,0.9);
-  legend->AddEntry(hist1->GetName(),hist1->GetName(),"l");
-  legend->AddEntry(hist2->GetName(),hist2->GetName(),"l");
+  TLegend* legend = new TLegend(leg_x1,leg_y1,leg_x2,leg_y2);
+  legend->AddEntry(hist1->GetName(),hist1->GetName(),"lp");
+  legend->AddEntry(hist2->GetName(),hist2->GetName(),"lp");
   if(tex!= NULL) tex->Draw();
   //legend->Draw("SAME"); fsamir check if i remove same from legend
   legend->Draw();
@@ -1890,6 +1892,7 @@ void fill_particle_kin(t2k_sk_radiative & ana_struct){
       ana_struct.elec_dir[ix] = ana_struct.dirv[e_idx][ix];    
     }     
   }
+
 }
 //============================================================================//
 void init_result_hists(ana_results_hists& res_h, bool is_sim_gamma){
@@ -4502,6 +4505,127 @@ void check_ccnumu_event_loss_due_to_radiation3(std::string mix_file, std::string
   delete  h_failccnumu_radcont_Enu_totw;
   delete  h_passccnumu_norad_Enu_oscw;
   */
+}
+//============================================================================//
+void plot_particle_antiparticle_angular_dist(fq_particle i_particle){
+//============================================================================//
+  init_root_global_settings(false, true, "neimr");
+  std::string mu_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/mu_only_init.root";
+  std::string muplus_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/muplus_init_5e4.root";
+
+  std::string e_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/elec_init_5e4.root";
+  std::string eplus_file = "/home/fshaker/t2k/radiative-correction/analysis/root_files/eplus_init_5e4.root";
+
+  std::string particle_file = "";
+  std::string antiparticle_file = "";
+  std::string particle_type = "";
+
+  if(i_particle == MUON){
+    particle_file = mu_file;
+    antiparticle_file = muplus_file;
+    particle_type = "mu";
+
+  }else if(i_particle == ELECTRON){
+    particle_file = e_file;
+    antiparticle_file = eplus_file;
+    particle_type ="elec";
+  }
+  else{
+    std::cout<<"UNKNOWM particle to analyze! Please pass either ELECTRON or MUON" <<std::endl;
+    exit(-1);    
+  }
+  float cos_lep_angle;
+  float lep_dir[3];
+  float lep_mom;
+  float transverse_mom; 
+  TH1D * cos_particle_angle_h = new TH1D("cos_particle_angle_h", "cos_particle_angle_h", 100, -1, 1);
+  TH1D * cos_antiparticle_angle_h = new TH1D("cos_antiparticle_angle_h", "cos_antiparticle_angle_h", 100, -1, 1);
+  TH1D * ptransverse_particle_h = new TH1D("ptransverse_particle_h", "ptransverse_particle_h", 100, 0, 2000);
+  TH1D * ptransverse_antiparticle_h = new TH1D("ptransverse_antiparticle_h", "ptransverse_antiparticle_h", 100, 0, 2000);
+
+  t2k_sk_radiative ana_struct;
+  Long64_t nentries;
+
+  TFile * f_particle = new TFile(particle_file.c_str(), "READ");  
+  TTree *tr_particle = (TTree*)f_particle->Get("h1");
+  set_tree_addresses(tr_particle, ana_struct, false);
+
+  nentries = tr_particle->GetEntries();
+  for (Long64_t i=0;i<nentries;i++){
+    print_perc(i, nentries, 10);
+    tr_particle->GetEntry(i);    
+    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
+    if(i_particle == MUON){
+      lep_dir[0] = ana_struct.mu_dir[0];
+      lep_dir[1] = ana_struct.mu_dir[1];
+      lep_dir[2] = ana_struct.mu_dir[2];
+      lep_mom = ana_struct.mu_mom;      
+    }else if(i_particle == ELECTRON){
+      lep_dir[0] = ana_struct.elec_dir[0];
+      lep_dir[1] = ana_struct.elec_dir[1];
+      lep_dir[2] = ana_struct.elec_dir[2]; 
+      lep_mom = ana_struct.elec_mom;  
+    }else{
+      std::cout<<"Unknown Partilce!"<<std::endl;
+      std::exit(-1);
+    }
+    cos_lep_angle = lep_dir[0] * beamdir[0] + lep_dir[1] * beamdir[1] + lep_dir[2] * beamdir[2];
+    //std::cout<<"particle cos_lep_angle = "<< cos_lep_angle << " and beam dir = ["<< beamdir[0] << ", " << beamdir[1] << ", " << beamdir[2] \
+            << "] and lep dir = [" << lep_dir[0] << ", " << lep_dir[1] << ", "<< lep_dir[2] << "]" <<std::endl;
+    cos_particle_angle_h->Fill(cos_lep_angle);
+    transverse_mom = lep_mom * sqrt(1-(cos_lep_angle*cos_lep_angle));
+    ptransverse_particle_h->Fill(transverse_mom);    
+  }
+  f_particle->Close();    
+
+  TFile * f_antiparticle = new TFile(antiparticle_file.c_str(), "READ");  
+  TTree *tr_antiparticle = (TTree*)f_antiparticle->Get("h1");
+  set_tree_addresses(tr_antiparticle, ana_struct, false);
+
+  nentries = tr_antiparticle->GetEntries();
+  for (Long64_t i=0;i<nentries;i++){
+    print_perc(i, nentries, 10);
+    tr_antiparticle->GetEntry(i);  
+    fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions
+    if(i_particle == MUON){
+      lep_dir[0] = ana_struct.mu_dir[0];
+      lep_dir[1] = ana_struct.mu_dir[1];
+      lep_dir[2] = ana_struct.mu_dir[2]; 
+      lep_mom = ana_struct.mu_mom;            
+    }else if(i_particle == ELECTRON){
+      lep_dir[0] = ana_struct.elec_dir[0];
+      lep_dir[1] = ana_struct.elec_dir[1];
+      lep_dir[2] = ana_struct.elec_dir[2];
+      lep_mom = ana_struct.elec_mom;           
+    }else{
+      std::cout<<"Unknown Partilce!"<<std::endl;
+      std::exit(-1);
+    }
+    cos_lep_angle = lep_dir[0] * beamdir[0] + lep_dir[1] * beamdir[1] + lep_dir[2] * beamdir[2];
+    cos_antiparticle_angle_h->Fill(cos_lep_angle); 
+    //std::cout<<"Antiparticle cos_lep_angle = "<< cos_lep_angle << std::endl;
+    transverse_mom = lep_mom * sqrt(1-(cos_lep_angle*cos_lep_angle));
+    ptransverse_antiparticle_h->Fill(transverse_mom);             
+  }
+  f_antiparticle->Close();
+
+  cos_particle_angle_h->SetMarkerStyle(20);
+  cos_antiparticle_angle_h->SetMarkerStyle(24);
+  cos_particle_angle_h->SetMarkerSize(0.5);
+  cos_antiparticle_angle_h->SetMarkerSize(0.5);
+  format_hist1D(cos_particle_angle_h, "Angular distribution;cos(#theta_{#nulep});count" , kBlue , 2, 1);
+  format_hist1D(cos_antiparticle_angle_h, "Angular distribution;cos(#theta_{#nulep});count" , kRed , 2, 1);
+  plot_superimposed_hist1D(cos_particle_angle_h, cos_antiparticle_angle_h, particle_type+std::string("_angular_dist"),\
+                           "Angular distribution;cos(#theta_{#nulep});count", "p", "SAME p", NULL, 0.1, 0.7, 0.3, 0.9);  
+
+  ptransverse_particle_h->SetMarkerStyle(20);
+  ptransverse_antiparticle_h->SetMarkerStyle(24);
+  ptransverse_particle_h->SetMarkerSize(0.5);
+  ptransverse_antiparticle_h->SetMarkerSize(0.5);
+  format_hist1D(ptransverse_particle_h, "Transverse Momentum;P_{T}[MeV];count" , kBlue , 2, 1);
+  format_hist1D(ptransverse_antiparticle_h, "Transverse Momentum;P_{T}[MeV];count" , kRed , 2, 1);  
+  plot_superimposed_hist1D(ptransverse_particle_h, ptransverse_antiparticle_h, particle_type+std::string("_ptransverse"),\
+                           "Transverse Momentum;P_{T}[MeV];count", "", "SAME", NULL, 0.5, 0.7, 0.9, 0.9);  
 }
 //============================================================================//
 // Debbie's Method 
