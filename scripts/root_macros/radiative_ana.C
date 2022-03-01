@@ -3916,7 +3916,6 @@ void check_ccnue_event_loss_due_to_radiation3(std::string mix_file, std::string 
     print_perc(i, nentries, 10);
     fill_particle_kin(ana_struct);//Filling gamma, electron and muons mom and directions 
     if(pass_1e_sample(ana_struct) == true){
-      // non-radiative  
       nu_en_corr = compute_nu_en_rec_CCQE_truth(ELECTRON, ana_struct, (bool)ana_struct.is_rad);
       if(ana_struct.is_rad == 0){
         // non radiative contribution
